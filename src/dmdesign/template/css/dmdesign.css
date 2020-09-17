@@ -1,0 +1,263 @@
+html, body {
+    height: 100%;
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+#left-component {
+    right: 30%;
+    margin-right: 5px;
+}
+
+#my-divider {
+    right: 30%;
+    width: 5px;
+}
+
+.pretty-split-pane-frame {
+    background-color: bisque;
+    height: 100%;
+}
+
+#attr-component {
+    width: 30%;
+}
+
+#schema-component {
+    bottom: 30%;
+    margin-bottom: 5px;
+    min-height: 5em;
+    background-color: darkgray;
+
+}
+
+#horizontal-divider {
+    bottom: 30%;
+    height: 5px;
+}
+
+#tap-component {
+    height: 30%;
+    min-height: 10em;
+}
+
+
+.schema-view {
+    background: rgb(58, 65, 68) url("../img/dot.png") repeat;
+    position: absolute;
+    height: 500px;
+    width: 800px;
+    top: 0px;
+    left: 0px;
+    overflow: hidden;
+}
+
+.schema-view .card-header, .schema-view .card-body {
+    padding: .25rem 0.25rem;
+}
+
+.table-view {
+    position: absolute;
+    border-top-radius: 20px;
+    background-color: #3d8576;
+    box-shadow: 5px 5px 10px #aaa;
+
+}
+
+.table-head {
+    height: 30px;
+    background-color: #d99d49;
+}
+
+.table-body {
+    top: 30px;
+    bottom: 0px;
+    overflow: auto;
+}
+
+.table-head div {
+    display: inline-block;
+}
+
+.close-button {
+    position: absolute;
+    right: 10px;
+    font-size: large;
+    font-weight: bold;
+    color: white;
+    padding-right: 7px;
+}
+
+
+.close-button:hover {
+    color: red;
+    cursor: default;
+}
+
+.table-title {
+    position: absolute;
+    left: 20px;
+    right: 30px;
+    text-align: center;
+    cursor: default;
+}
+
+.column-body {
+    display: inline;
+    position: relative;
+    overflow: auto;
+    height: 35px;
+    font-size: 12px;
+}
+
+.schema-bottom {
+    position: absolute;
+    bottom: 0;
+    height: 4px;
+    width: 100%;
+    z-index: 2;
+}
+
+.schema-bottom:hover {
+    cursor: row-resize;
+}
+
+.schema-right:hover {
+    cursor: col-resize;
+}
+
+.schema-corner {
+    position: absolute;
+    height: 10px;
+    width: 10px;
+    bottom: 0px;
+    right: 0px;
+    z-index: 3;
+}
+
+.schema-corner:hover {
+    cursor: se-resize;
+}
+
+.schema-right {
+    float: right;
+    height: 100%;
+    width: 4px;
+    z-index: 2;
+}
+
+.column-body:not(.active):hover {
+    background-color: lightgray;
+}
+
+.column-badge-left {
+    position: absolute;
+    width: 20px;
+    left: 10px;
+}
+
+.column-title {
+    position: absolute;
+    left: 30px;
+    right: 30px;
+    font-size: 12px;
+}
+
+.column-body .spot-left {
+    float: left;
+    width: 50px;
+    height: 100%;
+    z-index: 2000;
+}
+
+.column-body .spot-right {
+    float: right;
+    width: 50px;
+    height: 100%;
+    z-index: 2000;
+}
+
+.column-body:hover {
+    cursor: default;
+}
+
+.column-body .spot:hover {
+    cursor: grab;
+}
+
+.column-badge-right {
+    position: absolute;
+    width: 20px;
+    right: 5px;
+}
+
+
+.table-body .list-group-item {
+    padding: .25rem 0.25rem;
+}
+
+.table-body .list-group-item.active {
+    z-index: inherit;
+    padding: .25rem 0.25rem;
+}
+
+.table-body .list-group {
+    border-radius: 0px;
+}
+
+.badge-info {
+    padding-left: 10px;
+}
+
+#resize {
+    width: 10px;
+    height: 10px;
+    overflow: hidden;
+    cursor: se-resize;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    background-color: #09C;
+}
+
+.demo {
+    display: inline;
+}
+
+.list-group-item + .list-group-item.active {
+    margin-top: 0px;
+    border-top-width: 0px;
+}
+
+
+.line-title {
+    font-weight: bold;
+    color: white;
+    z-index: 3;
+}
+
+.table-view.active .table-head {
+    background-color: deepskyblue;
+}
+
+.toolbar-handler {
+    width: 10px;
+    background-color: #aaaaaa;
+}
+
+.jtk-connector {
+    z-index: 2;
+}
+
+.panel-tools {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 0px 15px 15px 0px;
+    z-index: 3;
+}
+
+
+

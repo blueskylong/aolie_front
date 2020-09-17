@@ -1,0 +1,52 @@
+.ui-jqgrid.ui-jqgrid-bootstrap > .ui-jqgrid-view.panel-info {
+    font-size: 1em;
+}
+
+.ui-jqgrid.ui-jqgrid-bootstrap tr.jqfoot.ui-row-ltr > td, .ui-jqgrid.ui-jqgrid-bootstrap tr.jqgfirstrow > td,
+.ui-jqgrid.ui-jqgrid-bootstrap tr.jqgroup.ui-row-ltr > td, .ui-jqgrid.ui-jqgrid-bootstrap tr.jqgrow.ui-row-ltr > td {
+    padding: .2em .3em;
+    padding-top: 0.4em;
+    padding-right: 0.6em;
+    padding-bottom: 0.4em;
+    padding-left: 0.6em;
+}
+
+.ui-jqgrid tr.jqfoot > td, .ui-jqgrid tr.jqgroup > td, .ui-jqgrid tr.jqgrow > td, .ui-jqgrid tr.ui-subgrid > td, .ui-jqgrid tr.ui-subtblcell > td {
+    height: 32px;
+}
+
+
+.ui-jqgrid .selected {
+    background-color: rgba(0, 198, 250, 0.4);
+}
+
+.ui-jqgrid .selected.active {
+    background-color: rgba(0, 198, 250, 0.4);
+}
+
+.ui-jqgrid.ui-jqgrid-bootstrap tr.jqgrow.ui-row-ltr > td.edit-cell[tabindex='0'] {
+    padding: 0px;
+}
+
+.ui-jqgrid.ui-jqgrid-bootstrap tr.jqgrow.ui-row-ltr > td.edit-cell input,
+.ui-jqgrid.ui-jqgrid-bootstrap tr.jqgrow.ui-row-ltr > td.edit-cell select,
+.ui-jqgrid.ui-jqgrid-bootstrap tr.jqgrow.ui-row-ltr > td.edit-cell textarea {
+    border: 0px;
+    height: 100%;
+    width: 100%;
+    padding-left: 0.6em;
+    /*border-color: rgba(126, 239, 104, 0.8);*/
+}
+
+.ui-jqgrid.ui-jqgrid-bootstrap tr.jqgrow.ui-row-ltr > td.edit-cell input[type = checkbox] {
+    height: 18px;
+    width: 18px;
+    display: inline-block;
+    vertical-align: middle;
+    text-align: center;
+    /*border-color: rgba(126, 239, 104, 0.8);*/
+}
+.ui-jqgrid.ui-jqgrid-bootstrap tr.jqgrow.ui-row-ltr > td.readonly_cell{
+    background-color: #f5f5f5;
+}
+

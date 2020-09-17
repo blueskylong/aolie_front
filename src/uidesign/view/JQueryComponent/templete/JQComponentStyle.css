@@ -1,0 +1,8 @@
+
+.comp-title {
+    text-align: right;
+}
+
+.comp-body .comp-title-right {
+    text-align: left;
+}

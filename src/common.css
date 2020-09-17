@@ -1,0 +1,21 @@
+
+.icon {
+    font-family: FontAwesome;
+}
+.split-pane-divider {
+    background-color: rgba(232, 123, 121, 0.6);
+}
+
+html {
+    font-size: 14px;
+}
+
+.row {
+    margin-right: 0px;
+    margin-left: 0px;
+}
+
+#container {
+    width: 100%;
+    height: 100%;
+}

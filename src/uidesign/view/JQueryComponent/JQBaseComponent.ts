@@ -1,0 +1,80 @@
+import {BaseComponent} from "../BaseComponent";
+import "./templete/JQComponentStyle.css";
+import {Component} from "../../../blockui/uiruntime/Component";
+import {GeneralEventListener} from "../../../blockui/event/GeneralEventListener";
+
+export abstract class JQBaseComponent<T extends Component> extends BaseComponent<T> {
+
+
+    protected constructor(dto: T, eventHandler?: GeneralEventListener) {
+        super(dto);
+        this.addValueChangeListener(eventHandler);
+    }
+
+    private isMaskChange = false;
+    /**
+     * 主要输入控件
+     */
+    protected editor: JQuery;
+
+    afterComponentAssemble(): void {
+    }
+
+    getValue(): any {
+        if (!this.editor) {
+            return null;
+        }
+        return this.editor.val();
+    }
+
+    getEditor() {
+        return this.editor;
+    }
+
+
+    public getColumnId(): number {
+        return this.properties['columnId'];
+    }
+
+    setEditable(editable: boolean) {
+        if (!this.editor) {
+            return;
+        }
+        if (editable) {
+            this.editor.removeAttr("readonly");
+        } else {
+            this.editor.attr("readonly", "readonly")
+        }
+    }
+
+    setEnable(enable: boolean) {
+        if (!this.editor) {
+            return;
+        }
+        if (enable) {
+            this.editor.removeAttr("disabled");
+        } else {
+            this.editor.attr("disabled", "disabled")
+        }
+    }
+
+    setValue(value: any) {
+        if (!this.editor) {
+            return;
+        }
+        this.isMaskChange = true;
+        try {
+            this.editor.val(value);
+        } finally {
+            this.isMaskChange = false;
+        }
+
+    }
+
+    setVisible(visible: boolean) {
+        this.$element.css("display",
+            visible ? "display" : "none");
+    }
+
+
+}
