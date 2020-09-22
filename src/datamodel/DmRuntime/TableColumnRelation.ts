@@ -1,7 +1,6 @@
-import Table = WebAssembly.Table;
 import {TableColumnRelationDto} from "../dto/TableColumnRelationDto";
 import {PopulateBean} from "../../decorator/decorator";
-import {ReferenceDto} from "../dto/ReferenceDto";
+import {TableInfo} from "./TableInfo";
 
 export class TableColumnRelation {
     /**
@@ -11,11 +10,11 @@ export class TableColumnRelation {
     /**
      * 起始表信息
      */
-    private tableFrom: Table;
+    private tableFrom: TableInfo;
     /**
      * 终止表信息
      */
-    private tableTo: Table;
+    private tableTo: TableInfo;
 
 
     getDto(): TableColumnRelationDto {
@@ -26,19 +25,19 @@ export class TableColumnRelation {
         this.dto = value;
     }
 
-    getTableFrom(): Table {
+    getTableFrom(): TableInfo {
         return this.tableFrom;
     }
-    @PopulateBean(Table)
-    setTableFrom(value: Table) {
+    @PopulateBean(TableInfo)
+    setTableFrom(value: TableInfo) {
         this.tableFrom = value;
     }
 
-    getTableTo(): Table {
+    getTableTo(): TableInfo {
         return this.tableTo;
     }
-    @PopulateBean(Table)
-    setTableTo(value: Table) {
+    @PopulateBean(TableInfo)
+    setTableTo(value: TableInfo) {
         this.tableTo = value;
     }
 }

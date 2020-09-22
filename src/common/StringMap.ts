@@ -36,6 +36,14 @@ export class StringMap<V> {
         return this.obj.hasOwnProperty(key);
     }
 
+    getValues(): Array<V> {
+        let result = new Array<V>();
+        for (let key in this.obj) {
+            result.push(this.obj[key])
+        }
+        return result;
+    }
+
     set(key: string, value: V): StringMap<V> {
         this.obj[key] = value;
         return this;

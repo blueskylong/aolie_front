@@ -37,7 +37,11 @@ export class RelationDlg<T extends DialogInfo> extends Dialog<T> {
 
     beforeShow(value?: any) {
 
-        this.setValue(value);
+        if (typeof value === "number" || typeof value === "string") {
+            this.setValue(value);
+        } else {
+            this.setValue(value.relationType);
+        }
 
     }
 

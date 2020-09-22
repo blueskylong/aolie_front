@@ -37,6 +37,9 @@ export class CommonUtils {
         return temp;
     };
 
+    static genElementId(...ids) {
+        return "C" + ids.join("_");
+    }
 
     static toCamel(str: string) {
         if (str.indexOf("_") == -1) {
@@ -63,6 +66,14 @@ export class CommonUtils {
                 callback();
             }
         }, 100);
+    }
+
+    static showMask() {
+        //  $("body").modal("show");
+    }
+
+    static hideMask() {
+        // $("body").modal();
     }
 
 }

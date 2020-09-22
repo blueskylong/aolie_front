@@ -31,6 +31,14 @@ export default class EventBus {
      */
     public static DELETE_CUR_CONNECTION = "DELETE_CONNECTION";
     /**
+     * 增加列
+     */
+    public static ADD_COLUMN = "ADD_COLUMN";
+    /**
+     *删除列
+     */
+    public static DELETE_COLUMN = "DELETE_COLUMN";
+    /**
      * 缓存所有事件监听者
      */
     public static EVENTS = {};

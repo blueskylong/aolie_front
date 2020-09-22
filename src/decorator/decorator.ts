@@ -161,6 +161,9 @@ export class BeanFactory {
      * @param params
      */
     static populateBean<T>(_constructor: { new(...args: Array<any>): T }, params: any): T {
+        if (!params) {
+            return null;
+        }
         let obj = new _constructor();
 
         for (let attr in params) {

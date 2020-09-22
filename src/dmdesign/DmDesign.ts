@@ -11,6 +11,7 @@ import EventBus from "./view/EventBus";
 import {Table} from "../blockui/table/Table";
 import {TableDemo} from "./view/TableDemo";
 import {ServerRenderProvider} from "../blockui/table/TableRenderProvider";
+import {CommonUtils} from "../common/CommonUtils";
 
 export default class DmDesign {
     private ID_SCHEMA = "schema-component";
@@ -41,6 +42,7 @@ export default class DmDesign {
             this.addTabInfoUI();
             this.addAttrUI();
         });
+
     }
 
     private getUI() {
@@ -51,9 +53,9 @@ export default class DmDesign {
      * 生成
      */
     private addSchemaUI() {
-        let schemaDto =new SchemaDto();
-        schemaDto.schemaId =2;
-        schemaDto.schemaName="业务方案";
+        let schemaDto = new SchemaDto();
+        schemaDto.schemaId = 2;
+        schemaDto.schemaName = "业务方案";
         this.schemaView = new SchemaView(schemaDto);
         $("#" + this.ID_SCHEMA).append(this.schemaView.getViewUI());
         $(".split-pane").on("mousemove",
@@ -91,6 +93,9 @@ export default class DmDesign {
             }
         });
         this.tapPanel.addTap("方案信息", this.fSchema.getViewUI());
+        setTimeout(() => {
+            this.fSchema.setValue(this.schemaView.getDtoInfo());
+        }, 1000);
 
 
         dto = new BlockViewDto();
@@ -128,7 +133,7 @@ export default class DmDesign {
 
 
     public setEditable(editable) {
-        this.fFormula.setEditable(editable);
+        this.fSchema.setEditable(editable);
         this.fConstraint.setEditable(editable);
         this.fFormula.setEditable(editable);
         this.fTable.setEditable(editable);

@@ -35,7 +35,7 @@ export class UiService {
     static async getReferenceData(refId: number) {
         let key = UiService.PREFIX_KEY_REFERENCE_DATE + refId;
         if (UiService.CACHE.has(key)) {
-            return UiService.CACHE.get(key);
+            return UiService.CACHE.get(key) as any;
         }
         let result = await NetRequest.axios.get(this.URL_ROOT + "/findReferenceData/" + refId);
         if (result && result.data) {

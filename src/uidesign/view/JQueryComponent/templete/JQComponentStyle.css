@@ -6,3 +6,17 @@
 .comp-body .comp-title-right {
     text-align: left;
 }
+
+.toolbar-handler {
+    width: 10px;
+    background-color: #aaaaaa;
+}
+
+.panel-tools {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 0px 15px 15px 0px;
+    z-index: 3;
+}

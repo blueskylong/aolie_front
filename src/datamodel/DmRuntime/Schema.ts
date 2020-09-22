@@ -3,15 +3,17 @@ import {Constraint} from "./Constraint";
 import {Reference} from "./Reference";
 import {Formula} from "../../blockui/uiruntime/Formula";
 import {PopulateBean} from "../../decorator/decorator";
-import {Component} from "../../blockui/uiruntime/Component";
-import {Table} from "../../blockui/table/Table";
+import {TableInfo} from "./TableInfo";
+import FormulaDto from "../dto/FormulaDto";
+import {TableColumnRelation} from "./TableColumnRelation";
+import {Column} from "./Column";
 
 export class Schema {
     private schemaDto: SchemaDto;
     /**
      * 下属表
      */
-    private lstTable: Array<Table>;
+    private lstTable: Array<TableInfo>;
     /**
      * 表间约束
      */
@@ -23,9 +25,10 @@ export class Schema {
     private lstReference: Array<Reference>;
 
     /**
-     * 所有的公式
+     * 所有关系
      */
-    private lstFormula: Array<Formula>;
+    private lstRelation: Array<TableColumnRelation>;
+
 
     getLstReference() {
         return this.lstReference;
@@ -37,11 +40,15 @@ export class Schema {
     }
 
     getLstFormula() {
-        return this.lstFormula;
-    }
-    @PopulateBean(Formula)
-    setLstFormula(lstFormula:Array<Formula>) {
-        this.lstFormula = lstFormula;
+        if (this.lstTable) {
+            let result = new Array<FormulaDto>();
+            for (let table of this.lstTable) {
+                let dtos = table.getColFormulas();
+                if (dtos && dtos.length > 0) {
+                    result.push(...dtos);
+                }
+            }
+        }
     }
 
 
@@ -50,24 +57,47 @@ export class Schema {
     }
 
     @PopulateBean(SchemaDto)
-    seSchemaDto(value: SchemaDto) {
+    setSchemaDto(value: SchemaDto) {
         this.schemaDto = value;
     }
 
-    getLstTable(): Array<Table> {
+    getLstTable(): Array<TableInfo> {
         return this.lstTable;
     }
 
-    @PopulateBean(Table)
-    setLstTable(value: Array<Table>) {
+    @PopulateBean(TableInfo)
+    setLstTable(value: Array<TableInfo>) {
         this.lstTable = value;
     }
 
     getLstConstraint(): Array<Constraint> {
         return this.lstConstraint;
     }
+
     @PopulateBean(Constraint)
     setLstConstraint(value: Array<Constraint>) {
         this.lstConstraint = value;
+    }
+
+
+    getLstRelation(): Array<TableColumnRelation> {
+        return this.lstRelation;
+    }
+
+    @PopulateBean(TableColumnRelation)
+    setLstRelation(value: Array<TableColumnRelation>) {
+        this.lstRelation = value;
+    }
+
+    findColumn(colId: number): Column {
+        if (this.lstTable && this.lstTable.length > 0) {
+            for (let table of this.lstTable) {
+                let column = table.findColById(colId);
+                if (column) {
+                    return column;
+                }
+            }
+        }
+        return null;
     }
 }

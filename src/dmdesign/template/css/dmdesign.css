@@ -62,6 +62,9 @@ html, body {
     border-top-radius: 20px;
     background-color: #3d8576;
     box-shadow: 5px 5px 10px #aaa;
+    word-break: keep-all;
+    white-space: nowrap;
+    overflow: hidden;
 
 }
 
@@ -73,7 +76,11 @@ html, body {
 .table-body {
     top: 30px;
     bottom: 0px;
-    overflow: auto;
+    min-height: 14px;
+}
+
+.table-body .hidden {
+    display: none;
 }
 
 .table-head div {
@@ -83,10 +90,10 @@ html, body {
 .close-button {
     position: absolute;
     right: 10px;
-    font-size: large;
+    font-size: x-large;
     font-weight: bold;
     color: white;
-    padding-right: 7px;
+    top: -7px;
 }
 
 
@@ -101,12 +108,12 @@ html, body {
     right: 30px;
     text-align: center;
     cursor: default;
+
 }
 
 .column-body {
     display: inline;
     position: relative;
-    overflow: auto;
     height: 35px;
     font-size: 12px;
 }
@@ -116,7 +123,7 @@ html, body {
     bottom: 0;
     height: 4px;
     width: 100%;
-    z-index: 2;
+    z-index: 8;
 }
 
 .schema-bottom:hover {
@@ -133,7 +140,7 @@ html, body {
     width: 10px;
     bottom: 0px;
     right: 0px;
-    z-index: 3;
+    z-index: 10;
 }
 
 .schema-corner:hover {
@@ -144,7 +151,7 @@ html, body {
     float: right;
     height: 100%;
     width: 4px;
-    z-index: 2;
+    z-index: 8;
 }
 
 .column-body:not(.active):hover {
@@ -169,6 +176,20 @@ html, body {
     width: 50px;
     height: 100%;
     z-index: 2000;
+}
+
+.spot .unvisible {
+    visibility: hidden;
+}
+
+.col-type {
+    text-align: center;
+    display: inline-block;
+    width: 10px;
+    background-color: #0099CC;
+    color: white;
+    font-weight: bold;
+    border-radius: 10px;
 }
 
 .column-body .spot-right {
@@ -210,15 +231,30 @@ html, body {
     padding-left: 10px;
 }
 
-#resize {
-    width: 10px;
-    height: 10px;
+.shrink-spot {
+    height: 14px;
     overflow: hidden;
-    cursor: se-resize;
+    cursor: pointer;
+    position: absolute;
+    right: 14px;
+    left: 0;
+    text-align: center;
+    color: coral;
+    font-weight: bold;
+    bottom: 0;
+    background-color: #136840;
+}
+
+.resize-spot {
+    width: 14px;
+    height: 14px;
+    overflow: hidden;
+    cursor: w-resize;
     position: absolute;
     right: 0;
     bottom: 0;
-    background-color: #09C;
+    background-color: #136840;
+    color: white;
 }
 
 .demo {
@@ -241,23 +277,21 @@ html, body {
     background-color: deepskyblue;
 }
 
-.toolbar-handler {
-    width: 10px;
-    background-color: #aaaaaa;
-}
-
-.jtk-connector {
+.table-view.active {
     z-index: 2;
 }
 
-.panel-tools {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background-color: rgba(255, 255, 255, 0.9);
-    border-radius: 0px 15px 15px 0px;
+
+.jtk-connector {
     z-index: 3;
 }
 
+button.btn:hover {
+    background-color: #d9edf7;
+}
 
+
+.alert.alert-dismissible {
+    float: top;
+}
 

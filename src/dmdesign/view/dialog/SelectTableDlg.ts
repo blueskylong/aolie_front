@@ -9,6 +9,7 @@ import {DmService} from "../../../datamodel/service/DmService";
 export class SelectTableDlg<T extends DialogInfo> extends Dialog<T> {
     private selectCom: BaseComponent<Component>;
 
+    private existsTableNames: Array<string>;
 
     protected getBody(): HTMLElement {
         let componentInfo = Component.fromSimpleComponent({
@@ -22,9 +23,12 @@ export class SelectTableDlg<T extends DialogInfo> extends Dialog<T> {
         return this.selectCom.getViewUI();
     }
 
+    setExistsTableNames(names) {
+        this.existsTableNames = names;
+    }
 
     protected beforeOK() {
-    //    this.importValue = this.getValue();
+        //    this.importValue = this.getValue();
     }
 
 
@@ -39,6 +43,9 @@ export class SelectTableDlg<T extends DialogInfo> extends Dialog<T> {
                 .then((result) => {
                     let lstTable = result.data;
                     for (let tableName of lstTable) {
+                        if (this.existsTableNames && this.existsTableNames.indexOf(tableName) != -1) {
+                            continue;
+                        }
                         (<Select<any>>this.selectCom).addOption(tableName, tableName);
                     }
                     (<Select<any>>this.selectCom).getEditor().selectpicker("refresh");

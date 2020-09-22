@@ -8,7 +8,8 @@ export default abstract class DmDesignBaseView<T> extends BaseUI<T> {
      * dom
      */
     protected element: HTMLElement;
-    protected static JSPLUMB = jsPlumb.jsPlumb.getInstance({
+
+    protected static DEFAULT_PARAM = {
         ConnectionOverlays: [["Arrow", {
             location: 0.3,
             paintStyle: {fill: "green"},
@@ -22,13 +23,13 @@ export default abstract class DmDesignBaseView<T> extends BaseUI<T> {
                 length: 15
             }]],
         HoverPaintStyle: {
-            fill: 'lightgray',
+            // fill: 'lightgray',
             stroke: 'red',
             strokeWidth: 3
         },
         Connector: ["Flowchart", {
             cornerRadius: 10,
-            isLoopbackCurrently: true,
+            isLoopbackCurrently: false,
             connectorStyle: {
                 outlineStroke: 'green',
                 strokeWidth: 1
@@ -39,7 +40,8 @@ export default abstract class DmDesignBaseView<T> extends BaseUI<T> {
             }
         }
         ]
-    });
+    };
+    protected static JSPLUMB = jsPlumb.jsPlumb.getInstance(DmDesignBaseView.DEFAULT_PARAM as any);
     protected static TARGET_PARAM = {
         filter: '.column-title',
         filterExclude: false,

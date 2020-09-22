@@ -13,12 +13,24 @@ import {StringMap} from "../../common/StringMap";
 import {TableColumnRelationDto} from "../../datamodel/dto/TableColumnRelationDto";
 import {SelectTableDlg} from "./dialog/SelectTableDlg";
 import {CommonUtils} from "../../common/CommonUtils";
+import {DmDesignService} from "../service/DmDesignService";
+import {TableInfo} from "../../datamodel/DmRuntime/TableInfo";
+import {DmService} from "../../datamodel/service/DmService";
+import {Column} from "../../datamodel/DmRuntime/Column";
+import {Schema} from "../../datamodel/DmRuntime/Schema";
+import {BeanFactory} from "../../decorator/decorator";
+import {TableColumnRelation} from "../../datamodel/DmRuntime/TableColumnRelation";
+import {UiService} from "../../blockui/service/UiService";
+import {ReferenceData} from "../../datamodel/dto/ReferenceData";
+import {Alert} from "../../uidesign/view/JQueryComponent/Alert";
+import {Toolbar, ToolbarInfo} from "../../uidesign/view/JQueryComponent/Toolbar";
 
 
 export default class SchemaView extends DmDesignBaseView<SchemaDto> implements AttrChangeListener {
     static TYPE_TABLE = "TABLE";
     static TYPE_COLUMN = "COLUMN";
     static DEFAULT_RELATION_TYPE = 2;
+    static RELATION_TYPE_REF = 40;
 
     private dragHor = false;
     private dragVer = false;
@@ -26,34 +38,21 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
     private relationDlg: RelationDlg<DialogInfo>;
     private selectTableDlg: SelectTableDlg<DialogInfo>;
 
+    private schema: Schema;
+
     private curConnection: Connection;
     private connectionRelations: StringMap<TableColumnRelationDto> = new StringMap<TableColumnRelationDto>();
 
 
     protected tables: Array<TableView>;
     private itemSelectListener: any;
+    private relationReferenceData: Array<ReferenceData>;
+
+    private toolBar: Toolbar<ToolbarInfo>;
+
 
     constructor(dto: SchemaDto) {
         super(dto);
-        this.tables = new Array<TableView>();
-        let tableDto = new TableDto();
-        tableDto.tableId = 1;
-        tableDto.tableName = "表1";
-        let tableView = new TableView(tableDto);
-        this.tables.push(tableView);
-        tableDto = new TableDto();
-        tableDto.tableId = 2;
-        tableDto.tableName = "表2";
-        tableView = new TableView(tableDto);
-        this.tables.push(tableView);
-        tableDto = new TableDto();
-        tableDto.tableId = 3;
-        tableDto.posLeft = 350;
-        tableDto.posTop = 100;
-        tableDto.tableName = "表3";
-        tableView = new TableView(tableDto);
-        this.tables.push(tableView);
-
         this.relationDlg =
             new RelationDlg<DialogInfo>({
                 title: "请选择表之间的关系", onOk: (value) => {
@@ -70,7 +69,6 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
 
     private removeTable(tableView: TableView): boolean {
         //删除所有与此表的连接信息
-        let colIdPre = tableView.getId();
         this.connectionRelations.forEach((value, key, map) => {
             if (tableView.findColumn(value.fieldTo) || tableView.findColumn(value.fieldFrom)) {
                 this.removeConnection(key);
@@ -78,6 +76,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
         });
         //删除此表信息
         this.tables.splice(this.tables.indexOf(tableView), 1);
+        this.schema.getLstTable().splice(this.schema.getLstTable().indexOf(tableView.getDtoInfo()), 1);
         return true;
     }
 
@@ -86,6 +85,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
         for (let con of cons) {
             if (con.id === conId) {
                 this.getJsplumb().deleteConnection(con);
+                this.connectionRelations.delete(con.id);
                 return;
             }
         }
@@ -95,6 +95,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
         let dto = new TableColumnRelationDto();
         dto.fieldFrom = fieldFrom;
         dto.fieldTo = fieldTo;
+        dto.id = DmDesignService.genColId();
         dto.relationType = SchemaView.DEFAULT_RELATION_TYPE;
         return dto;
     }
@@ -102,15 +103,36 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
     private onSelectTable(left, top): boolean {
         let tableName = this.selectTableDlg.getValue();
         console.log("select table:" + tableName);
-        let tableDto = new TableDto();
-        tableDto.tableId = 100;
-        tableDto.tableName = tableName;
-        tableDto.title = "新增表[" + tableName + "]";
-        tableDto.posLeft = left;
-        tableDto.posTop = top;
-        let tableView = new TableView(tableDto);
-        this.addTable(this.element, tableView);
-        tableView.afterComponentAssemble();
+        if (tableName) {
+
+            let tableDto = new TableDto();
+            tableDto.tableId = DmDesignService.genTableId();
+            tableDto.tableName = tableName;
+            tableDto.height = 1;
+            tableDto.title = "新增表[" + tableName + "]";
+            tableDto.posLeft = left;
+            tableDto.posTop = top;
+            let tableInfo = new TableInfo();
+            tableInfo.setTableDto(tableDto);
+            DmDesignService.findTableFieldAsColumnDto(tableName, this.properties.schemaId, this.properties.versionCode,
+                tableDto.tableId, (data) => {
+                    if (data && data.length > 0) {
+                        let cols = new Array<Column>();
+                        for (let col of data) {
+                            let c = new Column();
+                            c.setColumnDto(col);
+                            cols.push(c);
+                        }
+                        tableInfo.setLstColumn(cols);
+                        let tableView = new TableView(tableInfo);
+                        this.addTable(this.element, tableView);
+                        tableView.afterComponentAssemble();
+                        tableView.adjustProfile();
+                    }
+
+                });
+
+        }
         return true;
     }
 
@@ -118,13 +140,47 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
         if (!this.curConnection) {
             return true;
         }
-        if (this.curConnection.id, this.relationDlg.getValue()) {
-            this.connectionRelations.set(this.curConnection.id, this.createDefaultRelation(this.getColumnIdByElementID(this.curConnection.sourceId),
-                this.getColumnIdByElementID(this.curConnection.targetId)));
+        if (this.curConnection.id && this.relationDlg.getValue()) {
+            let relationDto = this.createDefaultRelation(this.getColumnIdByElementID(this.curConnection.sourceId),
+                this.getColumnIdByElementID(this.curConnection.targetId));
+            relationDto.relationType = this.relationDlg.getValue();
+            this.connectionRelations.set(this.curConnection.id, relationDto);
             this.updateLabelText(this.curConnection, this.relationDlg.getTitle());
             return true;
         }
 
+    }
+
+    saveSchema() {
+        if (!this.check()) {
+            return;
+        }
+        if (this.tables) {
+            for (let table of this.tables) {
+                table.prepareData();
+            }
+        }
+        this.schema.getSchemaDto().width = this.$element.width();
+        this.schema.getSchemaDto().height = this.$element.height();
+        this.schema.setLstRelation(this.getRelations());
+        DmDesignService.saveSchema(this.schema, (err) => {
+            if (err) {
+                alert(err);
+            } else {
+                Alert.showMessage({message: "保存成功"});
+                this.refresh();
+            }
+        })
+    }
+
+    getRelations() {
+        let result = new Array<TableColumnRelation>();
+        this.connectionRelations.forEach((dto, key, map) => {
+            let relation = new TableColumnRelation();
+            relation.setDto(dto);
+            result.push(relation);
+        });
+        return result;
     }
 
     afterComponentAssemble(): void {
@@ -132,7 +188,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
             selector: '.schema-view',
             callback: (key, options, event) => {
                 if (key === "add") {
-
+                    this.selectTableDlg.setExistsTableNames(this.collectExistsTableNames());
                     this.selectTableDlg.show($(event.target).closest(".context-menu-root").offset().left,
                         $(event.target).closest(".context-menu-root").offset().top,
                         this.properties.schemaId);
@@ -145,12 +201,12 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
         EventBus.addListener(EventBus.POSITION_CHANGE_EVENT,
             {
                 handleEvent: (eventType: string, data: object, source: object) => {
-                    if ($(data).offset().top + $(data).height() > this.$element.height() - 10) {
-                        this.$element.height($(data).offset().top + $(data).height() + 20);
+                    if ($(data).position().top + $(data).height() > this.$element.height() - 10) {
+                        this.$element.height($(data).position().top + $(data).height() + 20);
                     }
 
-                    if ($(data).offset().left + $(data).width() > this.$element.width() - 10) {
-                        this.$element.width($(data).offset().left + $(data).width() + 20);
+                    if ($(data).position().left + $(data).width() > this.$element.width() - 10) {
+                        this.$element.width($(data).position().left + $(data).width() + 20);
                     }
                 }
             });
@@ -161,9 +217,9 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
                         return;
                     }
                     if (source instanceof TableView) {
-                        this.itemSelectListener(SchemaView.TYPE_TABLE, source.getDtoInfo());
+                        this.itemSelectListener(SchemaView.TYPE_TABLE, source.getDtoInfo().getTableDto());
                     } else if (source instanceof ColumnView) {
-                        this.itemSelectListener(SchemaView.TYPE_COLUMN, source.getDtoInfo());
+                        this.itemSelectListener(SchemaView.TYPE_COLUMN, source.getDtoInfo().getColumnDto());
                     }
                 }
             });
@@ -191,16 +247,152 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
                     if (data instanceof TableView) {
                         this.removeTable(data);
                         $(data.getViewUI()).remove();
+                        data.beforeRemoved();
                     }
                 }
             }
         );
+        this.toolBar.addBtn("保存", (e) => {
+            this.saveSchema();
+        });
+        this.toolBar.addBtn("刷新", (e) => {
+            this.refresh();
+        });
+        this.toolBar.addBtn("恢复显示比例", (e) => {
+            this.restore();
+        });
 
+        this.toolBar.addBtn("收缩", (e) => {
+            this.shrinkAll();
+        });
 
+        this.toolBar.addBtn("展开", (e) => {
+            this.prompAll();
+        });
+    }
+
+    private refresh() {
+        this.destroyElement();
+        this.getJsplumb().reset(true);
+        this.initTableAndRelation();
+    }
+
+    private restore() {
+        this.zoom(1);
     }
 
 
     protected initSubControllers() {
+        this.initJsplumb();
+        this.handleResize();
+        this.initTableAndRelation();
+        this.initReference();
+
+
+    }
+
+    private destroyElement() {
+        if (this.tables) {
+            for (let table of this.tables) {
+                table.beforeRemoved();
+                $(table.getViewUI()).remove();
+            }
+            this.tables = new Array<TableView>();
+        }
+        this.curConnection = null;
+        this.connectionRelations = new StringMap<TableColumnRelationDto>();
+
+    }
+
+    private initTableAndRelation() {
+        DmService.findSchemaInfo(this.properties.schemaId, this.properties.versionCode)
+            .then((result) => {
+                let schema = BeanFactory.populateBean(Schema, result.data);
+                this.schema = schema;
+                this.properties = schema.getSchemaDto();
+                this.initTables(schema.getLstTable());
+                this.initRelation(schema.getLstRelation());
+                this.updateTableProfile();
+                if (this.properties.width) {
+                    this.$element.width(this.properties.width);
+                }
+                if (this.properties.height) {
+                    this.$element.height(this.properties.height);
+                }
+            });
+    }
+
+    private async initReference() {
+        this.relationReferenceData =
+            await UiService.getReferenceData(SchemaView.RELATION_TYPE_REF);
+    }
+
+    private updateTableProfile() {
+        if (this.tables) {
+            for (let table of this.tables) {
+                table.adjustProfile();
+            }
+        }
+    }
+
+    private initRelation(lstRelation: Array<TableColumnRelation>) {
+        if (!lstRelation || lstRelation.length == 0) {
+            return;
+        }
+        for (let relation of lstRelation) {
+            try {
+                this.getJsplumb().connect({
+                    source: this.getElementIdByColumnId(relation.getDto().fieldFrom),
+                    target: this.getElementIdByColumnId(relation.getDto().fieldTo),
+                    label: this.getRefNameById(relation.getDto().relationType),
+                    anchor: ['Left', 'Right', "Top", "Bottom"],
+                    connector: ["Flowchart", {cornerRadius: 10, outlineStroke: 'transparent', outlineWidth: 10}],
+                    paintStyle: {
+                        stroke: 'green', strokeWidth: 2
+                    },
+                    beforeDetach: (connection) => {
+                        EventBus.fireEvent(EventBus.CONNECTION_BEFOREDETACH, connection);
+                    },
+                    endpointStyle: {fill: 'lightgray', outlineStroke: 'darkgray', strokeWidth: 2}
+
+                } as any).id = relation.getDto().id + "";
+
+                this.connectionRelations.set(relation.getDto().id + "", relation.getDto());
+            } catch (e) {
+                console.log("初始化连接失败:" + e);
+            }
+        }
+
+    }
+
+    private getRefNameById(id: number) {
+        if (this.relationReferenceData) {
+            for (let ref of this.relationReferenceData) {
+                if (ref.id == id) {
+                    return ref.name;
+                }
+            }
+        }
+        return null;
+    }
+
+    private createConnection(tableIdFrom, tableIdTo, type) {
+
+    }
+
+    private initTables(tables: Array<TableInfo>) {
+        if (tables && tables.length > 0) {
+            this.tables = new Array<TableView>();
+            for (let table of tables) {
+                let tableView = new TableView(table);
+                this.tables.push(tableView);
+                this.$element.append(tableView.getViewUI());
+                tableView.afterComponentAssemble();
+            }
+        }
+    }
+
+    private initJsplumb() {
         this.getJsplumb().setContainer(this.element);
         this.getJsplumb().draggable(this.element);
         this.getJsplumb().bind("click", (e, f) => {
@@ -208,8 +400,19 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
             this.relationDlg.show(this.connectionRelations.get(e.id));
 
         });
-        this.getJsplumb().bind("connection", (e) => {
-            this.curConnection = e.connection;
+        this.getJsplumb().bind("beforeDrop", (info) => {
+            if (info.targetId.substr(0, info.targetId.indexOf("_"))
+                === info.sourceId.substr(0, info.sourceId.indexOf("_"))) {
+                return false;
+            }
+            //二张表只能有一个关系
+
+            if (this.isTablesHasRelation(parseInt(info.targetId.substr(1, info.targetId.indexOf("_"))),
+                parseInt(info.sourceId.substr(1, info.sourceId.indexOf("_"))))) {
+                Alert.showMessage({message: "二张表只能存在一个关系"})
+                return false;
+            }
+            this.curConnection = info.connection;
             //默认一对多的关系
             console.log("=====> add Id:" + this.curConnection.id);
             this.connectionRelations.set(this.curConnection.id,
@@ -218,19 +421,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
             this.relationDlg.show(SchemaView.DEFAULT_RELATION_TYPE);
             return true;
         });
-
-        this.getJsplumb().bind("beforeDrop", (info) => {
-            if (info.targetId.substr(0, info.targetId.indexOf("_"))
-                === info.sourceId.substr(0, info.sourceId.indexOf("_"))) {
-                return false;
-            }
-            // info.connection.getOverlays() = "kerej";
-            return true;
-        });
         this.getJsplumb().draggable(this.$element.find(".panel-tools").get(0));
-        this.handleResize();
-        this.addTables(this.element);
-
     }
 
     private getColumnIdByElementID(elementId: string) {
@@ -253,6 +444,30 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
     }
 
     /**
+     * 表之间是否已存在关联关系
+     * @param tableId1
+     * @param tableId2
+     */
+    private isTablesHasRelation(tableId1: number, tableId2: number) {
+        let columnRelationDtos = this.connectionRelations.getValues();
+        if (columnRelationDtos) {
+            let t1, t2;
+            for (let dto of columnRelationDtos) {
+                t1 = this.schema.findColumn(dto.fieldFrom).getColumnDto().tableId;
+                t2 = this.schema.findColumn(dto.fieldTo).getColumnDto().tableId;
+                if ((tableId1 == t1 && tableId2 == t2) || (tableId2 == t1 && tableId1 == t2)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private getTableIdFromKey(key: string) {
+        return key.substr(1, key.indexOf("_"))
+    }
+
+    /**
      * 取得视图的组件
      */
     public getViewUI(): HTMLElement {
@@ -270,17 +485,19 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
 
     protected createUI(): HTMLElement {
         let html = $(require("../template/SchemaView.html"));
+        this.toolBar = new Toolbar<ToolbarInfo>({});
+        html.append(this.toolBar.getViewUI());
         return html.get(0);
     }
 
-    private addTables(parent: HTMLElement) {
-        for (let tableView of this.tables) {
-            $(parent).append(tableView.getViewUI());
-            tableView.afterComponentAssemble();
-        }
-    }
-
     private addTable(parent: HTMLElement, table: TableView) {
+        if (!this.tables) {
+            this.tables = new Array<TableView>();
+        }
+        if (!this.schema.getLstTable()) {
+            this.schema.setLstTable([]);
+        }
+        this.schema.getLstTable().push(table.getDtoInfo());
         this.tables.push(table);
         $(parent).append(table.getViewUI());
 
@@ -377,7 +594,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
 
     public findTableById(tableId: number): TableView {
         for (let table of this.tables) {
-            if (table.getDtoInfo().tableId == tableId) {
+            if (table.getDtoInfo().getTableDto().tableId == tableId) {
                 return table;
             }
         }
@@ -394,6 +611,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
         //先处理影响显示的属性 如主键,不可以为空 有引用等,都可以用图标显示出来
         //再赋值
         this.properties[attrName] = value;
+        this.schema.getSchemaDto()[attrName] = value;
     }
 
     /**
@@ -416,6 +634,61 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
         this.itemSelectListener = listener;
     }
 
+    /**
+     * 检查合法
+     */
+    private check() {
+        return true;//TODO
+    }
+
+    /**
+     * 取得表信息
+     */
+    private getTableInfos() {
+        let result = new Array<TableInfo>();
+        if (this.tables && this.tables.length > 0) {
+            for (let table of this.tables) {
+                result.push(table.getAttributes());
+            }
+        }
+        return result;
+    }
+
+
+    private getElementIdByColumnId(id: number) {
+        let column = this.schema.findColumn(id);
+        if (!column) {
+            return null;
+        }
+        return CommonUtils.genElementId(column.getColumnDto().tableId, column.getColumnDto().columnId);
+    }
+
+    private shrinkAll() {
+        if (this.tables) {
+            for (let table of this.tables) {
+                table.doShrink();
+            }
+        }
+    }
+
+    private prompAll() {
+        if (this.tables) {
+            for (let table of this.tables) {
+                table.doPomp();
+            }
+        }
+    }
+
+    private collectExistsTableNames() {
+        if (this.tables) {
+            let result = new Array<string>();
+            for (let table of this.tables) {
+                result.push(table.getDtoInfo().getTableDto().tableName);
+            }
+            return result;
+        }
+        return null;
+    }
 }
 
 

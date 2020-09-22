@@ -13,7 +13,7 @@ export class ColumnDto extends BaseDto {
     public memo: string;
     public fieldType: string;
     public length: number;
-    public precision: number;
+    public precisionNum: number;
     public maxValue: number;
     public minValue: number;
     public isKey: number;
