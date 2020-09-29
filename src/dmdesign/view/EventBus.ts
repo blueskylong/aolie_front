@@ -77,6 +77,10 @@ export default class EventBus {
         }
     }
 
+    public static clearEvent() {
+        EventBus.EVENTS = {};
+    }
+
 
     /**
      * 取得监听

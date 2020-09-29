@@ -7,6 +7,7 @@ import {TableInfo} from "./TableInfo";
 import FormulaDto from "../dto/FormulaDto";
 import {TableColumnRelation} from "./TableColumnRelation";
 import {Column} from "./Column";
+import {ConstraintDto} from "../dto/ConstraintDto";
 
 export class Schema {
     private schemaDto: SchemaDto;
@@ -18,6 +19,9 @@ export class Schema {
      * 表间约束
      */
     private lstConstraint: Array<Constraint>;
+
+    //这是城只用作临时记录,给设计器一个直接操作的入口
+    private lstConstraintDto: Array<ConstraintDto>;
 
     /**
      * 所有的引用信息
@@ -71,7 +75,22 @@ export class Schema {
     }
 
     getLstConstraint(): Array<Constraint> {
+        if (!this.lstConstraint) {
+            this.lstConstraint = [];
+        }
         return this.lstConstraint;
+    }
+
+    getLstConstraintDto(): Array<ConstraintDto> {
+        if (!this.lstConstraintDto) {
+            this.lstConstraintDto = [];
+            if (this.lstConstraint) {
+                for (let constraint of this.lstConstraint) {
+                    this.lstConstraintDto.push(constraint.getConstraintDto());
+                }
+            }
+        }
+        return this.lstConstraintDto;
     }
 
     @PopulateBean(Constraint)
@@ -99,5 +118,23 @@ export class Schema {
             }
         }
         return null;
+    }
+
+    /**
+     * 用于保存前的处理
+     */
+    public prepareData() {
+        //这里主是要约束要从DTO转成
+        this.getLstConstraint().splice(0, this.getLstConstraint().length);
+        if (this.lstConstraintDto) {
+            let index = 1
+            for (let dto of this.lstConstraintDto) {
+                dto.orderNum = index++;
+                let c = new Constraint();
+                c.setConstraintDto(dto);
+                this.lstConstraint.push(c);
+            }
+        }
+
     }
 }

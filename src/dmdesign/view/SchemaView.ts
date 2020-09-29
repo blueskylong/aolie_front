@@ -48,7 +48,13 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
     private itemSelectListener: any;
     private relationReferenceData: Array<ReferenceData>;
 
+
+    private dataReady: () => void;
+
     private toolBar: Toolbar<ToolbarInfo>;
+
+    private $canvas: JQuery;
+    private destroying = false;
 
 
     constructor(dto: SchemaDto) {
@@ -102,7 +108,6 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
 
     private onSelectTable(left, top): boolean {
         let tableName = this.selectTableDlg.getValue();
-        console.log("select table:" + tableName);
         if (tableName) {
 
             let tableDto = new TableDto();
@@ -125,7 +130,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
                         }
                         tableInfo.setLstColumn(cols);
                         let tableView = new TableView(tableInfo);
-                        this.addTable(this.element, tableView);
+                        this.addTable(this.$canvas.get(0), tableView);
                         tableView.afterComponentAssemble();
                         tableView.adjustProfile();
                     }
@@ -155,13 +160,14 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
         if (!this.check()) {
             return;
         }
+        this.schema.prepareData();
         if (this.tables) {
             for (let table of this.tables) {
                 table.prepareData();
             }
         }
-        this.schema.getSchemaDto().width = this.$element.width();
-        this.schema.getSchemaDto().height = this.$element.height();
+        this.schema.getSchemaDto().width = this.$canvas.width();
+        this.schema.getSchemaDto().height = this.$canvas.height();
         this.schema.setLstRelation(this.getRelations());
         DmDesignService.saveSchema(this.schema, (err) => {
             if (err) {
@@ -189,8 +195,9 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
             callback: (key, options, event) => {
                 if (key === "add") {
                     this.selectTableDlg.setExistsTableNames(this.collectExistsTableNames());
-                    this.selectTableDlg.show($(event.target).closest(".context-menu-root").offset().left,
-                        $(event.target).closest(".context-menu-root").offset().top,
+                    this.selectTableDlg.show($(event.target)
+                        .closest(".context-menu-root").position().left - CommonUtils.getOffsetLeftByBody(this.$canvas.get(0)),
+                        $(event.target).closest(".context-menu-root").position().top - CommonUtils.getOffsetTopByBody(this.$canvas.get(0)),
                         this.properties.schemaId);
                 }
             },
@@ -201,12 +208,12 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
         EventBus.addListener(EventBus.POSITION_CHANGE_EVENT,
             {
                 handleEvent: (eventType: string, data: object, source: object) => {
-                    if ($(data).position().top + $(data).height() > this.$element.height() - 10) {
-                        this.$element.height($(data).position().top + $(data).height() + 20);
+                    if ($(data).position().top + $(data).height() > this.$canvas.height() - 10) {
+                        this.$canvas.height($(data).position().top + $(data).height() + 20);
                     }
 
-                    if ($(data).position().left + $(data).width() > this.$element.width() - 10) {
-                        this.$element.width($(data).position().left + $(data).width() + 20);
+                    if ($(data).position().left + $(data).width() > this.$canvas.width() - 10) {
+                        this.$canvas.width($(data).position().left + $(data).width() + 20);
                     }
                 }
             });
@@ -219,7 +226,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
                     if (source instanceof TableView) {
                         this.itemSelectListener(SchemaView.TYPE_TABLE, source.getDtoInfo().getTableDto());
                     } else if (source instanceof ColumnView) {
-                        this.itemSelectListener(SchemaView.TYPE_COLUMN, source.getDtoInfo().getColumnDto());
+                        this.itemSelectListener(SchemaView.TYPE_COLUMN, source.getDtoInfo());
                     }
                 }
             });
@@ -269,6 +276,9 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
         this.toolBar.addBtn("展开", (e) => {
             this.prompAll();
         });
+        this.toolBar.addBtn("服务器缓存刷新", (e) => {
+            this.refreshServerCache();
+        });
     }
 
     private refresh() {
@@ -314,12 +324,17 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
                 this.initRelation(schema.getLstRelation());
                 this.updateTableProfile();
                 if (this.properties.width) {
-                    this.$element.width(this.properties.width);
+                    this.$canvas.width(this.properties.width);
                 }
                 if (this.properties.height) {
-                    this.$element.height(this.properties.height);
+                    this.$canvas.height(this.properties.height);
+                }
+                this.ready = true;
+                if (this.dataReady) {
+                    this.dataReady();
                 }
             });
+
     }
 
     private async initReference() {
@@ -386,15 +401,15 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
             for (let table of tables) {
                 let tableView = new TableView(table);
                 this.tables.push(tableView);
-                this.$element.append(tableView.getViewUI());
+                this.$canvas.append(tableView.getViewUI());
                 tableView.afterComponentAssemble();
             }
         }
     }
 
     private initJsplumb() {
-        this.getJsplumb().setContainer(this.element);
-        this.getJsplumb().draggable(this.element);
+        this.getJsplumb().setContainer(this.$canvas.get(0));
+        this.getJsplumb().draggable(this.$canvas.get(0));
         this.getJsplumb().bind("click", (e, f) => {
             this.curConnection = e;
             this.relationDlg.show(this.connectionRelations.get(e.id));
@@ -414,7 +429,6 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
             }
             this.curConnection = info.connection;
             //默认一对多的关系
-            console.log("=====> add Id:" + this.curConnection.id);
             this.connectionRelations.set(this.curConnection.id,
                 this.createDefaultRelation(this.getColumnIdByElementID(this.curConnection.sourceId),
                     this.getColumnIdByElementID(this.curConnection.targetId)));
@@ -439,8 +453,9 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
     }
 
     public connectionRemoved(connection: Connection) {
-        console.log("=====> remove Id:" + connection.id);
-        this.connectionRelations.delete(connection.id);
+        if (!this.destroying) {
+            this.connectionRelations.delete(connection.id);
+        }
     }
 
     /**
@@ -480,13 +495,36 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
     }
 
     beforeRemoved(): boolean {
-        return false;
+        this.destroying = true;
+        if (this.tables) {
+            for (let table of this.tables) {
+                table.beforeRemoved();
+            }
+        }
+        this.tables = null;
+        this.relationDlg.beforeRemoved();
+        this.selectTableDlg.beforeRemoved();
+        this.relationDlg = null;
+        this.selectTableDlg = null;
+        this.schema = null;
+        this.connectionRelations = null;
+        this.curConnection = null;
+        super.beforeRemoved();
+        $.contextMenu("destroy");
+        //jsplumb的所有设置和事件都要销毁,否则不可以重复使用
+        this.getJsplumb().deleteEveryConnection();
+        this.getJsplumb().deleteEveryEndpoint();
+        this.getJsplumb().unbind();
+        EventBus.clearEvent();
+
+        return true;
     }
 
     protected createUI(): HTMLElement {
         let html = $(require("../template/SchemaView.html"));
         this.toolBar = new Toolbar<ToolbarInfo>({});
         html.append(this.toolBar.getViewUI());
+        this.$canvas = html.find(".schema-view");
         return html.get(0);
     }
 
@@ -520,11 +558,11 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
             this.dragHor = false;
             this.dragVer = false;
         });
-        this.$element.on('mousedown', '.schema-right,.schema-bottom,.schema-corner',
+        this.$canvas.on('mousedown', '.schema-right,.schema-bottom,.schema-corner',
             (e) => {
                 this.posInfo = {
-                    'w': this.$element.width(),
-                    'h': this.$element.height(),
+                    'w': this.$canvas.width(),
+                    'h': this.$canvas.height(),
                     'x': e.pageX,
                     'y': e.pageY
                 };
@@ -535,7 +573,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
                 e.preventDefault();
                 return false;
             });
-        this.$element.on('mousewheel',
+        this.$canvas.on('mousewheel',
             (e) => {
 
                 var delta = -e.originalEvent['wheelDelta'] || e.originalEvent['detail'];//firefox使用detail:下3上-3,其他浏览器使用wheelDelta:下-120上120//下滚
@@ -564,7 +602,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
 
 
     zoom(scale) {
-        this.$element.css({
+        this.$canvas.css({
             "-webkit-transform": `scale(${scale})`,
             "-moz-transform": `scale(${scale})`,
             "-ms-transform": `scale(${scale})`,
@@ -580,11 +618,11 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
      */
     private doResize(e) {
         if (this.dragVer)
-            this.$element.css({
+            this.$canvas.css({
                 'height': Math.max(30, e.pageY - this.posInfo.y + this.posInfo.h)
             });
         if (this.dragHor) {
-            this.$element.css({
+            this.$canvas.css({
                 'width': Math.max(30, e.pageX - this.posInfo.x + this.posInfo.w)
             })
         }
@@ -630,7 +668,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
 
     }
 
-    public setItemSelectListener(listener: (type: string, dto: TableDto | ColumnDto) => void) {
+    public setItemSelectListener(listener: (type: string, dto: TableDto | Column) => void) {
         this.itemSelectListener = listener;
     }
 
@@ -679,6 +717,12 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
         }
     }
 
+    private refreshServerCache() {
+        DmDesignService.refreshServerCache(this.properties.schemaId, this.properties.versionCode, (data) => {
+            this.refresh();
+        })
+    }
+
     private collectExistsTableNames() {
         if (this.tables) {
             let result = new Array<string>();
@@ -688,6 +732,18 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
             return result;
         }
         return null;
+    }
+
+    getConstraints() {
+        return this.schema.getLstConstraint();
+    }
+
+    getConstraintDtos() {
+        return this.schema.getLstConstraintDto();
+    }
+
+    setDataReadyListener(ready: () => void) {
+        this.dataReady = ready;
     }
 }
 

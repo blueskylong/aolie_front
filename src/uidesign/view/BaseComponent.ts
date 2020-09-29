@@ -6,7 +6,7 @@ import {GeneralEventListener} from "../../blockui/event/GeneralEventListener";
 export abstract class BaseComponent<T> extends BaseUI<T> {
     protected changeEventHandler: Array<GeneralEventListener> = new Array<GeneralEventListener>();
 
-    protected constructor(dto: T) {
+    constructor(dto: T) {
         super(dto);
         this.init();
     }

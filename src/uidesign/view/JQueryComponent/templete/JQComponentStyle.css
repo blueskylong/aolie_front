@@ -9,7 +9,7 @@
 
 .toolbar-handler {
     width: 10px;
-    background-color: #aaaaaa;
+    background-color: #2793da;
 }
 
 .panel-tools {
@@ -20,3 +20,63 @@
     border-radius: 0px 15px 15px 0px;
     z-index: 3;
 }
+
+.form-card {
+    box-shadow: 0px 0px 5px 5px #ddd;
+    margin: 10px;
+}
+
+.dm-form .form-body {
+    padding-top: 15px;
+    position: relative;
+}
+
+.dm-form .form-head {
+    cursor: auto;
+    background-color: #b8d9f7;
+    padding: 5px;
+    margin-bottom: 6px;
+    width: 100%;
+    height: 30px;
+    padding-left: 20px;
+    position: relative;
+}
+
+.dm-form .form-title {
+    width: 95%;
+    overflow: hidden;
+}
+
+
+.card-list.empty:after {
+    content: "没有可显示的内容";
+    align-content: center;
+    top: 100px;
+    margin: auto;
+}
+
+.card-list .btn-add {
+    width: 100px;
+    height: 100px;
+    border-radius: 10px;
+    border: 1px solid lightgray;
+    font-size: 80px;
+    line-height: 95px;
+    color: lightgray;
+    margin: 10px;
+    box-shadow: 0px 0px 5px 5px #ddd;
+}
+
+.card-list .btn-add:hover {
+    background-color: darkgray;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.card-list .btn-add[data-origpos] {
+    width: 100px;
+    height: 100px;
+}
+

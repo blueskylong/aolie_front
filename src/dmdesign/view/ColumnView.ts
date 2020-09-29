@@ -15,11 +15,6 @@ export default class ColumnView extends DmDesignBaseView<Column> implements Attr
     private static ATTR_HAS_REF = "R";
     private static ATTR_HAS_FORMULA = "F";
 
-    private static UN_VISIBLE_CLASS = "un-visible";
-
-    private static HIDDEN_CLASS = "hidden";
-
-    private _lstFormula: Array<FormulaView> = new Array<FormulaView>();
 
     public getId() {
         return CommonUtils.genElementId(this.properties.getColumnDto().tableId,
@@ -71,13 +66,6 @@ export default class ColumnView extends DmDesignBaseView<Column> implements Attr
         return true;
     }
 
-    get lstFormula(): Array<FormulaView> {
-        return this._lstFormula;
-    }
-
-    set lstFormula(value: Array<FormulaView>) {
-        this._lstFormula = value;
-    }
 
     private updateBadge($element) {
         let str = "";
@@ -91,7 +79,7 @@ export default class ColumnView extends DmDesignBaseView<Column> implements Attr
         if (this.properties.getColumnDto().isKey) {
             $element.find(".column-badge-left span").removeClass(ColumnView.UN_VISIBLE_CLASS);
         } else {
-            $element.find(".column-badge-left apan").addClass(ColumnView.UN_VISIBLE_CLASS);
+            $element.find(".column-badge-left span").addClass(ColumnView.UN_VISIBLE_CLASS);
         }
 
     }

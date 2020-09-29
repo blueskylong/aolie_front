@@ -1,6 +1,6 @@
 import {BaseDto} from "./BaseDto";
 
-export class ConstraintDto  extends BaseDto{
+export class ConstraintDto extends BaseDto {
     /**
      * 表达式
      */
@@ -25,4 +25,11 @@ export class ConstraintDto  extends BaseDto{
      * 禁用
      */
     public disabled: number;
+
+    public id: number;
+    public schemaId: number;
+    /**
+     * 处理方式
+     */
+    public handleType: number;
 }

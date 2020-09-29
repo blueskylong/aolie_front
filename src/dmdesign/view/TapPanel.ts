@@ -19,7 +19,7 @@ export default class TapPanel extends DmDesignBaseView<TableDto>  {
         $tap.find("a").text(label).attr("href", "#" + id);
         this.$element.find(".nav-tabs").append($tap);
 
-        let $body = $("<div id=\"" + id + "\" class=\"container tab-pane\"><br>" +
+        let $body = $("<div id=\"" + id + "\" class=\" tab-pane\"><br>" +
             "        </div>");
         $body.append(control);
         this.$element.find(".tab-content").append($body);

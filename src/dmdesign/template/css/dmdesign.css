@@ -37,6 +37,7 @@ html, body {
     height: 5px;
 }
 
+
 #tap-component {
     height: 30%;
     min-height: 10em;
@@ -71,6 +72,8 @@ html, body {
 .table-head {
     height: 30px;
     background-color: #d99d49;
+    padding-top: 5px;
+    color: #05223b;
 }
 
 .table-body {
@@ -79,12 +82,10 @@ html, body {
     min-height: 14px;
 }
 
-.table-body .hidden {
-    display: none;
-}
 
 .table-head div {
     display: inline-block;
+
 }
 
 .close-button {
@@ -93,7 +94,7 @@ html, body {
     font-size: x-large;
     font-weight: bold;
     color: white;
-    top: -7px;
+    top: -3px;
 }
 
 
@@ -270,7 +271,11 @@ html, body {
 .line-title {
     font-weight: bold;
     color: white;
-    z-index: 3;
+    z-index: 5;
+    background-color: #777777;
+    padding-left: 5px;
+    padding-right: 5px;
+    border-radius: 5px;
 }
 
 .table-view.active .table-head {
@@ -293,5 +298,9 @@ button.btn:hover {
 
 .alert.alert-dismissible {
     float: top;
+}
+
+.un-visible {
+    visibility: hidden;
 }
 

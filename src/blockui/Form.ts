@@ -8,6 +8,7 @@ import {Component} from "./uiruntime/Component";
 import EventBus from "../dmdesign/view/EventBus";
 import {CommonUtils} from "../common/CommonUtils";
 import {StringMap} from "../common/StringMap";
+import {BlockViewer} from "./uiruntime/BlockViewer";
 
 
 export class Form extends BaseComponent<BlockViewDto> {
@@ -24,6 +25,13 @@ export class Form extends BaseComponent<BlockViewDto> {
 
     private editable = true;
     private enabled = true;
+    private isShowTitle = false;
+    private isShowClose = false;
+    private lstCloseListener: Array<(form: Form) => void>;
+
+    private $formBody: JQuery;
+
+    private viewer: BlockViewer;
 
 
     constructor(dto: BlockViewDto) {
@@ -34,6 +42,33 @@ export class Form extends BaseComponent<BlockViewDto> {
         }
     }
 
+    showHead(isShow) {
+        this.isShowTitle = isShow;
+
+    }
+
+    showClose(isShowClose) {
+        this.isShowClose = isShowClose && this.editable;
+
+    }
+
+    updateTitle() {
+        if (this.isShowTitle) {
+            this.$element.find(".form-head").removeClass(Form.HIDDEN_CLASS);
+        } else {
+            this.$element.find(".form-head").addClass(Form.HIDDEN_CLASS);
+        }
+        if (this.isShowClose) {
+            this.$element.find(".btn-close").removeClass(Form.HIDDEN_CLASS);
+        } else {
+            this.$element.find(".btn-close").addClass(Form.HIDDEN_CLASS);
+        }
+    }
+
+
+    setBlockViewer(viewer) {
+        this.viewer = viewer;
+    }
 
     get blockViewId(): number {
         return this._blockViewId;
@@ -52,20 +87,23 @@ export class Form extends BaseComponent<BlockViewDto> {
     }
 
     async initSubControllers() {
-        let viewer = await UiService.getSchemaViewer(this.blockViewId) as any;
-        this.lstComponent = viewer.lstComponent;
+
+        if (!this.viewer) {
+            this.viewer = await UiService.getSchemaViewer(this.blockViewId) as any;
+        }
+        this.lstComponent = this.viewer.lstComponent;
         if (!this.lstComponent || this.lstComponent.length == 0) {
             this.lstComponent = [];
             return;
         }
-        this.properties = viewer.blockViewDto;
+        this.properties = this.viewer.blockViewDto;
         let comNodes = TreeNodeFactory.genTreeNode(this.lstComponent, "componentDto", "lvlCode");
         for (let node of comNodes) {
             if (this.properties.fieldToCamel == 1) {
                 node.data.column.getColumnDto().fieldName
                     = CommonUtils.toCamel(node.data.column.getColumnDto().fieldName);
             }
-            this.createSubComponents(this.element, node);
+            this.createSubComponents(this.$formBody.get(0), node);
         }
 
 
@@ -74,6 +112,29 @@ export class Form extends BaseComponent<BlockViewDto> {
     protected createUI(): HTMLElement {
         let $ele = $(require("./templete/Form.html"));
         $ele.attr("blockId", this.blockViewId);
+        if (this.properties.colSpan) {
+            if (this.properties.colSpan < 12) {
+                //使用bootstrap布局
+                $ele.addClass("col-md-" + this.properties.colSpan);
+            } else {
+                $ele.width(this.properties.colSpan);
+            }
+            if (this.properties.rowSpan) {
+                $ele.height(this.properties.rowSpan);
+            }
+        }
+        $ele.find(".form-title").text(this.properties.title);
+        if (this.properties.showHead) {
+            $ele.find(".form-head").removeClass(Form.HIDDEN_CLASS);
+        }
+        $ele.find(".close-button").on("click", (event) => {
+            if (this.lstCloseListener) {
+                for (let listener of this.lstCloseListener) {
+                    listener(this);
+                }
+            }
+        });
+        this.$formBody = $ele.find(".form-body");
         return $ele.get(0);
     }
 
@@ -157,11 +218,24 @@ export class Form extends BaseComponent<BlockViewDto> {
     }
 
     setVisible(visible: boolean) {
+        this.$element.css("display",
+            visible ? "display" : "none");
+    }
+
+    addCloseListener(listener: (form: Form) => void) {
+        if (!this.lstCloseListener) {
+            this.lstCloseListener = new Array();
+        }
+        this.lstCloseListener.push(listener);
     }
 
     handleEvent(eventType: string, fieldName: object, value: object) {
         super.handleEvent(eventType, fieldName, value);
         if (eventType === EventBus.VALUE_CHANGE_EVENT) {
+            if (!this.values) {
+                this.values = new StringMap<object>();
+            }
+            this.values[fieldName + ""] = value;
             this.fireValueChanged(fieldName as any, value);
         }
         this.calcFormula(fieldName as any);
@@ -184,6 +258,10 @@ export class Form extends BaseComponent<BlockViewDto> {
         this.generator = null;
 
         return super.beforeRemoved();
+    }
+
+    addClass(className: string) {
+        this.$element.addClass(className);
     }
 
 }

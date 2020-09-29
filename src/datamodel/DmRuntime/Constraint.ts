@@ -1,5 +1,6 @@
 import {ConstraintDto} from "../dto/ConstraintDto";
 import {PopulateBean} from "../../decorator/decorator";
+import {CommonUtils} from "../../common/CommonUtils";
 
 export class Constraint {
     private constraintDto: ConstraintDto;
@@ -16,6 +17,7 @@ export class Constraint {
     getConstraintDto(): ConstraintDto {
         return this.constraintDto;
     }
+
     @PopulateBean(ConstraintDto)
     setConstraintDto(value: ConstraintDto) {
         this.constraintDto = value;
@@ -35,5 +37,14 @@ export class Constraint {
 
     setLstRefColumn(value: Array<number>) {
         this.lstRefColumn = value;
+    }
+
+    static genConstraintDto(schemaId?, versionId?) {
+        let dto = new ConstraintDto();
+        dto.id = CommonUtils.genId();
+        dto.schemaId = schemaId;
+        dto.versionCode = versionId;
+        dto.disabled = 0;
+        return dto;
     }
 }

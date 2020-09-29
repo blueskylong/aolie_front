@@ -22,5 +22,7 @@ export class BlockViewDto extends BaseDto {
     colSpan: number;
     rowSpan: number;
     fieldToCamel: number;
+    title: string;
+    showHead: number;
 
 }

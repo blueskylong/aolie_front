@@ -2,10 +2,8 @@
 import Axios from "axios";
 
 import 'bootstrap';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/css/bootstrap.css';
 import 'split-pane';
-import './common.css';
-import DmDesign from "./dmdesign/DmDesign";
 import "jquery-contextmenu/dist/jquery.contextMenu";
 import "jquery-contextmenu/dist/jquery.contextMenu.css";
 import "babel-polyfill";
@@ -16,11 +14,11 @@ import "bootstrap-select/dist/css/bootstrap-select.css";
 import {NetRequest} from "./common/NetRequest";
 import "./jsplugs/jquery.dragsort";
 import "free-jqgrid";
-import "free-jqgrid/dist/css/ui.jqgrid.min.css"
-// import "jqueryui/jquery-ui.min.css"
-// import "jqueryui/jquery-ui.min.js"
+import "free-jqgrid/dist/css/ui.jqgrid.min.css";
+import './common.css';
+import {App} from "./App/App";
 
-export * from "./uidesign/BlockDesign"
+import "./FunctionReg"
 
 $.getJSON('./config.json', function (r) {
     NetRequest.axios = Axios.create({
@@ -28,9 +26,13 @@ $.getJSON('./config.json', function (r) {
     });
 });
 
+
 $(() => {
-    let dmDesign = new DmDesign();
-    dmDesign.start($("#container").get(0));
+    new App().start();
+
+
+    // let dmDesign = new DmDesign();
+    // dmDesign.start($("#container").get(0));
     // let dto = new BlockViewDto();
     // dto.blockViewId = 20;
     // dto.versionCode = "000000";
@@ -38,5 +40,6 @@ $(() => {
     // $("#container").append(form.getViewUI());
     // form.afterComponentAssemble();
 });
+
 
 

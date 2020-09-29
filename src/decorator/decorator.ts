@@ -7,6 +7,7 @@ import {StringMap} from "../common/StringMap";
 export class ApplicationContext {
     private static Services = {};
     private static lstServices: Array<Object> = new Array<Object>();
+    private static menuFuncs = {};
 
     public static regService(service: any, name?: string) {
         if (!name) {
@@ -30,6 +31,17 @@ export class ApplicationContext {
             }
             return null;
         }
+    }
+
+    public static getMenuFunc(name: string) {
+        return ApplicationContext.menuFuncs[name];
+    }
+
+    public static regMenuFunc(name: string, constructor: { new(...args: Array<any>): any }) {
+        if (this.menuFuncs[name]) {
+            console.log("************** warning![" + name + "] already exists,Replace the old one!***************")
+        }
+        this.menuFuncs[name] = constructor;
     }
 
     /**
@@ -89,7 +101,6 @@ export function Cache(value: string) {
             }
             result = origin.apply(this, args)
             CACHE_MAP.set(cacheKey, result);
-            console.log("--->loged:" + JSON.stringify(CACHE_MAP));
             return result;
         }
         return target[propertyKey];
@@ -109,12 +120,14 @@ export function PopulateBean<T>(constructor: { new(...args: Array<any>): T }) {
             //目前只能处理一个对象
 
             if (!args || args.length != 1) {
-                return origin.apply(this, args)
+                return origin.apply(this, ...args)
             }
             if (Array.isArray(args[0])) {
                 let arg = new Array<T>();
-                for (let obj of args[0]) {
-                    arg.push(BeanFactory.populateBean(constructor, obj));
+                if (args[0].length > 0) {
+                    for (let obj of args[0]) {
+                        arg.push(BeanFactory.populateBean(constructor, obj));
+                    }
                 }
                 args[0] = arg;
             } else {
@@ -145,6 +158,14 @@ export function Service(name: string) {
     }
 }
 
+export function MenuFunc(name?: string) {
+    return (_constructor: Function) => {
+        let funcName = name ? name : _constructor.name;
+        //注册
+        ApplicationContext.regMenuFunc(funcName, _constructor as any);
+        return;
+    }
+}
 
 let CACHE_MAP = new StringMap<object>();
 

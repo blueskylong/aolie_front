@@ -8,7 +8,6 @@ export class DmDesignService {
     static URL_ROOT = "/dm";
     static COL_ID_SER = -1;
     static TABLE_ID_SER = -1;
-    static ID_SER = -1;
 
     /**
      * 查询一表的字段信息,用于新增表
@@ -47,6 +46,15 @@ export class DmDesignService {
             });
     }
 
+    static refreshServerCache(schemaId, version, callback?: (data: string) => void) {
+        NetRequest.axios.get(DmDesignService.URL_ROOT + "/refreshCache/" + schemaId + "/" + version)
+            .then((result) => {
+                if (callback) {
+                    callback(result.data);
+                }
+            });
+    }
+
     /**
      * 生成一个Table id
      */
@@ -61,7 +69,4 @@ export class DmDesignService {
         return DmDesignService.COL_ID_SER--;
     }
 
-    static genId() {
-        return DmDesignService.ID_SER--;
-    }
 }

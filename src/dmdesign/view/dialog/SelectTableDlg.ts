@@ -67,8 +67,10 @@ export class SelectTableDlg<T extends DialogInfo> extends Dialog<T> {
 
 
     beforeRemoved() {
-        this.selectCom.beforeRemoved();
-        this.selectCom = null;
+        if (this.selectCom) {
+            this.selectCom.beforeRemoved();
+            this.selectCom = null;
+        }
         return super.beforeRemoved();
 
     }

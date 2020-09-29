@@ -1,7 +1,11 @@
+body {
+    background-color: #fff;
+}
 
 .icon {
     font-family: FontAwesome;
 }
+
 .split-pane-divider {
     background-color: rgba(232, 123, 121, 0.6);
 }
@@ -11,11 +15,79 @@ html {
 }
 
 .row {
+
     margin-right: 0px;
     margin-left: 0px;
 }
 
-#container {
-    width: 100%;
-    height: 100%;
+.bootstrap-select[class*="col-"] .dropdown-toggle {
+    background-color: white;
+    border: 1px solid #ced4da;
+}
+.form-control input[type="radio"], input[type="checkbox"]{
+    height: calc(1.4em);
+}
+
+.mask-panel {
+    z-index: 100000;
+    position: absolute;
+    display: block;
+    position: absolute;
+    margin-left: 45%;
+    margin-top: 20%;
+}
+
+.wrapp {
+    float: left;
+    width: 140px;
+    height: 140px;
+    margin: 0 10px 10px 0;
+    padding: 20px 20px 20px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.k-line {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    border-radius: 15px;
+    background-color: #4b9cdb;
+}
+
+.k-line4-1 {
+    animation: k-loadingA 1.5s .1s infinite;
+    background-color: #81C784;
+}
+
+.k-line4-2 {
+    animation: k-loadingA 1.5s .2s infinite;
+    background-color: #66BB6A;
+}
+
+.k-line4-3 {
+    animation: k-loadingA 1.5s .4s infinite;
+    background-color: #4CAF50;
+}
+
+.k-line4-4 {
+    animation: k-loadingA 1.5s .8s infinite;
+    background-color: #43A047;
+}
+
+.k-line4-5 {
+    animation: k-loadingA 1.5s 1.2s infinite;
+    background-color: #388E3C;
+}
+
+@keyframes k-loadingA {
+    0% {
+        height: 15px
+    }
+    50% {
+        height: 35px
+    }
+    100% {
+        height: 15px
+    }
 }

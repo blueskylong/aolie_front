@@ -1,6 +1,6 @@
 import {BaseDto} from "./BaseDto";
 
-export default class FormulaDto  extends BaseDto{
+export default class FormulaDto extends BaseDto {
     public formulaId: number;
     /**
      * 对应表列的ID,一个列可以有多个公式
@@ -12,4 +12,6 @@ export default class FormulaDto  extends BaseDto{
     public orderNum: number;
 
     public memo: string;
+
+    public schemaId: number;
 }

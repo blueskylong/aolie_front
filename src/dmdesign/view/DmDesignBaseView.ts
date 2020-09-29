@@ -140,6 +140,7 @@ export default abstract class DmDesignBaseView<T> extends BaseUI<T> {
         if (this.needHandleSelectEvent()) {
             EventBus.removeListener(EventBus.SELECT_CHANGE_EVENT, this);
         }
+        super.beforeRemoved();
         return true;
     }
 

@@ -3,6 +3,8 @@
  */
 
 export class CommonUtils {
+    static ID_SER = -1;
+
     static genKey(id: number, version: string) {
         return id + "_" + version;
     }
@@ -69,11 +71,36 @@ export class CommonUtils {
     }
 
     static showMask() {
-        //  $("body").modal("show");
+        $(".mask-panel").modal("show");
     }
 
     static hideMask() {
-        // $("body").modal();
+        $(".mask-panel").modal("hide");
     }
 
+    /**
+     * 生成普通的ID
+     */
+    static genId() {
+        return CommonUtils.ID_SER--;
+    }
+
+
+    static getOffsetTopByBody(el) {
+        let offsetTop = 0;
+        while (el && el.tagName !== 'BODY') {
+            offsetTop += el.offsetTop;
+            el = el.offsetParent
+        }
+        return offsetTop;
+    }
+
+    static getOffsetLeftByBody(el) {
+        let offsetLeft = 0;
+        while (el && el.tagName !== 'BODY') {
+            offsetLeft += el.offsetLeft;
+            el = el.offsetParent
+        }
+        return offsetLeft;
+    }
 }

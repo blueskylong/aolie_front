@@ -142,7 +142,7 @@ export default class TableView extends DmDesignBaseView<TableInfo> implements At
             let i = 0;
             for (let col of this.lstColumn) {
                 if (col.getViewUI() === element) {
-                    col.getDtoInfo().getColumnDto().fieldIndex = index + 1;
+                    col.getDtoInfo().prepareData(index + 1);
                     newArray.push(col);
                     this.lstColumn.splice(i, 1);
                 }
@@ -269,9 +269,9 @@ export default class TableView extends DmDesignBaseView<TableInfo> implements At
     }
 
     public columnAttrChanged(columnId: number, attrName: string, value: any): boolean {
-        console.log("------>to find:" + columnId);
+
         for (let column of this.lstColumn) {
-            console.log("------>this.is :" + column.getDtoInfo().getColumnDto().columnId);
+
             if (column.getDtoInfo().getColumnDto().columnId == columnId) {
                 column.attrChanged(attrName, value);
                 return true;
@@ -334,8 +334,8 @@ export default class TableView extends DmDesignBaseView<TableInfo> implements At
     }
 
     public prepareData() {
-        this.properties.getTableDto().posTop = this.$element.offset().top;
-        this.properties.getTableDto().posLeft = this.$element.offset().left;
+        this.properties.getTableDto().posTop = this.$element.position().top;
+        this.properties.getTableDto().posLeft = this.$element.position().left;
         this.properties.getTableDto().width = this.$element.width();
         this.properties.getTableDto().height = this.isShrinked ? 0 : 1;
         this.resortColumn();
@@ -344,4 +344,5 @@ export default class TableView extends DmDesignBaseView<TableInfo> implements At
     protected needHandleSelectEvent() {
         return true;
     }
+
 }

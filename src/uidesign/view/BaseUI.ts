@@ -1,7 +1,8 @@
-import EventBus from "../../dmdesign/view/EventBus";
 import {GeneralEventListener} from "../../blockui/event/GeneralEventListener";
 
 export default abstract class BaseUI<T> implements GeneralEventListener {
+    protected static UN_VISIBLE_CLASS = "un-visible";
+    protected static HIDDEN_CLASS = "hidden";
     protected properties: T;
     /**
      * dom
@@ -9,6 +10,8 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
     protected element: HTMLElement;
 
     protected $element: JQuery;
+
+    protected ready = false;
 
     constructor(properties: T) {
         this.properties = properties;
@@ -50,6 +53,7 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
      */
     public afterComponentAssemble(): void {
 
+        this.ready = true;
     };
 
     /**
@@ -76,12 +80,26 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
      * 自己被删除前
      */
     public beforeRemoved(): boolean {
-        this.$element.remove();
-        this.$element = null;
-        this.element = null;
+        if (this.$element) {
+
+            this.$element.remove();
+            this.$element = null;
+            this.element = null;
+        }
         return true;
     }
 
+    public hide() {
+        this.$element.attr("display", "none");
+    }
+
+    public shown() {
+        this.$element.attr("display", "display");
+    }
+
+    public isReady() {
+        return this.ready;
+    }
 }
 
 

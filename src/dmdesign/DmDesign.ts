@@ -6,26 +6,31 @@ import TapPanel from "./view/TapPanel";
 import SchemaDto from "../datamodel/dto/SchemaDto";
 import {Form} from "../blockui/Form";
 import {BlockViewDto} from "../uidesign/dto/BlockViewDto";
-import ColumnView from "./view/ColumnView";
-import EventBus from "./view/EventBus";
-import {Table} from "../blockui/table/Table";
 import {TableDemo} from "./view/TableDemo";
 import {ServerRenderProvider} from "../blockui/table/TableRenderProvider";
+import {CardList} from "../blockui/cardlist/CardList";
+import {Column} from "../datamodel/DmRuntime/Column";
+import {Formula} from "../blockui/uiruntime/Formula";
+import {Constraint} from "../datamodel/DmRuntime/Constraint";
+import TableDto from "../datamodel/dto/TableDto";
+import {MenuFunc} from "../decorator/decorator";
+import {MenuFunction, MenuFunctionInfo} from "../blockui/MenuFunction";
 import {CommonUtils} from "../common/CommonUtils";
 
-export default class DmDesign {
+@MenuFunc()
+export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T> {
     private ID_SCHEMA = "schema-component";
     private ID_TAP = "tap-component";
     private ID_ATTR = "attr-component";
     private schemaView: SchemaView;
     private tapPanel: TapPanel;
-    private parent: HTMLElement;
-
     private fAttr: Form;
     private fSchema: Form;
     private fTable: Form;
-    private fFormula: Form;
-    private fConstraint: Form;
+    private listFormula: CardList<BlockViewDto>;
+    private listConstraint: CardList<BlockViewDto>;
+
+    private schemaDto: SchemaDto;
 
     /**
      * 当前的编辑状态
@@ -33,17 +38,21 @@ export default class DmDesign {
     private editable = false;
 
 
-    public start(parent: HTMLElement) {
-        this.parent = parent;
-        $(() => {
-            $(parent).append(this.getUI());
-            $(".split-pane")['splitPane']();
-            this.addSchemaUI();
-            this.addTabInfoUI();
-            this.addAttrUI();
-        });
-
+    public createUI() {
+        let $ele = this.getUI();
+        return $ele.get(0);
     }
+
+    /**
+     * 当视图被装配后的处理
+     */
+    public afterComponentAssemble(): void {
+        this.$element.find(".split-pane")['splitPane']();
+
+        this.addTabInfoUI(this.$element);
+        this.addAttrUI(this.$element);
+        this.addSchemaUI(this.$element);
+    };
 
     private getUI() {
         return $(require("./template/DmDesign.html"));
@@ -52,36 +61,64 @@ export default class DmDesign {
     /**
      * 生成
      */
-    private addSchemaUI() {
-        let schemaDto = new SchemaDto();
-        schemaDto.schemaId = 2;
-        schemaDto.schemaName = "业务方案";
-        this.schemaView = new SchemaView(schemaDto);
-        $("#" + this.ID_SCHEMA).append(this.schemaView.getViewUI());
-        $(".split-pane").on("mousemove",
+    private addSchemaUI($parent: JQuery) {
+        this.schemaDto = new SchemaDto();
+        this.schemaDto.schemaId = 2;
+        this.schemaDto.schemaName = "业务方案";
+        this.schemaView = new SchemaView(this.schemaDto);
+        this.schemaView.setDataReadyListener(() => {
+            this.updateItemData();
+        });
+        this.schemaDto = this.schemaView.getDtoInfo();
+        $parent.find("#" + this.ID_SCHEMA).append(this.schemaView.getViewUI());
+        $parent.find(".split-pane").on("mousemove",
             (e) => {
                 this.schemaView.resize(e);
             });
         this.schemaView.afterComponentAssemble();
         this.schemaView.setItemSelectListener((type, dto) => {
             //这里要先把最后的变化生效
-            if (type === SchemaView.TYPE_TABLE) {
+            if (dto instanceof TableDto) {
                 this.fTable.setValue(dto);
+                this.updateConstraint(dto);
             } else {
-                this.fAttr.setValue(dto);
+                this.fAttr.setValue((<Column>dto).getColumnDto());
                 //如果选择了
-                let tableView = this.schemaView.findTableById(dto.tableId);
+                let tableView = this.schemaView.findTableById((<Column>dto).getColumnDto().tableId);
+
                 this.fTable.setValue(tableView.getDtoInfo());
+                this.listFormula.setValue((<Column>dto).getLstFormulaDto());
             }
         });
+        CommonUtils.readyDo(() => {
+            return this.schemaView.isReady();
+        }, () => {
+            this.ready = true;
+        })
+
+    }
+
+    private updateItemData() {
+        this.updateConstraint();
+        this.fSchema.setValue(this.schemaView.getDtoInfo());
+        this.fAttr.setValue({});
+        this.fTable.setValue({});
+        this.listFormula.setValue(null);
+    }
+
+    updateConstraint(dto?: TableDto) {
+        //TODO 根据选择的信息显示相应的约束
+        if (!dto) {
+            this.listConstraint.setValue(this.schemaView.getConstraintDtos());
+        }
     }
 
     /**
      * 生成下方的属性界面
      */
-    private addTabInfoUI() {
+    private addTabInfoUI($parent: JQuery) {
         this.tapPanel = new TapPanel(null);
-        $("#" + this.ID_TAP).append(this.tapPanel.getViewUI());
+        $parent.find("#" + this.ID_TAP).append(this.tapPanel.getViewUI());
         //增加各各面板
         let dto = new BlockViewDto();
         dto.blockViewId = 25;
@@ -93,9 +130,6 @@ export default class DmDesign {
             }
         });
         this.tapPanel.addTap("方案信息", this.fSchema.getViewUI());
-        setTimeout(() => {
-            this.fSchema.setValue(this.schemaView.getDtoInfo());
-        }, 1000);
 
 
         dto = new BlockViewDto();
@@ -111,13 +145,22 @@ export default class DmDesign {
 
         dto = new BlockViewDto();
         dto.blockViewId = 35;
-        this.fFormula = new Form(dto);
-        this.tapPanel.addTap("列公式", this.fFormula.getViewUI());
+        this.listFormula = new CardList(dto);
+        this.tapPanel.addTap("列公式", this.listFormula.getViewUI());
+        this.listFormula.setEditable(true);
+        this.listFormula.setDefaultValueProvider(() => {
+            return Formula.genNewFormula(this.schemaDto.schemaId, this.schemaDto.versionCode, null);
+        });
 
         dto = new BlockViewDto();
         dto.blockViewId = 40;
-        this.fConstraint = new Form(dto);
-        this.tapPanel.addTap("约束", this.fConstraint.getViewUI());
+        this.listConstraint = new CardList(dto);
+        this.tapPanel.addTap("约束", this.listConstraint.getViewUI());
+        this.listConstraint.setEditable(true);
+        this.listConstraint.setDefaultValueProvider(() => {
+            return Constraint.genConstraintDto(this.schemaDto.schemaId, this.schemaDto.versionCode);
+        });
+
 
         let table = new TableDemo(new ServerRenderProvider(30));
 
@@ -134,8 +177,8 @@ export default class DmDesign {
 
     public setEditable(editable) {
         this.fSchema.setEditable(editable);
-        this.fConstraint.setEditable(editable);
-        this.fFormula.setEditable(editable);
+        this.listConstraint.setEditable(editable);
+        this.listFormula.setEditable(editable);
         this.fTable.setEditable(editable);
         this.fAttr.setEditable(editable);
     }
@@ -143,11 +186,11 @@ export default class DmDesign {
     /**
      * 生成右边的属性事件
      */
-    private addAttrUI() {
+    private addAttrUI($parent: JQuery) {
         let dto = new BlockViewDto();
         dto.blockViewId = 20;
         this.fAttr = new Form(dto);
-        $("#" + this.ID_ATTR).append(this.fAttr.getViewUI());
+        $parent.find("#" + this.ID_ATTR).append(this.fAttr.getViewUI());
         this.fAttr.afterComponentAssemble();
         let thas = this;
         this.fAttr.addValueChangeListener({
@@ -158,6 +201,26 @@ export default class DmDesign {
 
     }
 
+    /**
+     * 自己被删除前
+     */
+    public beforeRemoved(): boolean {
+        super.beforeRemoved();
+        this.schemaView.beforeRemoved();
+        this.fTable.beforeRemoved();
+        this.fAttr.beforeRemoved();
+        this.fSchema.beforeRemoved();
+        this.listFormula.beforeRemoved();
+        this.listConstraint.beforeRemoved();
+        this.schemaView = null;
+        this.fTable = null;
+        this.fAttr = null;
+        this.fSchema = null;
+        this.listFormula = null;
+        this.listConstraint = null;
 
+
+        return true;
+    }
 }
 

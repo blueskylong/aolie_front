@@ -12,7 +12,6 @@ class Table extends BaseUI<TableRenderProvider> {
      */
     static CHECK_COL_ID = "cb";
     private isMaskChange = false;
-    private ready = false;
 
     private isEditable = true;
     //同blockId,即界面设置器中的Id,但如果是本地表格类型，则使用这个uuid
@@ -57,10 +56,6 @@ class Table extends BaseUI<TableRenderProvider> {
 
     public getEditable() {
         return this.isEditable;
-    }
-
-    public isReady() {
-        return this.ready;
     }
 
     public setEditable(editable) {
@@ -452,7 +447,6 @@ class Table extends BaseUI<TableRenderProvider> {
             },
             loadComplete: () => {
                 this.ready = true;
-                console.log("ready");
             },
             onCellSelect: (rowid, iCol, cellcontent, event) => {
                 //当是编辑的列，加上editable-cell 样式，就可以编辑了
