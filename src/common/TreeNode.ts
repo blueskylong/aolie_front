@@ -2,6 +2,7 @@ import {StringMap} from "./StringMap";
 
 export class TreeNode<T> {
     private _nodeId: string;
+    private _text: string;
     private _data: T;
     private _parent: TreeNode<T>;
     private _children: Array<TreeNode<T>>;
@@ -26,6 +27,14 @@ export class TreeNode<T> {
         return this._parent;
     }
 
+    get text(): string {
+        return this._text;
+    }
+
+    set text(value: string) {
+        this._text = value;
+    }
+
     set parent(value: TreeNode<T>) {
         this._parent = value;
     }
@@ -38,9 +47,10 @@ export class TreeNode<T> {
         this._children = value;
     }
 
-    constructor(nodeId: string, data: T) {
+    constructor(nodeId: string, data: T, text?: string) {
         this._nodeId = nodeId;
         this._data = data;
+        this.text = text;
     }
 
     public addChild(child: TreeNode<T>) {
@@ -59,17 +69,22 @@ export class TreeNodeFactory {
         return this.sortNode(this.assembleNode(this.createNodes(objs, codeField)));
     }
 
+    static genTreeNodeForTree<T>(objs: Array<T>, codeField = "lvlCode", textField = "text"): Array<TreeNode<T>> {
+        return this.sortNode(this.assembleNode(this.createNodes(objs, [codeField], textField)));
+    }
+
     /**
      * 生成所有节点
      * @param objs
-     * @param codeField
+     * @param codeField 可以使用多层字段,如
      */
-    private static createNodes<T>(objs: Array<T>, codeField: string[]): StringMap<TreeNode<T>> {
+    private static createNodes<T>(objs: Array<T>, codeField: string[], textField?): StringMap<TreeNode<T>> {
         let result = new StringMap<TreeNode<T>>();
-        let key;
+        let key, text;
         for (let obj of objs) {
-            key = this.getValue(obj, codeField)
-            result.set(key, new TreeNode(key, obj));
+            key = this.getValue(obj, codeField);
+            text = textField ? obj[textField] : null;
+            result.set(key, new TreeNode(key, obj, text));
         }
         return result;
     }

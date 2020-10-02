@@ -71,10 +71,6 @@ export abstract class JQBaseComponent<T extends Component> extends BaseComponent
 
     }
 
-    setVisible(visible: boolean) {
-        this.$element.css("display",
-            visible ? "display" : "none");
-    }
 
 
 }

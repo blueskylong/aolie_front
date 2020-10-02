@@ -58,7 +58,9 @@ export abstract class BaseComponent<T> extends BaseUI<T> {
 
     public abstract setEditable(editable: boolean);
 
-    public abstract setVisible(visible: boolean);
+    public setVisible(visible: boolean) {
+        this.$element.css("display:" + (visible ? "display" : "none"));
+    }
 
     public abstract setEnable(enable: boolean);
 

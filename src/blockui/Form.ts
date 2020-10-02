@@ -217,11 +217,6 @@ export class Form extends BaseComponent<BlockViewDto> {
 
     }
 
-    setVisible(visible: boolean) {
-        this.$element.css("display",
-            visible ? "display" : "none");
-    }
-
     addCloseListener(listener: (form: Form) => void) {
         if (!this.lstCloseListener) {
             this.lstCloseListener = new Array();

@@ -1,12 +1,17 @@
 import {MenuFunc} from "../decorator/decorator";
-import BaseUI from "./view/BaseUI";
-import exp = require("constants");
 import {MenuFunction, MenuFunctionInfo} from "../blockui/MenuFunction";
+import {JsTree} from "../blockui/JsTree/JsTree";
+import "./templates/BlockDesign.css";
 
 @MenuFunc()
 export class BlockDesign<T extends MenuFunctionInfo> extends MenuFunction<T> {
     protected createUI(): HTMLElement {
-        return $("<div>您好!</div>").get(0);
+        return $(require("./templates/BlockDesign.html")).get(0);
+    }
+
+    afterComponentAssemble(): void {
+        this.$element.find(".split-pane")['splitPane']();
+        this.ready = true;
     }
 
     beforeClose(): boolean {

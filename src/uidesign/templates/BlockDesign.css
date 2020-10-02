@@ -1,0 +1,42 @@
+.block-design .divider-west-center {
+    right: 80%;
+    width: 5px;
+}
+
+.block-design .center-and-east-container {
+    width: 80%;
+}
+
+.block-design .split-pane.vertical-percent > .split-pane-component:first-child.center-south-container {
+    right: 30%;
+    margin-right: 5px;
+}
+
+.block-design .divider-center-east {
+    right: 30%;
+    width: 5px;
+}
+
+
+.block-design .east-container {
+    width: 30%;
+}
+
+.block-design .divider-center-bottom {
+    bottom: 30%;
+    height: 5px;
+}
+
+.block-design .center-container {
+    height: 30%;
+}
+
+
+
+.split-pane.horizontal-percent > .split-pane-component:first-child.design-form {
+    bottom: 30%;
+    margin-bottom: 5px;
+    min-height: 5em;
+    background-color: darkgray;
+}
+

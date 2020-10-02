@@ -251,9 +251,5 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
 
     }
 
-    setVisible(visible: boolean) {
-        this.$element.css("display",
-            visible ? "display" : "none");
-    }
 
 }
