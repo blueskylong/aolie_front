@@ -6,11 +6,12 @@
  **/
 
 class SchemaHolder {
-   public async getTableFormula(tableId:number,version:string){
+
+   public getTableFormula(tableId:number,version:string){
 
    }
 
-   init(){
+   static init(){
 
    }
 

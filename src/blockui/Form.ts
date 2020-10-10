@@ -9,6 +9,7 @@ import EventBus from "../dmdesign/view/EventBus";
 import {CommonUtils} from "../common/CommonUtils";
 import {StringMap} from "../common/StringMap";
 import {BlockViewer} from "./uiruntime/BlockViewer";
+import {GlobalParams} from "../common/GlobalParams";
 
 
 export class Form extends BaseComponent<BlockViewDto> {
@@ -40,6 +41,13 @@ export class Form extends BaseComponent<BlockViewDto> {
             this.blockViewId = dto.blockViewId;
             this.version = dto.versionCode;
         }
+    }
+
+    static getInstance(blockId, version?) {
+        let blockDto = new BlockViewDto();
+        blockDto.blockViewId = blockId;
+        blockDto.versionCode = version || GlobalParams.getLoginVersion();
+        return new Form(blockDto);
     }
 
     showHead(isShow) {
@@ -208,7 +216,7 @@ export class Form extends BaseComponent<BlockViewDto> {
         let objValue;
         this.subComponents.forEach((value, key, map) => {
             objValue = this.values.get(key);
-            if (CommonUtils.isNull(objValue)) {
+            if (CommonUtils.isEmpty(objValue)) {
                 this.subComponents.get(key).setValue(null);
             } else {
                 this.subComponents.get(key).setValue(objValue);
@@ -240,11 +248,11 @@ export class Form extends BaseComponent<BlockViewDto> {
         //TODO 这里会有公式计算,界面使用计算,可以计算等
     }
 
-    beforeRemoved(): boolean {
+    destroy(): boolean {
         //先移除子控件
         if (this.subComponents) {
             this.subComponents.forEach((value, key, map) => {
-                value.beforeRemoved();
+                value.destroy();
             });
         }
         this.subComponents = null;
@@ -252,7 +260,7 @@ export class Form extends BaseComponent<BlockViewDto> {
         this.values = null;
         this.generator = null;
 
-        return super.beforeRemoved();
+        return super.destroy();
     }
 
     addClass(className: string) {

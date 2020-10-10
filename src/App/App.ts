@@ -1,7 +1,6 @@
 import {MainFrame} from "../home/MainFrame";
 import {IMainFrame} from "./IMainFrame";
 import {FunctionReg} from "../FunctionReg";
-import BaseUI from "../uidesign/view/BaseUI";
 import {MenuFunction} from "../blockui/MenuFunction";
 import {CommonUtils} from "../common/CommonUtils";
 
@@ -30,12 +29,16 @@ export class App {
             this.lastFunc = this.mainFrame.showFunc(FunctionReg.getFuncName(e.newURL.substr(e.newURL.lastIndexOf("#") + 1)));
         };
 
+        /**
+         * URL变化时触发的事件
+         */
         $(() => {
             let hash = window.location.hash;
-            if (!CommonUtils.isNull(hash) && "" !== hash) {
+            if (!CommonUtils.isEmpty(hash) && "" !== hash) {
                 this.lastFunc = this.mainFrame.showFunc(FunctionReg.getFuncName(hash.substr(1)));
             }
         });
+
 
     }
 

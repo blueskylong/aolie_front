@@ -6,6 +6,9 @@
 .block-design .center-and-east-container {
     width: 80%;
 }
+.split-pane.vertical-percent > .split-pane-component:first-child.west-panel{
+    right: 80%;
+}
 
 .block-design .split-pane.vertical-percent > .split-pane-component:first-child.center-south-container {
     right: 30%;
@@ -27,16 +30,56 @@
     height: 5px;
 }
 
+
 .block-design .center-container {
     height: 30%;
 }
 
+.block-design .divider-left-center-bottom {
+    bottom: 50%;
+    height: 5px;
+}
 
+.block-design .ds-tree {
+    height: 50%;
+}
+.split-pane.horizontal-percent > .split-pane-component:first-child.block-tree{
+    bottom: 50%;
+    margin-bottom: 5px;
+    min-height: 5em;
+}
 
 .split-pane.horizontal-percent > .split-pane-component:first-child.design-form {
     bottom: 30%;
     margin-bottom: 5px;
     min-height: 5em;
-    background-color: darkgray;
 }
 
+.design-component {
+    padding: 0px !important;
+    position: relative;
+}
+
+.design-component .masker {
+    position: absolute;
+    z-index: 100;
+    width: 100%;
+    height: 100%;
+    left: 0px;
+    top: -7px;
+}
+
+.design-component .masker:hover {
+    border: solid 1px #ff680b;
+    border-radius: 5px;
+}
+
+.masker .close-button {
+    color: red;
+    cursor: default;
+}
+
+.design-component .masker.active {
+    border: solid 1px green;
+    border-radius: 5px;
+}

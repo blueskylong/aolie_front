@@ -199,7 +199,7 @@ export class ServerRenderProvider implements TableRenderProvider {
             editable: true,
             formatter: (cellValue: any, options: FormatterOptions
                 , rowObject: any, action?: "edit" | "add") => {
-                let value = CommonUtils.isNull(cellValue) ? "" : cellValue;
+                let value = CommonUtils.isEmpty(cellValue) ? "" : cellValue;
                 if (!this.isEditable) {
                     options.colModel.classes = null;
                     return value;

@@ -136,11 +136,11 @@ export default abstract class DmDesignBaseView<T> extends BaseUI<T> {
     /**
      * 自己被删除前
      */
-    public beforeRemoved(): boolean {
+    public destroy(): boolean {
         if (this.needHandleSelectEvent()) {
             EventBus.removeListener(EventBus.SELECT_CHANGE_EVENT, this);
         }
-        super.beforeRemoved();
+        super.destroy();
         return true;
     }
 

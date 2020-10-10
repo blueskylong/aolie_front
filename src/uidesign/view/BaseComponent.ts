@@ -17,8 +17,10 @@ export abstract class BaseComponent<T> extends BaseUI<T> {
 
     }
 
-    public addValueChangeListener(listener) {
-        this.changeEventHandler.push(listener);
+    public addValueChangeListener(listener: GeneralEventListener) {
+        if (listener) {
+            this.changeEventHandler.push(listener);
+        }
     }
 
     public getFieldName() {

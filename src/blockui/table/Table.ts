@@ -295,7 +295,7 @@ class Table extends BaseUI<TableRenderProvider> {
      */
     getSelectedCount(): number {
         let rowIds = this.getSelectRowIds();
-        if (CommonUtils.isNull(rowIds)) {
+        if (CommonUtils.isEmpty(rowIds)) {
             return 0;
         }
         return rowIds.length;
@@ -307,7 +307,7 @@ class Table extends BaseUI<TableRenderProvider> {
      */
     getSelected(): Array<any> {
         let selectRowIds = this.getSelectRowIds();
-        if (CommonUtils.isNull(selectRowIds)) {
+        if (CommonUtils.isEmpty(selectRowIds)) {
             return null;
         }
         let data = this.getRowData(selectRowIds);
@@ -365,7 +365,7 @@ class Table extends BaseUI<TableRenderProvider> {
      */
     getCurrentRow() {
         let id = this.$element.getGridParam("selrow");
-        if (CommonUtils.isNull(id)) {
+        if (CommonUtils.isEmpty(id)) {
             return null;
         }
         return this.$element.getRowData(id);

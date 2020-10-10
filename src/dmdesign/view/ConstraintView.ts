@@ -6,7 +6,7 @@ export default class ConstraintView extends DmDesignBaseView<ConstraintDto> {
     initSubControllers(): void {
     }
 
-    beforeRemoved(): boolean {
+    destroy(): boolean {
         return false;
     }
 

@@ -171,14 +171,14 @@ export default class TableView extends DmDesignBaseView<TableInfo> implements At
         }
     }
 
-    beforeRemoved(): boolean {
+    destroy(): boolean {
         if (this.lstColumn && this.lstColumn.length > 0) {
             for (let col of this.lstColumn) {
-                col.beforeRemoved();
+                col.destroy();
             }
             this.lstColumn = null;
         }
-        super.beforeRemoved();
+        super.destroy();
         return true;
     }
 

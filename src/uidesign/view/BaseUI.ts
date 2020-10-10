@@ -79,7 +79,7 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
     /**
      * 自己被删除前
      */
-    public beforeRemoved(): boolean {
+    public destroy(): boolean {
         if (this.$element) {
 
             this.$element.remove();

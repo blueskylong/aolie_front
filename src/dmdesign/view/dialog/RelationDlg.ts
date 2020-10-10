@@ -58,13 +58,13 @@ export class RelationDlg<T extends DialogInfo> extends Dialog<T> {
     }
 
 
-    beforeRemoved() {
+    destroy() {
         if (this.selectCom) {
-            this.selectCom.beforeRemoved();
+            this.selectCom.destroy();
             this.selectCom = null;
         }
 
-        return super.beforeRemoved();
+        return super.destroy();
 
     }
 }

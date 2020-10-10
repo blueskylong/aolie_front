@@ -1,6 +1,7 @@
 /**
  * 工具类
  */
+import {AxiosResponse} from "axios";
 
 export class CommonUtils {
     static ID_SER = -1;
@@ -9,9 +10,9 @@ export class CommonUtils {
         return id + "_" + version;
     }
 
-    static isNull(obj: any) {
+    static isEmpty(obj: any) {
         let str = typeof obj;
-        return str === "undefined" || obj == null;
+        return str === "undefined" || obj == null || "" === obj;
     }
 
     static genUUID(): string {
@@ -102,5 +103,31 @@ export class CommonUtils {
             el = el.offsetParent
         }
         return offsetLeft;
+    }
+
+    static handleResponse(promise: Promise<any>, callBack?: (data) => void) {
+        promise.then((result) => {
+            CommonUtils.handleResult(result, callBack);
+        }).catch((e) => {
+            CommonUtils.log(e.status, e.statusText, e.data);
+        });
+    }
+
+    static handleResult(result: AxiosResponse, callBack?: (data) => void) {
+        if (!result) {
+            return;
+        }
+        if (result.status == 200) {
+            if (callBack) {
+                callBack(result.data);
+            }
+            return;
+        }
+        CommonUtils.log(result.status, result.statusText, result.data);
+
+    }
+
+    static log(code, name, message): void {
+
     }
 }

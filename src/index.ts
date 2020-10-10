@@ -13,7 +13,7 @@ import "bootstrap-select/dist/js/bootstrap-select.min.js";
 import "bootstrap-select/dist/css/bootstrap-select.css";
 import {NetRequest} from "./common/NetRequest";
 import "./jsplugs/jquery.dragsort";
-import "jstree";
+
 import "free-jqgrid";
 import "free-jqgrid/dist/css/ui.jqgrid.min.css";
 import './common.css';

@@ -8,7 +8,7 @@ export class ComponentDto extends BaseDto {
     /**
      * 主表ID
      */
-    public blockId: number;
+    public blockViewId: number;
     /**
      * 引用的列ID
      */

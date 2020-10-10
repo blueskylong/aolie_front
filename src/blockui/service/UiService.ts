@@ -3,6 +3,7 @@ import {BlockViewer} from "../uiruntime/BlockViewer";
 import {ReferenceData} from "../../datamodel/dto/ReferenceData";
 import {NetRequest} from "../../common/NetRequest";
 import {StringMap} from "../../common/StringMap";
+import {CommonUtils} from "../../common/CommonUtils";
 
 export class UiService {
     private static URL_ROOT = "/ui";
@@ -47,5 +48,15 @@ export class UiService {
             return lstResult;
         }
         return null;
+    }
+
+    /**
+     * 保存视图
+     * @param blockViewer
+     * @param callback
+     */
+    static saveBlockViewer(blockViewer: BlockViewer, callback: (err: string) => void) {
+        CommonUtils.handleResponse(NetRequest.axios.post(this.URL_ROOT + "/saveBlock", blockViewer), callback);
+
     }
 }

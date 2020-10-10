@@ -1,8 +1,10 @@
-import BaseUI from "../../uidesign/view/BaseUI";
 import "jstree/dist/themes/default/style.css";
 import {BaseComponent} from "../../uidesign/view/BaseComponent";
 import {CommonUtils} from "../../common/CommonUtils";
 import {NetRequest} from "../../common/NetRequest";
+import "../../jsplugs/jstree";
+import ClickEvent = JQuery.ClickEvent;
+import {GeneralEventListener} from "../event/GeneralEventListener";
 
 export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
 
@@ -15,10 +17,14 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
 
     private currentNode: any;
 
+    private hoverData: any;
+
     private timeCount = 0;
 
     private isCounting = false;
+    private btns: JQuery;
 
+    private selectedListener: Array<GeneralEventListener> = new Array<GeneralEventListener>();
 
     protected createUI(): HTMLElement {
         return $(require("../templete/JsTree.html")).get(0);
@@ -33,6 +39,10 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
                 "keep_selected_style": false
             }
 
+        },
+        "dnd": {
+            only_droppable: true,
+            is_draggable: false
         },
         "plugins": [
             "contextmenu", "dnd", "search",
@@ -55,12 +65,17 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         this.bindEvent();
     }
 
+    addSelectListener(listener: GeneralEventListener) {
+        this.selectedListener.push(listener);
+    }
+
     private createTree() {
         if (this.properties.multiSelect) {
             this.treeProps.plugins.push("checkbox")
         }
         this.treeProps = $.extend(true, this.treeProps, this.properties);
         if (this.properties.url) {
+            // data可以是一个函数,实现异步查询返回处理
             this.treeProps.core['data'] = (obj, callback) => {
                 NetRequest.axios.get(this.properties.url).then((result) => {
                     if (result.status == 200) {
@@ -75,12 +90,46 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         this.$jsTree = this.$element.find(".tree-panel");
         this.$jsTree.jstree(this.treeProps);
         this.jsTree = this.$jsTree.jstree(true);
+        if (!this.properties.url) {
+            this.setValue(null);
+        }
+        this.createToolbar();
+    }
+
+    private createToolbar() {
+        this.btns = this.$element.find(".tree-button-toolbar");
+
+        if (this.properties.buttons) {
+            for (let btn of this.properties.buttons) {
+                let $btn = $("<span class='tree-button "
+                    + (btn.icon ? btn.icon : "") + " title='" + (btn.title || btn.text || '') + "'>"
+                    + (btn.text ? btn.text : "") + "</span>");
+                if (btn.clickHandler) {
+                    $btn.on("click", (e) => {
+                        btn.clickHandler(e, this.hoverData);
+                    });
+                }
+                this.btns.append($btn);
+            }
+        }
+    }
+
+    private fireSelectChangeListener(data) {
+        if (this.selectedListener.length > 0) {
+            for (let listener of this.selectedListener) {
+                listener.handleEvent("treeSelectChanged", data, this);
+            }
+        }
     }
 
     private bindEvent() {
         this.$jsTree.on("activate_node.jstree", (obj, e) => {
             // 获取当前节点
             this.currentNode = e.node;
+        });
+
+        this.$jsTree.on("select_node.jstree", (event, data) => {
+            this.fireSelectChangeListener(data.node.data);
         });
         if (!this.properties.showSearch) {
             this.$element.find(".search-input").addClass(JsTree.HIDDEN_CLASS);
@@ -89,6 +138,31 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
                 this.startCount($(e.target).val());
             }
         );
+        $(document).on("dnd_start.vakata Event", (a, b, c) => {
+            console.log("")
+        });
+        this.$element.on("mouseover", (e) => {
+            if (!this.properties.buttons) {
+                return;
+            }
+            let $ele = $(e.target);
+            if ($ele.hasClass("jstree-anchor")) {
+                this.btns.removeClass("hidden");
+                this.btns.offset({top: $ele.offset().top, left: $ele.offset().left + $ele.width() + 3});
+                this.hoverData = this.jsTree.get_node(e.target).data;
+            } else {
+                this.btns.addClass("hidden");
+            }
+
+        });
+        this.btns.on("mouseover", (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+        });
+        this.$element.on("mouseleave", (e) => {
+            this.btns.addClass("hidden");
+            this.hoverData = null;
+        });
     }
 
 
@@ -114,7 +188,7 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         if (oraData) {
             let result = [];
             if (this.properties.rootName) {
-                oraData = oraData.splice(0, 1);
+                oraData.splice(0, 1);
             }
             for (let row of oraData) {
                 result.push(row.data);
@@ -155,12 +229,10 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         this.jsTree.settings.core.data = directset
             ? value : this.makeTreeData(value);
         this.jsTree.refresh();
+
     }
 
     protected makeTreeData(data: Array<object>): Array<any> {
-        if (!data) {
-            return data;
-        }
         if (this.properties.idField && this.properties.parentField) {
             return this.makeTreeDataById(data);
         } else {
@@ -186,20 +258,22 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
             nodeRoot.data = null;
             result.push(nodeRoot);
         }
-        for (let row of data) {
-            node = new Node();
-            code = row[this.properties.codeField];
-            if (!code) {
-                node.id = CommonUtils.genUUID();
-                node.parent = rootId;
-            } else {
-                node.id = code;
-                node.parent = code.length > 3 ? code.substr(0, code.length - 3) : rootId;
+        if (data) {
+            for (let row of data) {
+                node = new Node();
+                code = row[this.properties.codeField];
+                if (!code) {
+                    node.id = CommonUtils.genUUID();
+                    node.parent = rootId;
+                } else {
+                    node.id = code;
+                    node.parent = code.length > 3 ? code.substr(0, code.length - 3) : rootId;
+                }
+                node.text = row[this.properties.textField];
+                node.key = row[this.properties.idField];
+                node.data = row;
+                result.push(node);
             }
-            node.text = row[this.properties.textField];
-            node.key = row[this.properties.idField];
-            node.data = row;
-            result.push(node);
         }
         return result;
     }
@@ -209,6 +283,14 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
             this.currentNode.data;
         }
         return null;
+    }
+
+    getSelectData(full = true) {
+        if (this.properties.multiSelect) {
+            return this.jsTree.get_selected(full);
+        } else {
+            return this.getCurrentData();
+        }
     }
 
     protected makeTreeDataById(data: Array<any>) {
@@ -225,13 +307,15 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
             nodeRoot.data = null;
             result.push(nodeRoot);
         }
-        for (let row of data) {
-            node = new Node();
-            node.id = row[this.properties.idField];
-            node.parent = row[this.properties.parentField] ? row[this.properties.parentField] : rootId;
-            node.text = row[this.properties.textField];
-            node.data = row;
-            result.push(node);
+        if (data) {
+            for (let row of data) {
+                node = new Node();
+                node.id = row[this.properties.idField];
+                node.parent = row[this.properties.parentField] ? row[this.properties.parentField] : rootId;
+                node.text = row[this.properties.textField];
+                node.data = row;
+                result.push(node);
+            }
         }
         return result;
     }
@@ -251,7 +335,6 @@ export class Node {
 }
 
 export interface JsTreeInfo {
-
     textField: string;
     multiSelect?: boolean;
     rootName?: string;
@@ -261,4 +344,12 @@ export interface JsTreeInfo {
     url?: string,
     parentField?: string;
     lvl?: Array<number>;
+    buttons?: Array<TreeButton>;
+}
+
+export interface TreeButton {
+    text?: string;
+    icon?: string;
+    title?: string;
+    clickHandler?: (event: ClickEvent, data) => void;
 }

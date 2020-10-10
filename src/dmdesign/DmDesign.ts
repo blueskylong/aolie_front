@@ -204,14 +204,14 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
     /**
      * 自己被删除前
      */
-    public beforeRemoved(): boolean {
-        super.beforeRemoved();
-        this.schemaView.beforeRemoved();
-        this.fTable.beforeRemoved();
-        this.fAttr.beforeRemoved();
-        this.fSchema.beforeRemoved();
-        this.listFormula.beforeRemoved();
-        this.listConstraint.beforeRemoved();
+    public destroy(): boolean {
+        super.destroy();
+        this.schemaView.destroy();
+        this.fTable.destroy();
+        this.fAttr.destroy();
+        this.fSchema.destroy();
+        this.listFormula.destroy();
+        this.listConstraint.destroy();
         this.schemaView = null;
         this.fTable = null;
         this.fAttr = null;

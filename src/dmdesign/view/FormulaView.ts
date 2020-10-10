@@ -5,7 +5,7 @@ export default class FormulaView extends DmDesignBaseView<FormulaDto> {
     initSubControllers(): void {
     }
 
-    beforeRemoved(): boolean {
+    destroy(): boolean {
         return false;
     }
 

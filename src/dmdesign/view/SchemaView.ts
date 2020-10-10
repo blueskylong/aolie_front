@@ -254,7 +254,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
                     if (data instanceof TableView) {
                         this.removeTable(data);
                         $(data.getViewUI()).remove();
-                        data.beforeRemoved();
+                        data.destroy();
                     }
                 }
             }
@@ -304,7 +304,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
     private destroyElement() {
         if (this.tables) {
             for (let table of this.tables) {
-                table.beforeRemoved();
+                table.destroy();
                 $(table.getViewUI()).remove();
             }
             this.tables = new Array<TableView>();
@@ -494,22 +494,22 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
         return this.element;
     }
 
-    beforeRemoved(): boolean {
+    destroy(): boolean {
         this.destroying = true;
         if (this.tables) {
             for (let table of this.tables) {
-                table.beforeRemoved();
+                table.destroy();
             }
         }
         this.tables = null;
-        this.relationDlg.beforeRemoved();
-        this.selectTableDlg.beforeRemoved();
+        this.relationDlg.destroy();
+        this.selectTableDlg.destroy();
         this.relationDlg = null;
         this.selectTableDlg = null;
         this.schema = null;
         this.connectionRelations = null;
         this.curConnection = null;
-        super.beforeRemoved();
+        super.destroy();
         $.contextMenu("destroy");
         //jsplumb的所有设置和事件都要销毁,否则不可以重复使用
         this.getJsplumb().deleteEveryConnection();

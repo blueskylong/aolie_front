@@ -29,10 +29,6 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
         this.$element.modal('hide');
     }
 
-    public getValue() {
-
-    }
-
     protected beforeShow(value?: any) {
 
     }
@@ -45,6 +41,14 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
         if (sub) {
             $ele.find(".modal-body").append(sub);
         }
+        if (this.properties.height) {
+            $ele.find(".modal-body")
+                .css("height", this.properties.height);
+        }
+        if (this.properties.width) {
+            $ele.find(".modal-body").css("width", this.properties.width);
+        }
+
         if (this.btns) {
             let index = 0;
             for (let btn of this.btns) {
@@ -59,15 +63,17 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
 
     protected addEventHandler($element) {
         $element.on('hidden.bs.modal', () => {
-            this.beforeRemoved();
+            this.destroy();
         });
         $element.find(Dialog.FOOTER_SELECTOR).on("click", (e) => {
             this.close();
         });
         $element.find(Dialog.OK_BUTTON_SELECTOR).on("click", (e) => {
-            this.beforeOK();
+            if (!this.beforeOK()) {
+                return;
+            }
             if (this.properties.onOk) {
-                if (this.properties.onOk(this.importValue)) {
+                if (this.properties.onOk(this.getValue())) {
                     this.close();
                 }
             }
@@ -76,8 +82,12 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
 
     }
 
-    protected beforeOK() {
+    protected getValue(){
+        return this.importValue
+    }
 
+    protected beforeOK(): boolean {
+        return true;
     }
 
     public addButton(btn: HTMLElement | string, clickHandler: (event: ClickEvent) => void) {

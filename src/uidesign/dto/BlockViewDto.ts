@@ -3,7 +3,7 @@ import {BaseDto} from "../../datamodel/dto/BaseDto";
 export class BlockViewDto extends BaseDto {
     blockViewId: number;
 
-    blockName: string;
+    blockViewName: string;
     /**
      * 默认视图类型 列表,树,面板?
      */

@@ -5,19 +5,21 @@ import {IMainFrame} from "../App/IMainFrame";
 import {ApplicationContext, BeanFactory} from "../decorator/decorator";
 import {MenuFunction} from "../blockui/MenuFunction";
 import {CommonUtils} from "../common/CommonUtils";
+import {Menu} from "./dto/Menu";
 
 export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFrame {
     private CURRENT_URL = window.location.href.split('#')[0].split('?')[0];
     private $root: JQuery = null;
-    private $menuToggle = null;
-    private $sidebarMenu = null;
-    private $sidebarFooter = null;
-    private $leftCol = null;
-    private $body = null;
-    private $navMenu = null;
-    private $footer = null;
+    private $menuToggle: JQuery = null;
+    private $sidebarMenu: JQuery = null;
+    private $sidebarFooter: JQuery = null;
+    private $leftCol: JQuery = null;
+    private $body: JQuery = null;
+    private $navMenu: JQuery = null;
+    private $footer: JQuery = null;
+    private $toolbar: JQuery = null;
 
-    private lastFunc: BaseUI<any>;
+    private lastFunc: MenuFunction<any>;
 
     protected createUI(): HTMLElement {
         let $ele = $(require("./templates/MainFrame.html"));
@@ -29,6 +31,8 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
         this.$body = $ele.find('.right_col');
         this.$navMenu = $ele.find('.nav_menu');
         this.$footer = $ele.find('footer');
+        this.$toolbar = $ele.find(".toolbar");
+
         return $ele.get(0);
     }
 
@@ -158,6 +162,7 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
 
     showFunc(funcName: string, params?: object) {
         CommonUtils.showMask();
+
         try {
             let func = ApplicationContext.getMenuFunc(funcName);
             if (!func) {
@@ -166,23 +171,46 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
                 return;
             }
             if (this.lastFunc) {
-                this.lastFunc.beforeRemoved();
+                this.lastFunc.destroy();
                 this.$body.children().remove();
             }
             this.lastFunc = null;
-            let baseUi = <BaseUI<any>>BeanFactory.createBean(func, [params || {}]);
+            let baseUi = <MenuFunction<any>>BeanFactory.createBean(func, [params || {}]);
             this.lastFunc = baseUi;
             this.$body.append(this.lastFunc.getViewUI());
             this.lastFunc.afterComponentAssemble();
             CommonUtils.readyDo(() => {
                 return this.lastFunc.isReady();
             }, () => {
-                 CommonUtils.hideMask();
-            })
+                CommonUtils.hideMask();
+            });
+            this.initButtons();
             return <MenuFunction<any>>this.lastFunc;
         } catch (e) {
             CommonUtils.hideMask();
         }
+    }
+
+    private initButtons() {
+        this.$toolbar.children().remove();
+        if (this.lastFunc && this.lastFunc.getButton()) {
+            for (let btn of this.lastFunc.getButton()) {
+                let $btn = $("<button class=\"btn btn-warning\" action-code='" + btn.action + "'>" +
+                    (btn.icon ? "<span class='" + btn.icon + "'></span>" : "")
+                    + (btn.title ? btn.title : "") + "</button>");
+                $btn.on("click", (event) => {
+                    this.lastFunc.handleButtonClick($(event.target).attr("action-code"));
+                });
+                this.$toolbar.append($btn);
+            }
+        }
+    }
+
+    /**
+     * 根据功能状态更新按钮的状态
+     */
+    private updateButtonState() {
+        //TODO
     }
 }
 

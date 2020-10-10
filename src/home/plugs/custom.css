@@ -4,6 +4,19 @@
     background: #2A3F54;
 }
 
+.top_nav .navbar-right li:first-child {
+    float: left;
+}
+
+.top_nav .navbar-right li button span {
+    margin-right: 4px;
+}
+
+.top_nav .navbar-right li button {
+    font-weight: bold;
+    margin-right: 3px;
+}
+
 .container {
     width: 100%;
     padding: 0;

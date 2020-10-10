@@ -27,10 +27,6 @@ export class SelectTableDlg<T extends DialogInfo> extends Dialog<T> {
         this.existsTableNames = names;
     }
 
-    protected beforeOK() {
-        //    this.importValue = this.getValue();
-    }
-
 
     beforeShow(value?: any) {
         this.setValue(value);
@@ -66,12 +62,12 @@ export class SelectTableDlg<T extends DialogInfo> extends Dialog<T> {
     }
 
 
-    beforeRemoved() {
+    destroy() {
         if (this.selectCom) {
-            this.selectCom.beforeRemoved();
+            this.selectCom.destroy();
             this.selectCom = null;
         }
-        return super.beforeRemoved();
+        return super.destroy();
 
     }
 }
