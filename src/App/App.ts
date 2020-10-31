@@ -3,6 +3,7 @@ import {IMainFrame} from "./IMainFrame";
 import {FunctionReg} from "../FunctionReg";
 import {MenuFunction} from "../blockui/MenuFunction";
 import {CommonUtils} from "../common/CommonUtils";
+import {SchemaFactory} from "../datamodel/SchemaFactory";
 
 export class App {
     private mainFrame: IMainFrame;
@@ -10,6 +11,7 @@ export class App {
     private maskChange = false;
 
     start() {
+        new SchemaFactory().init();
         this.mainFrame = this.createMainFrame();
         let $body = $("body");
         $body.append(this.mainFrame.getViewUI());

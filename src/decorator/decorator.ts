@@ -90,8 +90,7 @@ export function CatchException() {
  */
 export function Cache(value: string) {
     return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
-        // console.log('params:', target, propertyKey, descriptor);
-        const origin = target[propertyKey];
+          const origin = target[propertyKey];
         // aop
         target[propertyKey] = function (...args: any[]) {
             let cacheKey = value + "_" + args.join("_");
@@ -113,8 +112,7 @@ export function Cache(value: string) {
  */
 export function PopulateBean<T>(constructor: { new(...args: Array<any>): T }) {
     return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
-        // console.log('params:', target, propertyKey, descriptor);
-        const origin = target[propertyKey];
+         const origin = target[propertyKey];
         // aop
         target[propertyKey] = function (...args: any[]) {
             //目前只能处理一个对象
@@ -184,6 +182,9 @@ export class BeanFactory {
     static populateBean<T>(_constructor: { new(...args: Array<any>): T }, params: any): T {
         if (!params) {
             return null;
+        }
+        if(params instanceof _constructor){
+            return params;
         }
         let obj = new _constructor();
 

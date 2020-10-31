@@ -4,6 +4,7 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
     protected static UN_VISIBLE_CLASS = "un-visible";
     protected static HIDDEN_CLASS = "hidden";
     protected properties: T;
+    protected template: string;
     /**
      * dom
      */
@@ -81,7 +82,6 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
      */
     public destroy(): boolean {
         if (this.$element) {
-
             this.$element.remove();
             this.$element = null;
             this.element = null;

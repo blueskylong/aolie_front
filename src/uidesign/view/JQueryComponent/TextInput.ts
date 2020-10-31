@@ -2,6 +2,7 @@ import {JQBaseComponent} from "./JQBaseComponent";
 import {AutoFit} from "./AutoFit";
 import {Constants} from "../../../common/Constants";
 import {Component} from "../../../blockui/uiruntime/Component";
+import {CommonUtils} from "../../../common/CommonUtils";
 
 export class TextInput<T extends Component> extends JQBaseComponent<T> {
     private static TEMPLATE = require("./templete/BaseInput.html");
@@ -55,8 +56,9 @@ export class TextInput<T extends Component> extends JQBaseComponent<T> {
     protected handleTitle($dom: JQuery, id: string) {
         let $title = $dom.find(".comp-title");
         $title.text(this.properties.componentDto.title);
-        if (this.properties.componentDto.titleColor) {
-            $title.css("color", this.properties.componentDto.titleColor);
+        let color = this.properties.componentDto.titleColor;
+        if (!CommonUtils.isEmpty(color)) {
+            $title.css("color", color);
         }
         $title.attr("for", id);
         //如果不显示

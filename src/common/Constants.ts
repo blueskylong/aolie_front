@@ -10,5 +10,33 @@ export class Constants {
         decimal: "decimal",
         datatime: "datatime"
     }
+
+    static DispType = {
+        form: 1,
+        table: 2,
+        tree: 3,
+        card: 4
+    }
+
+    static ComponentType = {
+        text: "text",
+        button: "button",
+        password: "password",
+        hidden: 'hidden',
+        file: "fileinput",
+        checkbox: "checkbox",
+        radio: 'radioinput',
+        textarea: "textarea",
+        select: "select",
+        label: "label",
+        panel: "panel",
+        time: "time",
+        email: "email",
+        color: "color",
+        date: "date",
+        number: "number",
+        filter: "filter",
+        formula: "formula"
+    }
 }
 

@@ -1,8 +1,14 @@
 import {TextInput} from "./TextInput";
 import {AutoFit} from "./AutoFit";
 import {Component} from "../../../blockui/uiruntime/Component";
+import {JQBaseComponent} from "./JQBaseComponent";
+import {IComponentGenerator} from "../generator/IComponentGenerator";
+import {JQueryGeneralComponentGenerator} from "./JQueryGeneralComponentGenerator";
+import {BaseComponent} from "../BaseComponent";
 
 export class Panel<T extends Component> extends TextInput<T> {
+    protected lstSubControl: Array<BaseComponent<Component>> = [];
+    private generator: IComponentGenerator = new JQueryGeneralComponentGenerator();
 
     protected getEditorType() {
         return "panel";
@@ -16,6 +22,25 @@ export class Panel<T extends Component> extends TextInput<T> {
             $editorParent.addClass("col-md-" + (12 - this.properties.componentDto.titleSpan ? this.properties.componentDto.titleSpan : 0));
         }
 
+    }
+
+    /**
+     * 增加下级控件
+     */
+    addSubComponent(comp: Component) {
+        let control = this.generator.generateComponent(comp.getComponentDto().dispType, comp,
+            this.$element.find(".comp-body").get(0), this);
+        this.lstSubControl.push(control);
+        this.$element.append(control.getViewUI());
+        control.afterComponentAssemble();
+        return control;
+    }
+
+    addSubControl(control: BaseComponent<any>) {
+        this.lstSubControl.push(control);
+        this.$element.append(control.getViewUI());
+        control.afterComponentAssemble();
+        return control;
     }
 
     protected loadTemplate(): string {

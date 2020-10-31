@@ -6,6 +6,8 @@ import {AxiosResponse} from "axios";
 export class CommonUtils {
     static ID_SER = -1;
 
+    static INT_SER = 1;
+
     static genKey(id: number, version: string) {
         return id + "_" + version;
     }
@@ -13,6 +15,13 @@ export class CommonUtils {
     static isEmpty(obj: any) {
         let str = typeof obj;
         return str === "undefined" || obj == null || "" === obj;
+    }
+
+    /**
+     * 取得临时序号
+     */
+    static nextInt() {
+        return CommonUtils.INT_SER++;
     }
 
     static genUUID(): string {

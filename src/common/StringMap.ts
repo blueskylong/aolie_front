@@ -44,6 +44,10 @@ export class StringMap<V> {
         return result;
     }
 
+    getValueAsObject() {
+        return this.obj;
+    }
+
     set(key: string, value: V): StringMap<V> {
         this.obj[key] = value;
         return this;

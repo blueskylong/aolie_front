@@ -73,8 +73,8 @@ export class ServerRenderProvider implements TableRenderProvider {
     protected tableOption: FreeJqGrid.JqGridOptions;
     protected isReady = false;
 
-    private lstColumn: Array<ColumnModel> = new Array<ColumnModel>();
-    private groupHeader = {
+    protected lstColumn: Array<ColumnModel> = new Array<ColumnModel>();
+    protected groupHeader = {
         useColSpanStyle: true,
         applyLabelClasses: true,
         groupHeaders: []
@@ -138,14 +138,14 @@ export class ServerRenderProvider implements TableRenderProvider {
         return null;
     }
 
-    private async findViewerInfo(blockId) {
+    protected async findViewerInfo(blockId) {
         this.viewer = await UiService.getSchemaViewer(blockId) as any;
     }
 
     /**
      * 初始化表头
      */
-    private async init() {
+    protected async init() {
 
         await this.findViewerInfo(this.blockId);
 
@@ -165,7 +165,7 @@ export class ServerRenderProvider implements TableRenderProvider {
                 if (node.children) {//目前只做二层
                     this.groupHeader.groupHeaders.push(this.createGroupHeader(node));
                     for (let subNode of node.children) {
-                        this.lstColumn.push(this.createColModel(node.data));
+                        this.lstColumn.push(this.createColModel(subNode.data));
                     }
                 } else {
                     this.lstColumn.push(this.createColModel(node.data));
@@ -183,7 +183,8 @@ export class ServerRenderProvider implements TableRenderProvider {
         return {
             startColumnName: node.children[0].data.column.getColumnDto().fieldName,
             numberOfColumns: node.children.length,
-            titleText: node.data.componentDto.title
+            titleText: node.data.componentDto.title,
+            id: node.data.componentDto.componentId
         }
     }
 
@@ -196,6 +197,7 @@ export class ServerRenderProvider implements TableRenderProvider {
             searchoptions: com.isNumberField() ? {sopt: ['eq', 'ne', 'le', 'lt', 'gt', 'ge']} : null,
             align: com.getTextAlign(),
             label: com.componentDto.title,
+            id: com.componentDto.componentId,
             editable: true,
             formatter: (cellValue: any, options: FormatterOptions
                 , rowObject: any, action?: "edit" | "add") => {
@@ -255,6 +257,41 @@ export class ServerRenderProvider implements TableRenderProvider {
         return null;
     }
 }
+
+export class LocalRenderProvider extends ServerRenderProvider {
+    constructor(viewer: BlockViewer) {
+        super(null);
+        this.viewer = viewer;
+    }
+
+    protected async findViewerInfo(blockId) {
+
+        new Promise((resolve => {
+            return this.viewer;
+        }));
+        // this.viewer = await UiService.getSchemaViewer(blockId) as any;
+    }
+
+    /**
+     * 取得表参数
+     */
+    async getOptions(table: Table): Promise<FreeJqGrid.JqGridOptions> {
+        if (!this.tableOption) {
+            await this.init();
+            this.tableOption = $.extend(true, {}, DEFAULT_TABLE_CONFIG);
+            this.tableOption.colModel = this.getColumnModel();
+            return new Promise<FreeJqGrid.JqGridOptions>((resolve) => {
+                resolve(this.tableOption);
+            });
+        } else {
+            return new Promise<FreeJqGrid.JqGridOptions>((resolve) => {
+                resolve(this.tableOption);
+            });
+        }
+    }
+
+}
+
 
 let DEFAULT_TABLE_CONFIG: FreeJqGrid.JqGridOptions = {
     guiStyle: "bootstrapPrimary",

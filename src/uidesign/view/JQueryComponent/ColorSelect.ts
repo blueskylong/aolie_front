@@ -7,4 +7,10 @@ export class ColorSelect<T extends Component> extends TextInput<T> {
         return "color";
     }
 
+    setValue(value: any) {
+        if (!value) {
+            value = "#73879C";//默认颜色
+        }
+        super.setValue(value);
+    }
 }

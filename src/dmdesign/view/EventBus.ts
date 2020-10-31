@@ -49,6 +49,7 @@ export default class EventBus {
      * @param listener
      */
     public static addListener(eventType: string, listener: GeneralEventListener) {
+        EventBus.removeListener(eventType,listener);
         let lstHandler = EventBus.EVENTS[eventType];
         if (!lstHandler) {
             lstHandler = new Array<EventListener>();
@@ -94,7 +95,7 @@ export default class EventBus {
         }
         let index = lstHandler.indexOf(listener);
         if (index > -1) {
-            lstHandler.splice(index, 1);
+            let deleted = lstHandler.splice(index, 1);
             return true;
         }
         return false;

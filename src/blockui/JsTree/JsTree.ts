@@ -9,6 +9,8 @@ import {GeneralEventListener} from "../event/GeneralEventListener";
 export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
 
 
+    static EVENT_SELECT_CHANGED = "treeSelectChanged"
+
     private jsTree: JSTree;
 
     private $jsTree: JQuery;
@@ -23,6 +25,7 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
 
     private isCounting = false;
     private btns: JQuery;
+    private silence = false;
 
     private selectedListener: Array<GeneralEventListener> = new Array<GeneralEventListener>();
 
@@ -41,7 +44,7 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
 
         },
         "dnd": {
-            only_droppable: true,
+            onlyDroppable: true,
             is_draggable: false
         },
         "plugins": [
@@ -60,9 +63,46 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         }
     }
 
+    changeCurrentNodeText(str){
+        if(!this.currentNode){
+            return;
+        }
+        this.getJsTree().set_text(this.currentNode,str);
+        console.log(this.currentNode);
+    }
+
+    private onReady() {
+        if (this.properties.onReady) {
+            this.properties.onReady();
+        }
+    }
+
     afterComponentAssemble(): void {
         this.createTree();
         this.bindEvent();
+    }
+
+    selectNode(node: any) {
+        this.jsTree.select_node(node);
+    }
+
+    selectNodeById(id, silence = false) {
+        CommonUtils.readyDo(() => {
+            return this.isReady()
+        }, () => {
+            let data = this.jsTree.get_json(null, {flat: true});
+            if (data) {
+                this.jsTree.deselect_all();
+                for (let row of data) {
+                    let node = this.jsTree.get_node(row.id);
+                    if (node.data && id == node.data[this.properties.idField]) {
+                        this.jsTree.select_node(node);
+                        return;
+                    }
+                }
+            }
+        })
+
     }
 
     addSelectListener(listener: GeneralEventListener) {
@@ -73,6 +113,10 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         if (this.properties.multiSelect) {
             this.treeProps.plugins.push("checkbox")
         }
+        this.treeProps.dnd.onlyDroppable = false;
+
+        this.treeProps.dnd.is_draggable = this.properties.dnd && this.properties.dnd.isDraggable ? true : false;
+
         this.treeProps = $.extend(true, this.treeProps, this.properties);
         if (this.properties.url) {
             // data可以是一个函数,实现异步查询返回处理
@@ -115,9 +159,13 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
     }
 
     private fireSelectChangeListener(data) {
+        if (this.silence) {
+            this.silence = false;
+            return;
+        }
         if (this.selectedListener.length > 0) {
             for (let listener of this.selectedListener) {
-                listener.handleEvent("treeSelectChanged", data, this);
+                listener.handleEvent(JsTree.EVENT_SELECT_CHANGED, data, this);
             }
         }
     }
@@ -131,6 +179,24 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         this.$jsTree.on("select_node.jstree", (event, data) => {
             this.fireSelectChangeListener(data.node.data);
         });
+
+        this.$jsTree.on("state_ready.jstree", (event) => {
+            this.jsTree.open_all();
+            if (this.treeProps.dnd['isCanDrop']) {
+                this.$element.children("li").addClass("droppable");
+            }
+            if (this.properties.url) {
+                this.onReady();
+            }
+        });
+        this.$jsTree.on("refresh.jstree", (event) => {
+            this.jsTree.open_all();
+            if (this.treeProps.dnd['isCanDrop']) {
+                this.$element.children("li").addClass("droppable");
+            }
+            this.onReady();
+            this.ready = true;
+        });
         if (!this.properties.showSearch) {
             this.$element.find(".search-input").addClass(JsTree.HIDDEN_CLASS);
         }
@@ -138,9 +204,7 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
                 this.startCount($(e.target).val());
             }
         );
-        $(document).on("dnd_start.vakata Event", (a, b, c) => {
-            console.log("")
-        });
+
         this.$element.on("mouseover", (e) => {
             if (!this.properties.buttons) {
                 return;
@@ -149,7 +213,7 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
             if ($ele.hasClass("jstree-anchor")) {
                 this.btns.removeClass("hidden");
                 this.btns.offset({top: $ele.offset().top, left: $ele.offset().left + $ele.width() + 3});
-                this.hoverData = this.jsTree.get_node(e.target).data;
+                this.hoverData = this.jsTree.get_node(e.target);
             } else {
                 this.btns.addClass("hidden");
             }
@@ -177,7 +241,6 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
             if (this.timeCount < 0) {
                 clearInterval(int);
                 this.isCounting = false;
-                console.log("searching ===>" + this.$element.find(".search-input").val());
                 this.jsTree.search(this.$element.find(".search-input").val() as string);
             }
         }, 300);
@@ -225,11 +288,10 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
      * @param directset
      */
     setValue(value: any, directset = false) {
-
+        this.ready = false;
         this.jsTree.settings.core.data = directset
             ? value : this.makeTreeData(value);
-        this.jsTree.refresh();
-
+        this.jsTree.refresh(false, true);
     }
 
     protected makeTreeData(data: Array<object>): Array<any> {
@@ -251,7 +313,10 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         this.properties.textField = this.properties.textField || Node.TEXT_FIELD;
         if (this.properties.rootName) {
             let nodeRoot = new Node();
-            rootId = CommonUtils.genUUID();
+            if (!this.properties.rootId) {
+                this.properties.rootId = CommonUtils.genUUID();
+            }
+            rootId = this.properties.rootId;
             nodeRoot.id = rootId;
             nodeRoot.parent = JsTree.ROOT_KEY;
             nodeRoot.text = this.properties.rootName;
@@ -280,9 +345,17 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
 
     getCurrentData() {
         if (this.currentNode) {
-            this.currentNode.data;
+            return this.currentNode.data;
         }
         return null;
+    }
+
+    getCurrentNode() {
+        return this.currentNode;
+    }
+
+    getNodeData(node: any) {
+        return this.jsTree.get_json(node);
     }
 
     getSelectData(full = true) {
@@ -344,7 +417,28 @@ export interface JsTreeInfo {
     url?: string,
     parentField?: string;
     lvl?: Array<number>;
+    onReady?: () => void;
     buttons?: Array<TreeButton>;
+    dnd?: DragAndDrop;
+    rootId?: string;
+
+}
+
+export interface DragAndDrop {
+    //是不是仅仅有droppable类的元素可以接收拖放
+    onlyDroppable?: boolean,
+    //是否可以拖
+    isDraggable?: boolean,
+    /**
+     * 是否可以放下.针对当前位置
+     * @param data
+     */
+    isCanDrop?: (sourceData, parentData) => boolean;
+    /**
+     * 是否可以拖起,针对单个节点
+     * @param sourceData
+     */
+    isCanDrag?: (sourceData) => boolean;
 }
 
 export interface TreeButton {

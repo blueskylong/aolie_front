@@ -37,8 +37,11 @@ export class Alert<T extends AlertInfo> extends BaseUI<T> {
 
     }
 
-    static showMessage(info: AlertInfo) {
-        alert(info.message)
+    static showMessage(info: AlertInfo | string) {
+        if (typeof info === "string") {
+            alert(info);
+        } else
+            alert(info.message)
     }
 }
 

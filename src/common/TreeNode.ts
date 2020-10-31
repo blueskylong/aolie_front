@@ -79,6 +79,9 @@ export class TreeNodeFactory {
      * @param codeField 可以使用多层字段,如
      */
     private static createNodes<T>(objs: Array<T>, codeField: string[], textField?): StringMap<TreeNode<T>> {
+        if (!objs) {
+            return null;
+        }
         let result = new StringMap<TreeNode<T>>();
         let key, text;
         for (let obj of objs) {

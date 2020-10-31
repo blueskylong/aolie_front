@@ -22,9 +22,20 @@ export class UiService {
         if (UiService.CACHE.has(key)) {
             return UiService.CACHE.get(key);
         }
+        let result = await UiService.getSchemaViewerDirect(blockViewerId);
+        UiService.CACHE.set(key, result);
+        return result;
+    }
+
+    /**
+     * 取得一个UI信息
+     * @param blockViewerId
+     * @param version
+     */
+    static async getSchemaViewerDirect(blockViewerId: number) {
+        let key = UiService.PREFIX_KEY_BLOCK + blockViewerId;
         let viewData = await NetRequest.axios.get(this.URL_ROOT + "/getSchemaViewer/" + blockViewerId);
         let result = BeanFactory.populateBean(BlockViewer, viewData.data) as any;
-        UiService.CACHE.set(key, result);
         return result;
     }
 
@@ -50,13 +61,8 @@ export class UiService {
         return null;
     }
 
-    /**
-     * 保存视图
-     * @param blockViewer
-     * @param callback
-     */
-    static saveBlockViewer(blockViewer: BlockViewer, callback: (err: string) => void) {
-        CommonUtils.handleResponse(NetRequest.axios.post(this.URL_ROOT + "/saveBlock", blockViewer), callback);
-
+    static clearCache(blockViewerId: number) {
+        UiService.CACHE.delete(UiService.PREFIX_KEY_BLOCK + blockViewerId);
     }
+
 }

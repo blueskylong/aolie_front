@@ -10,6 +10,11 @@ import {CommonUtils} from "../common/CommonUtils";
 import {StringMap} from "../common/StringMap";
 import {BlockViewer} from "./uiruntime/BlockViewer";
 import {GlobalParams} from "../common/GlobalParams";
+import {ComponentDto} from "../uidesign/dto/ComponentDto";
+import {Constants} from "../common/Constants";
+import {ColumnDto} from "../datamodel/dto/ColumnDto";
+import {Column} from "../datamodel/DmRuntime/Column";
+import {BeanFactory} from "../decorator/decorator";
 
 
 export class Form extends BaseComponent<BlockViewDto> {
@@ -33,6 +38,8 @@ export class Form extends BaseComponent<BlockViewDto> {
     private $formBody: JQuery;
 
     private viewer: BlockViewer;
+    //是否本地使用
+    private isLocal = false;
 
 
     constructor(dto: BlockViewDto) {
@@ -40,6 +47,12 @@ export class Form extends BaseComponent<BlockViewDto> {
         if (dto) {
             this.blockViewId = dto.blockViewId;
             this.version = dto.versionCode;
+        } else {
+            this.isLocal = true;
+            let blockDto = new BlockViewDto();
+            blockDto.colSpan = 12;
+            this.properties = blockDto;
+            this.viewer = new BlockViewer();
         }
     }
 
@@ -95,7 +108,9 @@ export class Form extends BaseComponent<BlockViewDto> {
     }
 
     async initSubControllers() {
-
+        if (this.isLocal && !this.viewer) {
+            return;
+        }
         if (!this.viewer) {
             this.viewer = await UiService.getSchemaViewer(this.blockViewId) as any;
         }
@@ -113,15 +128,22 @@ export class Form extends BaseComponent<BlockViewDto> {
             }
             this.createSubComponents(this.$formBody.get(0), node);
         }
+    }
 
-
+    setDisplayComponent(viewer: BlockViewer) {
+        if (!this.isLocal) {
+            throw new Error("在线配置Form,不可以使用此方法");
+        }
+        this.getViewUI();
+        this.viewer = viewer;
+        this.initSubControllers();
     }
 
     protected createUI(): HTMLElement {
         let $ele = $(require("./templete/Form.html"));
         $ele.attr("blockId", this.blockViewId);
         if (this.properties.colSpan) {
-            if (this.properties.colSpan < 12) {
+            if (this.properties.colSpan <= 12) {
                 //使用bootstrap布局
                 $ele.addClass("col-md-" + this.properties.colSpan);
             } else {
@@ -172,6 +194,11 @@ export class Form extends BaseComponent<BlockViewDto> {
         }
         return this.values;
     }
+
+    getValueForObject<T>(clazz: { new(...args: Array<any>): T }): T {
+        return BeanFactory.populateBean(clazz, this.getValue().getValueAsObject());
+    }
+
 
     setEditable(editable: boolean) {
         this.editable = editable;
@@ -238,7 +265,7 @@ export class Form extends BaseComponent<BlockViewDto> {
             if (!this.values) {
                 this.values = new StringMap<object>();
             }
-            this.values[fieldName + ""] = value;
+            this.values.set(fieldName + "", value);
             this.fireValueChanged(fieldName as any, value);
         }
         this.calcFormula(fieldName as any);
@@ -267,4 +294,34 @@ export class Form extends BaseComponent<BlockViewDto> {
         this.$element.addClass(className);
     }
 
+    static genSimpleLocalViewer(lstComp: Array<Component>) {
+        if (!lstComp || lstComp.length < 1) {
+            return null;
+        }
+        let viewer = new BlockViewer();
+        let viewerDto = new BlockViewDto();
+        viewerDto.colSpan = 12;
+        viewerDto.defaultShowType = Constants.DispType.form;
+        viewer.setBlockViewDto(viewerDto);
+        viewer.setLstComponent(lstComp);
+        return viewer;
+    }
+
+    static genSimpDto(type, title, horSpan, field) {
+        let dto = new ComponentDto();
+        dto.dispType = type;
+        dto.title = title;
+        dto.horSpan = horSpan;
+        dto.columnId = CommonUtils.nextInt();
+        dto.componentId = CommonUtils.nextInt();
+        let colDto = new ColumnDto();
+        colDto.fieldName = field;
+        colDto.columnId = dto.columnId;
+        let column = new Column();
+        column.setColumnDto(colDto);
+        let comp = new Component();
+        comp.setColumn(column);
+        comp.setComponentDto(dto);
+        return comp;
+    }
 }

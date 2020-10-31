@@ -8,13 +8,17 @@ export class SelectDsDlg extends Dialog<DialogInfo> {
 
     protected getBody(): HTMLElement {
         let treeInfo = {
-            textField: "name",
-            codeField: "code",
+            idField: "tableId",
+            textField: "tableName",
+            codeField: "tableId",
+            parentField: "nofield",//这里只是让其找不到的一个字段即可
             rootName: "数据表",
             multiSelect: true,
             showSearch: true,
-
-            url: "/ui/findReferenceData/" + 50
+            url: "/ui/findAllTableInfo/" + 2,
+            onReady: () => {
+                this.tree.selectNode(this.importValue)
+            }
         };
         this.tree = new JsTree<JsTreeInfo>(treeInfo);
         return this.tree.getViewUI();

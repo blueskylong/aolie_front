@@ -4,6 +4,7 @@ import BaseUI from "../../uidesign/view/BaseUI";
 import {CommonUtils} from "../../common/CommonUtils";
 import "./table.css";
 import {TableRenderProvider} from "./TableRenderProvider";
+import EventBus from "../../dmdesign/view/EventBus";
 
 
 class Table extends BaseUI<TableRenderProvider> {
@@ -22,6 +23,10 @@ class Table extends BaseUI<TableRenderProvider> {
      * 行ID的字段名
      */
     public static ID_FIELD = "id";
+    /**
+     * 原始完整的元素指针
+     */
+    protected $fullElement;
 
 
     constructor(renderPro: TableRenderProvider) {
@@ -409,6 +414,15 @@ class Table extends BaseUI<TableRenderProvider> {
         }
     }
 
+    getColNameById(id) {
+        let columnArray = this.$element.jqGrid("getGridParam", "colModel");
+        for (let col of columnArray) {
+            if (col.id == id) {
+                return col.name;
+            }
+        }
+    }
+
 
     protected createUI(): HTMLElement {
         let $ele = $(require("../templete/Table.html"));
@@ -467,6 +481,7 @@ class Table extends BaseUI<TableRenderProvider> {
         }
 
         //如果是指定后台生成,则取数据
+        this.$fullElement = this.$element;
         this.$element = this.$element.find(".jq-table").jqGrid(param);
         let createEl = $.jgrid.createEl;
         let table = this.$element;
@@ -488,6 +503,12 @@ class Table extends BaseUI<TableRenderProvider> {
 
     public getJqTable() {
         return this.$element;
+    }
+
+    destroy(): boolean {
+        this.$element = this.$fullElement;
+        this.$fullElement = null;
+        return super.destroy();
     }
 
 

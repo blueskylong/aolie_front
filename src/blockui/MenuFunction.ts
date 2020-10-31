@@ -29,6 +29,11 @@ export abstract class MenuFunction<T extends MenuFunctionInfo> extends BaseUI<T>
     setStateChangeListener(stateChangeListener: () => void) {
         this.stateChangeListener = stateChangeListener;
     }
+
+    setParamters(param: any) {
+
+    }
+
 }
 
 export interface MenuFunctionInfo {

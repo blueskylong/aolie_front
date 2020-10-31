@@ -1,16 +1,20 @@
-import BaseUI from "../view/BaseUI";
 import {Component} from "../../blockui/uiruntime/Component";
 import {IComponentGenerator} from "../view/generator/IComponentGenerator";
 import {JQueryGeneralComponentGenerator} from "../view/JQueryComponent/JQueryGeneralComponentGenerator";
 import {BaseComponent} from "../view/BaseComponent";
 import {AutoFit} from "../view/JQueryComponent/AutoFit";
 import EventBus from "../../dmdesign/view/EventBus";
+import {Panel} from "../view/JQueryComponent/Panel";
+import {CommonUtils} from "../../common/CommonUtils";
+import {Alert} from "../view/JQueryComponent/Alert";
 
 export class DesignComponent<T extends Component> extends BaseComponent<T> {
     public static COMID = "comId";
     private generator: IComponentGenerator = new JQueryGeneralComponentGenerator();
     private component: BaseComponent<Component>;
     private horSpan: number;
+    private lstSubComp = new Array<DesignComponent<Component>>();
+    private $masker: JQuery;
 
     private editable = true;
 
@@ -20,14 +24,35 @@ export class DesignComponent<T extends Component> extends BaseComponent<T> {
         this.properties.getComponentDto().horSpan = 12;
         let $ele = $(require("../templates/DesignComponent.html"));
         $ele.attr(DesignComponent.COMID, this.properties.getComponentDto().componentId);
+        this.$masker = $ele.find(".masker");
+        if (this.isContainer()) {
+            $ele.find(".masker").css("z-index", 0);
+        }
         return $ele.get(0);
     }
 
+    getHorSpan() {
+        return this.horSpan;
+    }
+
+    getRealComp() {
+        return this.component;
+    }
+
     public propertyChanged(propertyName, value) {
+        if (this.isContainer() && this.getSubDesignComp().length > 0) {
+
+            //如果是容器,且有子控件,则不可以修改
+            if (propertyName === "dispType" && value !== "panel") {
+                Alert.showMessage({message: "容器里还有子控件,请先处理子控件!"})
+                return false;
+            }
+
+        }
         if (propertyName === "horSpan") {
             this.horSpan = value;
             this.handleSize();
-            return;
+            return true;
         }
         //始终是占满
         this.getDtoInfo().getComponentDto().horSpan = 12;
@@ -35,6 +60,7 @@ export class DesignComponent<T extends Component> extends BaseComponent<T> {
         if (this.isNeedRecreate(propertyName)) {
             this.createComponent();
         }
+        return true;
     }
 
     private handleSize() {
@@ -66,6 +92,21 @@ export class DesignComponent<T extends Component> extends BaseComponent<T> {
 
     }
 
+    isContainer() {
+        return this.properties.getComponentDto().dispType === "panel";
+    }
+
+    getSubDesignComp() {
+        return this.lstSubComp;
+    }
+
+    addSubControl(control: DesignComponent<Component>) {
+        this.lstSubComp.push(control);
+        (<Panel<any>>this.getRealComp()).addSubControl(control);
+        return control;
+    }
+
+
     afterComponentAssemble(): void {
         super.afterComponentAssemble();
         this.createComponent();
@@ -75,6 +116,8 @@ export class DesignComponent<T extends Component> extends BaseComponent<T> {
     private bindEvent() {
         let $closeBtn = this.$element.find(".close-button");
         this.$element.on("mouseenter", (e) => {
+            e.stopPropagation();
+            e.preventDefault();
             $closeBtn.removeClass(DesignComponent.HIDDEN_CLASS);
         });
         this.$element.on("mouseleave", (e) => {
@@ -82,10 +125,20 @@ export class DesignComponent<T extends Component> extends BaseComponent<T> {
                 $closeBtn.addClass(DesignComponent.HIDDEN_CLASS);
             }
         });
-        this.$element.on("click", (e) => {
+        this.$element.on("mousedown", (e) => {
+            if (e.target != this.$masker.get(0) && e.target != this.getViewUI()) {
+                return;
+            }
+            if (document.activeElement) {
+                document.activeElement['blur']();
+            }
             EventBus.fireEvent(EventBus.SELECT_CHANGE_EVENT, e, this);
         });
         $closeBtn.on("click", (e) => {
+            if (!this.$element) {
+                return;
+            }
+            this.$element.trigger("focus");
             e.preventDefault();
             e.stopPropagation();
             //这里只是用于触发删除事件
@@ -97,28 +150,31 @@ export class DesignComponent<T extends Component> extends BaseComponent<T> {
             e.stopPropagation();
         });
         let that = this;
-        EventBus.addListener(EventBus.SELECT_CHANGE_EVENT, {
-            handleEvent(eventType: string, data: object, source: object, extObject?: any) {
-                if (that == source) {
-                    that.$element.find(".masker").addClass("active");
-                } else {
-                    that.$element.find(".masker").removeClass("active");
-                }
-            }
-        })
+        EventBus.addListener(EventBus.SELECT_CHANGE_EVENT, this)
 
+    }
+
+    handleEvent(eventType: string, data: object, source: object, extObject?: any) {
+        if (this == source) {
+            this.$element.find(".masker").addClass("active");
+        } else {
+            this.$element.find(".masker").removeClass("active");
+        }
     }
 
     private createComponent() {
         if (this.component) {
             this.component.destroy();
         }
-
-
         this.component = this.generator.generateComponent(this.properties.componentDto.dispType, this.properties,
             null);
         $(this.component.getViewUI()).insertBefore(this.$element.children()[0]);
         this.component.afterComponentAssemble();
+        if (this.lstSubComp && this.isContainer()) {
+            for (let designCom of this.lstSubComp) {
+                (<Panel<any>>this.getRealComp()).addSubControl(designCom);
+            }
+        }
         this.handleSize();
 
     }
@@ -137,6 +193,12 @@ export class DesignComponent<T extends Component> extends BaseComponent<T> {
 
     destroy(): boolean {
         EventBus.removeListener(EventBus.SELECT_CHANGE_EVENT, this);
+        this.generator = null;
+        if (this.lstSubComp) {
+            for (let com of this.lstSubComp) {
+                com.destroy();
+            }
+        }
         return super.destroy();
     }
 

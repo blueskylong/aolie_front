@@ -6,6 +6,7 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
     private static TEMPLATE = require("./templete/Dialog.html");
     private static FOOTER_SELECTOR = ".modal-footer";
     private static OK_BUTTON_SELECTOR = ".dlg-ok-button";
+    private static CLOSE_BUTTON_SELECTOR = ".dlg-close-button";
     protected importValue: any;
 
     private btns: Array<HTMLElement | string> = new Array<HTMLElement | string>();
@@ -15,6 +16,7 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
         $("body").append(this.getViewUI());
         this.beforeShow(value);
         this.importValue = value;
+        this.$element.modal({backdrop: "static"});
         this.$element.modal('show');
     }
 
@@ -65,9 +67,6 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
         $element.on('hidden.bs.modal', () => {
             this.destroy();
         });
-        $element.find(Dialog.FOOTER_SELECTOR).on("click", (e) => {
-            this.close();
-        });
         $element.find(Dialog.OK_BUTTON_SELECTOR).on("click", (e) => {
             if (!this.beforeOK()) {
                 return;
@@ -78,11 +77,14 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
                 }
             }
         });
+        $element.find(Dialog.CLOSE_BUTTON_SELECTOR).on("click", () => {
+            this.close();
+        })
 
 
     }
 
-    protected getValue(){
+    protected getValue() {
         return this.importValue
     }
 
@@ -101,7 +103,7 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
     protected appendButton(btn: HTMLElement | string, clickHandler: (event: ClickEvent) => void, $element: JQuery) {
         let $close = $element.find(Dialog.FOOTER_SELECTOR);
         if (typeof btn === "string") {
-            btn = $("<button type=\"button\" class=\"btn btn-default dlg-close-button\">" + btn + "</button>").get(0);
+            btn = $("<button type=\"button\" class=\"btn btn-default \">" + btn + "</button>").get(0);
         }
         $close.prepend(btn);
         $(btn).on("click", (e) => {

@@ -42,6 +42,7 @@ export class JQueryGeneralComponentGenerator implements IComponentGenerator {
         formula: TextArea
     }
 
+
     public generateComponent(compType: string, dto: Component, parent: HTMLElement, eventHandler?: GeneralEventListener):
         BaseComponent<Component> {
         let param = new Array();
