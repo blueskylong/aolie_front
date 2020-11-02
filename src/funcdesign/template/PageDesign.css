@@ -1,0 +1,71 @@
+/*左边二树*/
+.page-design-panel .split-pane.vertical-percent > .split-pane-component:first-child.tree-panel {
+    right: 75%;
+}
+
+.page-design-panel > .vertical-percent > .divider-west-design-panel {
+    width: 5px;
+    right: 75%;
+}
+
+.page-design-panel > .vertical-percent > .center-panel {
+    width: 75%;
+}
+
+/*对上下*/
+.page-design-panel .divider-tree {
+    bottom: 50%;
+    height: 5px;
+}
+
+.page-design-panel .split-pane.horizontal-percent > .split-pane-component:first-child.page-tree {
+    bottom: 50%;
+}
+
+.page-design-panel .block-tree {
+    height: 50%;
+}
+
+
+.page-design-panel .design-split-panel {
+    border: 15px solid #dadadb;
+    -webkit-box-shadow: rgba(0, 0, 0, 0.25) 0 1px 0, inset rgba(255, 255, 255, 0.16) 0 1px 0;
+    box-shadow: rgba(0, 0, 0, 0.25) 0 1px 0, inset rgba(255, 255, 255, 0.16) 0 1px 0;
+
+}
+
+.page-design-panel .design-ui {
+    padding: 0px !important;
+    position: relative;
+    overflow: auto;
+}
+
+.page-design-panel .design-ui .masker {
+    position: absolute;
+    z-index: 100;
+    width: 100%;
+    height: 100%;
+    left: 0px;
+}
+
+.page-design-panel .design-ui .masker:hover {
+    border: solid 2px #0ab34d;
+    border-radius: 5px;
+}
+
+.masker .close-button {
+    color: red;
+    cursor: default;
+}
+
+.page-design-panel .design-ui .masker.active {
+    border: solid 1px green;
+    border-radius: 5px;
+}
+
+.page-design-panel .design-ui {
+    height: 100%;
+    width: 100%;
+}
+
+
