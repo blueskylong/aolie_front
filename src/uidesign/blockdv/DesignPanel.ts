@@ -166,7 +166,12 @@ export class DesignPanel<T> extends BaseUI<T> {
             this.$element.find("[comid=" + comId + "]").trigger("mousedown");
         } else {
             this.currentDto = this.findComponentDto(comId);
-            this.dTable.selectCol(comId);
+            CommonUtils.readyDo(() => {
+                return this.dTable.isReady()
+            }, () => {
+                this.dTable.selectCol(comId);
+            })
+
 
         }
     }
