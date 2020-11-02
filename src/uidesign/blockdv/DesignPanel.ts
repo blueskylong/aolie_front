@@ -94,11 +94,15 @@ export class DesignPanel<T> extends BaseUI<T> {
             //这个是放到面板上
             if (this.$element.find(".design-body").find(data.event.target).length > 0
                 || data.event.target === this.$element.find(".design-body").get(0)) {
-                let component = this.createByColumnDto(data.data.origin.get_node(data.data.nodes[0]).data);
+                let component = this.createByColumn(data.data.origin.get_node(data.data.nodes[0]).data);
                 this.compTree.setValue(this.lstComponentDto);
+
                 CommonUtils.readyDo(() => {
                     return this.compTree.isReady()
                 }, () => {
+                    if (!this.isShowForm) {
+                        this.resortComponentByTree();
+                    }
                     this.selectDesignItem(component.getComponentDto().componentId);
                 });
 
@@ -204,7 +208,7 @@ export class DesignPanel<T> extends BaseUI<T> {
         return false;
     }
 
-    private createByColumnDto(colDto: ColumnDto) {
+    private createByColumn(colDto: ColumnDto) {
         let component = this.createComponentInfo(colDto);
         this.addComponent(component);
         return component;
@@ -221,9 +225,14 @@ export class DesignPanel<T> extends BaseUI<T> {
     private addComponent(component: Component): DesignComponent<any> {
         this.lstComponentDto.push(component.getComponentDto());
         let newCom = new DesignComponent(component);
-        this.lstDesignComponent.push(newCom);
-        this.$compBody.append(newCom.getViewUI());
-        newCom.afterComponentAssemble();
+        if (this.isShowForm) {
+            this.lstDesignComponent.push(newCom);
+
+            this.$compBody.append(newCom.getViewUI());
+            newCom.afterComponentAssemble();
+        } else {
+            this.blockViewer.lstComponent.push(component);
+        }
         if (!this.isInitDrag) {
             this.$compBody['dragsort']({
                 dragEnd: (item) => {
@@ -392,7 +401,7 @@ export class DesignPanel<T> extends BaseUI<T> {
     }
 
     private getComponentInfoById(id): DesignComponent<Component> {
-        if (this.lstDesignComponent.length > 0) {
+        if (this.isShowForm && this.lstDesignComponent.length > 0) {
             for (let com of this.lstDesignComponent) {
                 if (com.getAttributes().getComponentDto().componentId == id) {
                     return com;
