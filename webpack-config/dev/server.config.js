@@ -4,7 +4,6 @@ const pkg = require(path.resolve(dirs.projectRootDir, './package.json'));
 
 const mockServerPath = 'http://' + pkg.config.mockHost + ':' + pkg.config.mockPort + '/';
 
-console.log("===>" + path.resolve(pkg.config.buildDir));
 module.exports = {
     contentBase: path.resolve(pkg.config.buildDir),
     historyApiFallback: true,

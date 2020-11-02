@@ -8,6 +8,5 @@ dirs.buildDir = path.resolve(dirs.projectRootDir, './build');//项目编译目�
 dirs.vendorDir = path.resolve(dirs.projectRootDir, './vendor'); //第三方库目录
 dirs.nodeModulesDir = path.resolve(dirs.projectRootDir, './node_modules'); //依赖库
 
-console.log(`当前工程根目录=${dirs.projectRootDir}`);
 
 module.exports = dirs;

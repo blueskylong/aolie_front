@@ -42,7 +42,7 @@ module.exports = {
         },
         {
             test: /\.js$/, // 1.匹配 .css 结尾的文件,注意test的值不是一个字符串，而是一个正则
-            exclude: /(node_modules|bower_components)/, // 2.排除这两个文件不需要打包
+            exclude: /(node_modules|bower_components|jstree.js)/, // 2.排除这两个文件不需要打包
             // 3.使用babel-loader编译js代码
             use: [
                 {
