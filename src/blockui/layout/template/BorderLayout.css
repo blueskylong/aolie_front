@@ -1,0 +1,7 @@
+.vertical-percent > .split-pane-divider {
+    width: 5px;
+}
+
+.horizontal-percent > .split-pane-divider {
+    height: 5px;
+}

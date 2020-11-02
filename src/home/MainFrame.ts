@@ -5,7 +5,6 @@ import {IMainFrame} from "../App/IMainFrame";
 import {ApplicationContext, BeanFactory} from "../decorator/decorator";
 import {MenuFunction} from "../blockui/MenuFunction";
 import {CommonUtils} from "../common/CommonUtils";
-import {Menu} from "./dto/Menu";
 
 export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFrame {
     private CURRENT_URL = window.location.href.split('#')[0].split('?')[0];
@@ -187,6 +186,7 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
             this.initButtons();
             return <MenuFunction<any>>this.lastFunc;
         } catch (e) {
+            console.log(e.message);
             CommonUtils.hideMask();
         }
     }

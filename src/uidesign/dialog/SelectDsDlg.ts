@@ -29,7 +29,7 @@ export class SelectDsDlg extends Dialog<DialogInfo> {
     }
 
     getValue() {
-        return this.tree.getSelectData(false);
+        return this.tree.getSelectData(false, true);
     }
 
     protected beforeOK() {

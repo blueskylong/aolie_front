@@ -63,11 +63,11 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         }
     }
 
-    changeCurrentNodeText(str){
-        if(!this.currentNode){
+    changeCurrentNodeText(str) {
+        if (!this.currentNode) {
             return;
         }
-        this.getJsTree().set_text(this.currentNode,str);
+        this.getJsTree().set_text(this.currentNode, str);
         console.log(this.currentNode);
     }
 
@@ -358,9 +358,23 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         return this.jsTree.get_json(node);
     }
 
-    getSelectData(full = true) {
+    getSelectData(full = true, onlyLeaf = false) {
         if (this.properties.multiSelect) {
-            return this.jsTree.get_selected(full);
+            if (onlyLeaf) {
+                let lstData = this.jsTree.get_selected(true);
+                if (!lstData) {
+                    return null;
+                }
+                let result = [];
+                for (let data of lstData) {
+                    if (!data.children || data.children.length == 0) {
+                        result.push(data.id);
+                    }
+                }
+                return result;
+            } else {
+                return this.jsTree.get_selected(full);
+            }
         } else {
             return this.getCurrentData();
         }

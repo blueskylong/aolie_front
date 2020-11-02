@@ -1,4 +1,6 @@
 export class Constants {
+
+    static DEFAULT_SCHEMA_ID = 2;//默认的方案ID
     static TitlePosition = {left: "left", right: "right", none: "none"};
     static ComponetType = {text: "text",}
 

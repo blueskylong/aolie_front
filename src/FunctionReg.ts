@@ -4,11 +4,12 @@ import "./dmdesign/DmDesign";
 /**界面设计*/
 import "./uidesign/BlockDesign";
 /**功能设计*/
-import "./funcdesign/FuncDesign";
-import "./uidesign/PageDesign";
+import "./funcdesign/PageDesign";
+
+import "./test/TestFunc";
 
 export class FunctionReg {
-    static menus = {"1": "DmDesign", "2": "BlockDesign", "3": "FuncDesign", "4": "PageDesign"};
+    static menus = {"1": "DmDesign", "2": "BlockDesign", "3": "PageDesign", "99": "TestFunc"};
 
     static getFuncName(url: string) {
         return this.menus[url] as string;

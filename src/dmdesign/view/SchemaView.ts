@@ -67,6 +67,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
             });
 
         this.selectTableDlg = new SelectTableDlg<DialogInfo>({
+            height: 400,
             title: "请选择要增加的表", onOk: (items) => {
                 return this.onSelectTable(items[0], items[1]);
             }
