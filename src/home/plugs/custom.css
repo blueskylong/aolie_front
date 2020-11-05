@@ -954,3 +954,14 @@ a.user-profile {
     border: red solid 1px;
 }
 
+.toolbar .button-split {
+    margin-right: 10px;
+    margin-left: 10px;
+    border-left: 1px solid gray;
+    border-right: 1px solid lightgray;
+    display: inline-block;
+    width: 0px;
+    height: 24px;
+    padding-left: 0px;
+    padding-right: 0px;
+}

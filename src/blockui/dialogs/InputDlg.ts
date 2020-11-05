@@ -1,18 +1,16 @@
 import {Dialog, DialogInfo} from "../../blockui/Dialog";
-import {JsTree, JsTreeInfo} from "../../blockui/JsTree/JsTree";
 import {UiUtils} from "../../common/UiUtils";
 import {Form} from "../../blockui/Form";
-import {BlockViewDto} from "../dto/BlockViewDto";
 import {Constants} from "../../common/Constants";
 import {Component} from "../../blockui/uiruntime/Component";
 
-export class AddBlockViewDlg extends Dialog<DialogInfo> {
+export class InputDlg extends Dialog<InputDlgInfo> {
     private fName: Form;
 
     protected getBody(): HTMLElement {
         let lstComp = new Array<Component>();
         lstComp.push(Form.genSimpDto(
-            Constants.ComponentType.text, "视图名称", 11, "name"));
+            Constants.ComponentType.text, this.properties.inputTitle, 11, "name"));
         this.fName = new Form(null);
         this.fName.setDisplayComponent(Form.genSimpleLocalViewer(lstComp));
         return this.fName.getViewUI();
@@ -20,6 +18,9 @@ export class AddBlockViewDlg extends Dialog<DialogInfo> {
 
     protected beforeShow(value?: any) {
         this.fName.afterComponentAssemble();
+        if (value) {
+            this.fName.setValue({name: value});
+        }
     }
 
     getValue() {
@@ -28,11 +29,16 @@ export class AddBlockViewDlg extends Dialog<DialogInfo> {
 
     protected beforeOK() {
         let data = this.getValue();
-        if (!data || "" === data.trim()) {
-            UiUtils.showInfo("请输入视图名称");
+        if (!this.properties.isCanEmpty && !data || "" === data.trim()) {
+            UiUtils.showInfo("输入项不可以为空");
             return false;
         }
         return true;
     }
 
+}
+
+export interface InputDlgInfo extends DialogInfo {
+    inputTitle: string,
+    isCanEmpty: boolean
 }

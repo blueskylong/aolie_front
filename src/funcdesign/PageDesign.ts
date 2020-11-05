@@ -1,11 +1,21 @@
 import "./template/PageDesign.css"
 import {MenuFunction, MenuFunctionInfo} from "../blockui/MenuFunction";
-import {MenuFunc} from "../decorator/decorator";
+import {BeanFactory, MenuFunc} from "../decorator/decorator";
 import {JsTree, JsTreeInfo} from "../blockui/JsTree/JsTree";
 import {Constants} from "../common/Constants";
 import {BorderLayout, BorderLayoutProperty} from "../blockui/layout/BorderLayout";
 import {Form} from "../blockui/Form";
 import {BorderDesignPanel} from "./widget/BorderDesignPanel";
+import {MenuButton} from "../home/dto/MenuButton";
+import {InputDlg} from "../blockui/dialogs/InputDlg";
+import {Alert} from "../uidesign/view/JQueryComponent/Alert";
+import PageService from "./serivce/PageService";
+import {CommonUtils} from "../common/CommonUtils";
+import {Dialog, DialogInfo} from "../blockui/Dialog";
+import EventBus from "../dmdesign/view/EventBus";
+import {PageInfoDto} from "./dto/PageInfoDto";
+import {PageInfo} from "./dto/PageInfo";
+import {CodeLevelProvider} from "../common/CodeLevelProvider";
 
 @MenuFunc()
 export default class PageDesign<T extends MenuFunctionInfo> extends MenuFunction<T> {
@@ -17,9 +27,12 @@ export default class PageDesign<T extends MenuFunctionInfo> extends MenuFunction
     private fAttr: Form;
     private designPanel: BorderDesignPanel;
 
+    private addDialog: InputDlg;
+
     protected createUI(): HTMLElement {
         return $(require("./template/PageDesign.html")).get(0);
     }
+
 
     protected initSubControllers() {
         this.pageTree = new JsTree<JsTreeInfo>({
@@ -27,6 +40,7 @@ export default class PageDesign<T extends MenuFunctionInfo> extends MenuFunction
             idField: "pageId",
             codeField: "lvlCode",
             rootName: "页面信息",
+            dnd: {isDraggable: true, onlyDroppable: false},
             url: "/page/findPageInfos/" + Constants.DEFAULT_SCHEMA_ID
         });
 
@@ -36,7 +50,11 @@ export default class PageDesign<T extends MenuFunctionInfo> extends MenuFunction
             idField: "blockViewId",
             codeField: "lvlCode",
             url: "/ui/getBlockViews/" + Constants.DEFAULT_SCHEMA_ID,
-            dnd: {isDraggable: true, onlyDroppable: true}
+            dnd: {
+                isDraggable: true, onlyDroppable: true, isCanDrop: () => {
+                    return false;
+                }
+            }
         });
 
         let layoutAttr = new BorderLayoutProperty();
@@ -46,6 +64,40 @@ export default class PageDesign<T extends MenuFunctionInfo> extends MenuFunction
         this.fAttr = Form.getInstance(85);
         this.fPage = Form.getInstance(80);
         this.designPanel = new BorderDesignPanel(BorderLayoutProperty.genDefaultFullProperty());
+
+        this.addDialog = new InputDlg({
+            title: "增加页面", inputTitle: "页面名称", isCanEmpty: false, onOk: (value) => {
+                let parentId = null;
+                if (this.pageTree.getCurrentData()) {
+                    parentId = this.pageTree.getCurrentData().pageId;
+                }
+                this.addPage(value, parentId);
+                return true;
+            }
+        });
+    }
+
+    private bindEvent() {
+        this.pageTree.addSelectListener({
+            handleEvent: (eventType: string, data: object, source: object, extObject?: any) => {
+                this.designPanel.showPage(data['pageId']);
+                this.fPage.setValue(data);
+            }
+        });
+        this.designPanel.setListener({
+            handleEvent: (eventType: string, data: object, source: object, extObject?: any) => {
+                this.fAttr.setValue(data);
+            }
+        });
+        this.fAttr.addValueChangeListener({
+            handleEvent: (eventType: string, data: object, source: object, extObject?: any) => {
+                this.designPanel.attrChanged(data, source);
+            }
+        });
+    }
+
+    private loadPage(pageId) {
+
     }
 
     afterComponentAssemble(): void {
@@ -61,5 +113,166 @@ export default class PageDesign<T extends MenuFunctionInfo> extends MenuFunction
         this.splitCenter.addComponent(BorderLayout.south, this.fPage);
         this.splitCenter.addComponent(BorderLayout.east, this.fAttr);
         this.splitCenter.afterComponentAssemble();
+
+        this.bindEvent();
+    }
+
+    private addPage(pageName, parentId?) {
+        PageService.addPage(pageName, Constants.DEFAULT_SCHEMA_ID, parentId, (value) => {
+            this.pageTree.getJsTree().refresh(false);
+            this.pageTree.selectNodeById(value);
+        });
+    }
+
+    protected doAdd() {
+        this.addDialog.show();
+    }
+
+    protected doDelete() {
+        let node = this.pageTree.getCurrentNode();
+        if (this.pageTree.isSelectRoot() || (node.children && node.children.length > 0)) {
+            Alert.showMessage("请选择叶子节点,现删除!");
+            return;
+        }
+        new Dialog<DialogInfo>({
+            title: "消息",
+            content: "确定要删除页面[" + node.data.pageName + "]吗?",
+            onOk: () => {
+                PageService.deletePage(node.data.pageId, (err) => {
+                    this.pageTree.reload();
+                });
+                return true;
+            }
+        }).show();
+
+    }
+
+    private doSave() {
+        if (this.pageTree.isSelectRoot() || !this.pageTree.getCurrentNode()) {
+            return;
+        }
+        CommonUtils.showMask();
+        try {
+
+            let pageInfoDto = BeanFactory.populateBean(PageInfoDto, this.fPage.getValue());
+            let lstDetail = this.designPanel.getData();
+            let pageInfo = new PageInfo();
+            pageInfo.setPageInfoDto(pageInfoDto);
+            pageInfo.setPageDetailDto(lstDetail);
+            let err = this.checkPage(pageInfo);
+            if (err) {
+                Alert.showMessage("数据不正确!" + err);
+                CommonUtils.hideMask();
+                return;
+            }
+            PageService.savePageFullInfo(pageInfo, (data) => {
+                this.pageTree.reload();
+                CommonUtils.readyDo(() => {
+                    return this.pageTree.isReady();
+                }, () => {
+                    this.pageTree.selectNodeById(pageInfoDto.pageId);
+                    CommonUtils.hideMask();
+                    Alert.showMessage("保存成功");
+                });
+            });
+
+        } catch (e) {
+            CommonUtils.hideMask();
+        }
+    }
+
+    private doSaveLvl() {
+        new Dialog({
+            title: "确认", content: "保存时会丢失当前页面的编辑信息.确定要保存级次信息吗?", onOk: () => {
+                let oraData = this.pageTree.getJsTree().get_json(null, {flat: false});
+                if (oraData && oraData.length > 0) {
+                    let obj = {};
+                    let provider = new CodeLevelProvider();
+                    let data = oraData[0].children;
+                    for (let row of data) {
+                        this.makeLevel(provider, row, obj);
+                    }
+                    let curId = null;
+                    if (this.pageTree.getCurrentData()) {
+                        curId = this.pageTree.getCurrentData().pageId;
+                    }
+                    PageService.updatePageLevel(obj, Constants.DEFAULT_SCHEMA_ID, (data) => {
+                        this.pageTree.reload();
+                        if (curId) {
+                            CommonUtils.readyDo(() => {
+                                return this.pageTree.isReady();
+                            }, () => {
+                                this.pageTree.selectNodeById(curId);
+                                CommonUtils.hideMask();
+                                Alert.showMessage("保存成功");
+                            });
+                        }
+
+                    });
+                }
+                return true;
+            }
+        }).show();
+    }
+
+    private makeLevel(codePro: CodeLevelProvider, node, obj) {
+
+        let curCode = codePro.getNext();
+        obj[node.data.pageId] = curCode;
+
+        if (node.children && node.children.length > 0) {
+            codePro.goSub();
+            for (let subNode of node.children) {
+                this.makeLevel(codePro, subNode, obj);
+            }
+            codePro.setCurCode(curCode);
+        }
+    }
+
+    private checkPage(page: PageInfo) {
+        if (!page.getPageInfoDto().pageName) {
+            return "页面名称不可以为空!";
+        }
+        if (page.getPageInfoDto().height) {
+            page.getPageInfoDto().height = Math.round(page.getPageInfoDto().height);
+        }
+        if (page.getPageInfoDto().width) {
+            page.getPageInfoDto().width = Math.round(page.getPageInfoDto().width);
+        }
+        //....
+        return null;
+    }
+
+    getButton(): Array<MenuButton> {
+        let btns = [];
+        let button = new MenuButton();
+        button.icon = Constants.Icons.add;
+        button.title = "增加";
+        button.action = "doAdd";
+        btns.push(button);
+
+        button = new MenuButton();
+        button.icon = Constants.Icons.delete;
+        button.title = "删除";
+        button.action = "doDelete";
+        btns.push(button);
+
+        button = new MenuButton();
+        button.icon = Constants.Icons.save;
+        button.title = "保存";
+        button.action = "doSave";
+        btns.push(button);
+
+        button = new MenuButton();
+        button.title = "|";
+        btns.push(button);
+
+        button = new MenuButton();
+        button.icon = Constants.Icons.save;
+        button.title = "保存级次";
+        button.action = "doSaveLvl";
+        btns.push(button);
+
+        return btns;
     }
 }

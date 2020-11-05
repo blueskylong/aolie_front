@@ -4,8 +4,8 @@ import {BaseDto} from "../../datamodel/dto/BaseDto";
 export class PageDetailDto extends BaseDto {
     pageId: number;
     pageDetailId: number;
-    viewId: string;
-    pagePosition: number;
+    viewId: number;
+    pagePosition: string;
     initWidth: number;
     initHeight: number;
 }

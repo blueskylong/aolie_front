@@ -1,4 +1,4 @@
-import {BeanFactory, MenuFunc} from "../decorator/decorator";
+import {MenuFunc} from "../decorator/decorator";
 import {MenuFunction, MenuFunctionInfo} from "../blockui/MenuFunction";
 import {JsTree, JsTreeInfo} from "../blockui/JsTree/JsTree";
 import "./templates/BlockDesign.css";
@@ -9,13 +9,12 @@ import {Form} from "../blockui/Form";
 import EventBus from "../dmdesign/view/EventBus";
 import {MenuButton} from "../home/dto/MenuButton";
 import {CommonUtils} from "../common/CommonUtils";
-import {AddBlockViewDlg} from "./dialog/AddBlockViewDlg";
 import {Alert} from "./view/JQueryComponent/Alert";
-import {UiService} from "../blockui/service/UiService";
 import {Dialog, DialogInfo} from "../blockui/Dialog";
 import {GlobalParams} from "../common/GlobalParams";
 import {BlockViewDto} from "./dto/BlockViewDto";
 import {Constants} from "../common/Constants";
+import {InputDlg} from "../blockui/dialogs/InputDlg";
 
 @MenuFunc()
 export default class BlockDesign<T extends MenuFunctionInfo> extends MenuFunction<T> {
@@ -36,7 +35,7 @@ export default class BlockDesign<T extends MenuFunctionInfo> extends MenuFunctio
     //视图树
     private blockTree: JsTree<JsTreeInfo>;
     private selectedTable: Array<number>;
-    private blockDlg: AddBlockViewDlg;
+    private blockDlg: InputDlg;
 
     private confirmDlg: Dialog<DialogInfo>;
 
@@ -54,8 +53,10 @@ export default class BlockDesign<T extends MenuFunctionInfo> extends MenuFunctio
                 return true;
             }
         });
-        this.blockDlg = new AddBlockViewDlg({
+        this.blockDlg = new InputDlg({
             title: "增加视图",
+            inputTitle: "社图名称",
+            isCanEmpty: false,
             onOk: (items) => {
                 this.addView(this.blockDlg.getValue());
                 return true;

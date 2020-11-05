@@ -68,7 +68,6 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
             return;
         }
         this.getJsTree().set_text(this.currentNode, str);
-        console.log(this.currentNode);
     }
 
     private onReady() {
@@ -177,6 +176,9 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         });
 
         this.$jsTree.on("select_node.jstree", (event, data) => {
+            if (this.currentNode === data.node) {
+                return;
+            }
             this.fireSelectChangeListener(data.node.data);
         });
 
@@ -378,6 +380,16 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         } else {
             return this.getCurrentData();
         }
+    }
+
+    isSelectRoot() {
+        let node = this.getCurrentNode();
+        return node && !node.data;
+    }
+
+
+    reload() {
+        this.getJsTree().refresh(false, true);
     }
 
     protected makeTreeDataById(data: Array<any>) {

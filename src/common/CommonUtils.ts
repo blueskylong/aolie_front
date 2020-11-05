@@ -118,6 +118,8 @@ export class CommonUtils {
         promise.then((result) => {
             CommonUtils.handleResult(result, callBack);
         }).catch((e) => {
+            CommonUtils.hideMask();
+            alert("出现异常,操作失败");
             CommonUtils.log(e.status, e.statusText, e.data);
         });
     }

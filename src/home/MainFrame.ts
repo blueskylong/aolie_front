@@ -195,6 +195,12 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
         this.$toolbar.children().remove();
         if (this.lastFunc && this.lastFunc.getButton()) {
             for (let btn of this.lastFunc.getButton()) {
+                //先处理分隔条件
+                if (btn.title === "|") {
+                    let span = $("<span class='button-split btn'></span>");
+                    this.$toolbar.append(span);
+                    continue;
+                }
                 let $btn = $("<button class=\"btn btn-warning\" action-code='" + btn.action + "'>" +
                     (btn.icon ? "<span class='" + btn.icon + "'></span>" : "")
                     + (btn.title ? btn.title : "") + "</button>");

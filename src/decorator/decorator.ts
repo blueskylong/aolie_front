@@ -90,7 +90,7 @@ export function CatchException() {
  */
 export function Cache(value: string) {
     return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
-          const origin = target[propertyKey];
+        const origin = target[propertyKey];
         // aop
         target[propertyKey] = function (...args: any[]) {
             let cacheKey = value + "_" + args.join("_");
@@ -112,7 +112,7 @@ export function Cache(value: string) {
  */
 export function PopulateBean<T>(constructor: { new(...args: Array<any>): T }) {
     return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
-         const origin = target[propertyKey];
+        const origin = target[propertyKey];
         // aop
         target[propertyKey] = function (...args: any[]) {
             //目前只能处理一个对象
@@ -183,21 +183,62 @@ export class BeanFactory {
         if (!params) {
             return null;
         }
-        if(params instanceof _constructor){
+        if (params instanceof _constructor) {
             return params;
         }
         let obj = new _constructor();
 
-        for (let attr in params) {
-            let setString = "set" + attr.substr(0, 1).toUpperCase() + attr.substr(1);
-            if (typeof obj[setString] === "function") {
-                obj[setString](params[attr]);
-            } else {
-                obj[attr] = params[attr];
-            }
+        if (params instanceof StringMap) {
+            params.forEach((value, key, map) => {
+                let setString = "set" + key.substr(0, 1).toUpperCase() + key.substr(1);
+                if (typeof obj[setString] === "function") {
+                    obj[setString](value);
+                } else {
+                    obj[key] = value;
+                }
+            });
+        } else {
+            for (let attr in params) {
+                let setString = "set" + attr.substr(0, 1).toUpperCase() + attr.substr(1);
+                if (typeof obj[setString] === "function") {
+                    obj[setString](params[attr]);
+                } else {
+                    obj[attr] = params[attr];
+                }
 
+            }
         }
         return obj;
+    }
+
+    /**
+     * 创建并复制对象发生
+     * @param _constructor
+     * @param params
+     */
+    static populateBeans<T>(_constructor: { new(...args: Array<any>): T }, params: Array<any>): Array<T> {
+        if (!params || params.length < 1) {
+            return null;
+        }
+        if (params[0] instanceof _constructor) {
+            return params;
+        }
+        let result = new Array<T>();
+        for (let param of params) {
+            let obj = new _constructor();
+            for (let attr in param) {
+                let setString = "set" + attr.substr(0, 1).toUpperCase() + attr.substr(1);
+                if (typeof obj[setString] === "function") {
+                    obj[setString](param[attr]);
+                } else {
+                    obj[attr] = param[attr];
+                }
+
+            }
+            result.push(obj);
+        }
+
+        return result;
     }
 
     static singleton = {};

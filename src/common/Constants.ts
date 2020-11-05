@@ -40,5 +40,14 @@ export class Constants {
         filter: "filter",
         formula: "formula"
     }
+
+    static Icons = {
+        add: "fa fa-plus-circle",
+        delete: "fa fa-trash",
+        save: "fa fa-floppy-o",
+        edit: "fa fa-pencil",
+        export: "fa fa-file-excel-o",
+        word: "fa fa-file-word-o"
+    }
 }
 
