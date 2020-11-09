@@ -35,12 +35,17 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
             this.$element.on("remove", (e) => {
             });
             this.initSubControllers();
+            this.initEvent();
         }
 
         return this.element;
     }
 
     protected initSubControllers() {
+
+    }
+
+    protected initEvent() {
 
     }
 

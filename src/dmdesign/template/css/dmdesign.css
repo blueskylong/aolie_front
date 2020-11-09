@@ -10,7 +10,7 @@ html, body {
     margin-right: 5px;
 }
 
-#my-divider{
+#my-divider {
     right: 30%;
     width: 5px;
 }
@@ -304,3 +304,34 @@ button.btn:hover {
     visibility: hidden;
 }
 
+.tap-panel .tab-pane {
+    height: 100%;
+}
+
+.tap-panel .tab-content {
+    height: calc(100% - 46px)
+}
+
+.schema-container .schema-title-container {
+    position: absolute;
+    top: 0px;
+    /*left: 0px;*/
+    /*right: 0px;*/
+    /*margin: auto;*/
+    border-top: 30px solid #1cffe1;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    width: 500px;
+    z-index: 90;
+}
+
+.schema-container .schema-title {
+    position: absolute;
+    top: -25px;
+    left: 0;
+    right: 0;
+    margin: auto;
+    align-content: center;
+    text-align: center;
+    font-weight: bold;
+}

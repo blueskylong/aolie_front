@@ -41,14 +41,14 @@ export class TextInput<T extends Component> extends JQBaseComponent<T> {
         } else if (this.properties.componentDto.horSpan > 12) {//大于12 ,则直接使用像素
             $dom.css("width", this.properties.componentDto.horSpan + "px");
         } else if (this.properties.componentDto.horSpan < 0) {//小于0表示填充所有空间
-            AutoFit.addAutoFitCompoent($dom.get(0), true, false);
+            AutoFit.addAutoFitComponent($dom.get(0), true, false);
         }
         if (this.properties.componentDto.verSpan <= 12) {//小于12.表示占用几行
             $dom.attr("rows", this.properties.componentDto.verSpan);
         } else if (this.properties.componentDto.verSpan > 12) {//大于12 ,则直接使用像素
             $dom.height(this.properties.componentDto.verSpan);
         } else if (this.properties.componentDto.horSpan < 0) {//小于0表示填充所有空间
-            AutoFit.addAutoFitCompoent($dom.get(0), false, true);
+            AutoFit.addAutoFitComponent($dom.get(0), false, true);
         }
 
     }
@@ -91,7 +91,7 @@ export class TextInput<T extends Component> extends JQBaseComponent<T> {
             this.fireValueChanged(this.getFieldName(), this.getValue());
         });
         if (this.properties.componentDto.titleSpan > 12) {//如果标题宽度大于12,则表示实际宽度,则剩下的空间给编辑器
-            AutoFit.addAutoFitCompoent(this.editor.get(0));
+            AutoFit.addAutoFitComponent(this.editor.get(0));
         } else {
             this.editor.addClass("col-md-" + (12 - this.properties.componentDto.titleSpan));
         }

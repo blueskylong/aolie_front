@@ -80,14 +80,14 @@ export class DesignComponent<T extends Component> extends BaseComponent<T> {
         } else if (this.horSpan > 12) {//大于12 ,则直接使用像素
             this.$element.css("width", this.horSpan + "px");
         } else if (this.horSpan < 0) {//小于0表示填充所有空间
-            AutoFit.addAutoFitCompoent(this.$element.get(0), true, false);
+            AutoFit.addAutoFitComponent(this.$element.get(0), true, false);
         }
         if (this.properties.componentDto.verSpan <= 12) {//小于12.表示占用几行
             this.$element.attr("rows", this.properties.componentDto.verSpan);
         } else if (this.properties.componentDto.verSpan > 12) {//大于12 ,则直接使用像素
             this.$element.height(this.properties.componentDto.verSpan);
         } else if (this.properties.componentDto.horSpan < 0) {//小于0表示填充所有空间
-            AutoFit.addAutoFitCompoent(this.$element.get(0), false, true);
+            AutoFit.addAutoFitComponent(this.$element.get(0), false, true);
         }
 
     }

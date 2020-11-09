@@ -111,11 +111,11 @@ export class DesignPanel<T> extends BaseUI<T> {
 
             }
         });
-        this.initEvent();
+
         super.afterComponentAssemble();
     }
 
-    private initEvent() {
+    protected initEvent() {
         EventBus.addListener(EventBus.SELECT_CHANGE_EVENT, this);
         EventBus.addListener(EventBus.DELETE_COLUMN, this);
     }

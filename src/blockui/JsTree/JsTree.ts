@@ -392,6 +392,10 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         this.getJsTree().refresh(false, true);
     }
 
+    getViewUI() {
+        return super.getViewUI();
+    }
+
     protected makeTreeDataById(data: Array<any>) {
         let result = new Array<Node>();
         let node: Node;
@@ -466,6 +470,7 @@ export interface DragAndDrop {
      */
     isCanDrag?: (sourceData) => boolean;
 }
+
 
 export interface TreeButton {
     text?: string;

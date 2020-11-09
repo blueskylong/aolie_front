@@ -36,7 +36,6 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
     }
 
     afterComponentAssemble(): void {
-        this.initEvent();
         this.setContentHeight();
     }
 

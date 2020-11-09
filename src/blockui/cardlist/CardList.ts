@@ -5,6 +5,7 @@ import {UiService} from "../service/UiService";
 import {Form} from "../Form";
 import {CommonUtils} from "../../common/CommonUtils";
 import {Toolbar, ToolbarInfo} from "../../uidesign/view/JQueryComponent/Toolbar";
+import {GlobalParams} from "../../common/GlobalParams";
 
 /**
  * 此控件,会在原始的指针值上维护数据,可以直接使用传入的值 ,也可以使用getValue取得新组织的数据.
@@ -42,6 +43,12 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
         return $ele.get(0);
     }
 
+    static getInstance(blockId, version?) {
+        let blockDto = new BlockViewDto();
+        blockDto.blockViewId = blockId;
+        blockDto.versionCode = version || GlobalParams.getLoginVersion();
+        return new CardList(blockDto);
+    }
 
     async initViewer() {
         this.viewer = await UiService.getSchemaViewer(this.properties.blockViewId);

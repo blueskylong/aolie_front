@@ -54,6 +54,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
     private toolBar: Toolbar<ToolbarInfo>;
 
     private $canvas: JQuery;
+    private $title: JQuery;
     private destroying = false;
 
 
@@ -249,6 +250,10 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
                 }
             }
         );
+        this.$canvas.css("top", 30);
+        this.$canvas.css("left", 10);
+        $(this.toolBar.getViewUI()).css("top", 30).css("left", 10);
+
         EventBus.addListener(EventBus.TABLE_REMOVE,
             {
                 handleEvent: (eventType: string, data: object, source: object) => {
@@ -260,6 +265,13 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
                 }
             }
         );
+        this.$element.parent().on("scroll", (event) => {
+            this.adjustTitlePosition();
+        });
+        this.$element.parent().resize((event) => {
+            this.adjustTitlePosition();
+        });
+
         this.toolBar.addBtn("保存", (e) => {
             this.saveSchema();
         });
@@ -280,9 +292,20 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
         this.toolBar.addBtn("服务器缓存刷新", (e) => {
             this.refreshServerCache();
         });
+        this.adjustTitlePosition();
     }
 
-    private refresh() {
+    private adjustTitlePosition() {
+        let $target = this.$element.parent();
+        this.$title.css("top", $target.scrollTop() + "px");
+        let left = $target.width() / 2 - this.$title.width() / 2 + $target.scrollLeft();
+        this.$title.css("left", left + "px")
+    }
+
+    refresh(schemaDto?: SchemaDto) {
+        if (schemaDto) {
+            this.properties = schemaDto;
+        }
         this.destroyElement();
         this.getJsplumb().reset(true);
         this.initTableAndRelation();
@@ -522,11 +545,12 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
     }
 
     protected createUI(): HTMLElement {
-        let html = $(require("../template/SchemaView.html"));
+        let $html = $(require("../template/SchemaView.html"));
         this.toolBar = new Toolbar<ToolbarInfo>({});
-        html.append(this.toolBar.getViewUI());
-        this.$canvas = html.find(".schema-view");
-        return html.get(0);
+        $html.append(this.toolBar.getViewUI());
+        this.$canvas = $html.find(".schema-view");
+        this.$title = $html.find(".schema-title-container");
+        return $html.get(0);
     }
 
     private addTable(parent: HTMLElement, table: TableView) {

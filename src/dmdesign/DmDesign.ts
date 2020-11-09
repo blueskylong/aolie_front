@@ -16,6 +16,9 @@ import TableDto from "../datamodel/dto/TableDto";
 import {MenuFunc} from "../decorator/decorator";
 import {MenuFunction, MenuFunctionInfo} from "../blockui/MenuFunction";
 import {CommonUtils} from "../common/CommonUtils";
+import {JsTree, JsTreeInfo} from "../blockui/JsTree/JsTree";
+import {SchemaMainInfo} from "./view/SchemaMainInfo";
+import {BorderLayoutProperty} from "../blockui/layout/BorderLayout";
 
 @MenuFunc()
 export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T> {
@@ -25,11 +28,12 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
     private schemaView: SchemaView;
     private tapPanel: TapPanel;
     private fAttr: Form;
-    private fSchema: Form;
+    private schemaInfo: SchemaMainInfo;
     private fTable: Form;
     private listFormula: CardList<BlockViewDto>;
     private listConstraint: CardList<BlockViewDto>;
 
+    private schemaTree: JsTree<JsTreeInfo>;
     private schemaDto: SchemaDto;
 
     /**
@@ -100,7 +104,6 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
 
     private updateItemData() {
         this.updateConstraint();
-        this.fSchema.setValue(this.schemaView.getDtoInfo());
         this.fAttr.setValue({});
         this.fTable.setValue({});
         this.listFormula.setValue(null);
@@ -113,6 +116,11 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
         }
     }
 
+    private showSchema(schemaDto: SchemaDto) {
+        this.schemaView.refresh(schemaDto);
+        //TODO
+    }
+
     /**
      * 生成下方的属性界面
      */
@@ -120,41 +128,41 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
         this.tapPanel = new TapPanel(null);
         $parent.find("#" + this.ID_TAP).append(this.tapPanel.getViewUI());
         //增加各各面板
-        let dto = new BlockViewDto();
-        dto.blockViewId = 25;
-        this.fSchema = new Form(dto);
-        let thas = this;
-        this.fSchema.addValueChangeListener({
-            handleEvent(eventType: string, fieldName: object, value: object) {
-                thas.schemaView.attrChanged(fieldName as any, value);
+
+        this.schemaInfo = new SchemaMainInfo(BorderLayoutProperty.genDefaultFullProperty());
+        this.schemaInfo.setSelectChangeListener({
+            handleEvent: (eventType: string, schemaDto: any, other: object) => {
+                this.showSchema(schemaDto);
             }
         });
-        this.tapPanel.addTap("方案信息", this.fSchema.getViewUI());
+
+        this.schemaInfo.setValueChangeListener({
+            handleEvent: (eventType: string, field: any,
+                          value: object, extObject?: any) => {
+                this.schemaView.attrChanged(field, value);
+            }
+        });
+        this.tapPanel.addTap("方案信息", this.schemaInfo.getViewUI());
+        this.schemaInfo.afterComponentAssemble();
 
 
-        dto = new BlockViewDto();
-        dto.blockViewId = 30;
-        this.fTable = new Form(dto);
+        this.fTable = Form.getInstance(30);
         this.fTable.addValueChangeListener({
-            handleEvent(eventType: string, fieldName: object, value: object, form: Form) {
-                thas.schemaView.tableAttrChange(form.getValue().get("tableId") as any
+            handleEvent: (eventType: string, fieldName: object, value: object, form: Form) => {
+                this.schemaView.tableAttrChange(form.getValue().get("tableId") as any
                     , fieldName as any, value);
             }
         });
         this.tapPanel.addTap("表属性", this.fTable.getViewUI());
 
-        dto = new BlockViewDto();
-        dto.blockViewId = 35;
-        this.listFormula = new CardList(dto);
+        this.listFormula = CardList.getInstance(35);
         this.tapPanel.addTap("列公式", this.listFormula.getViewUI());
         this.listFormula.setEditable(true);
         this.listFormula.setDefaultValueProvider(() => {
             return Formula.genNewFormula(this.schemaDto.schemaId, this.schemaDto.versionCode, null);
         });
 
-        dto = new BlockViewDto();
-        dto.blockViewId = 40;
-        this.listConstraint = new CardList(dto);
+        this.listConstraint = CardList.getInstance(40);
         this.tapPanel.addTap("约束", this.listConstraint.getViewUI());
         this.listConstraint.setEditable(true);
         this.listConstraint.setDefaultValueProvider(() => {
@@ -167,16 +175,12 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
         this.tapPanel.addTap("表格", table.getViewUI());
         table.showTable();
         table.doTest();
-
-
         this.tapPanel.setActiveTap(0);
-
-
     }
 
 
     public setEditable(editable) {
-        this.fSchema.setEditable(editable);
+        this.schemaInfo.setEditable(editable);
         this.listConstraint.setEditable(editable);
         this.listFormula.setEditable(editable);
         this.fTable.setEditable(editable);
@@ -209,13 +213,13 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
         this.schemaView.destroy();
         this.fTable.destroy();
         this.fAttr.destroy();
-        this.fSchema.destroy();
+        this.schemaInfo.destroy();
         this.listFormula.destroy();
         this.listConstraint.destroy();
         this.schemaView = null;
         this.fTable = null;
         this.fAttr = null;
-        this.fSchema = null;
+        this.schemaInfo = null;
         this.listFormula = null;
         this.listConstraint = null;
 

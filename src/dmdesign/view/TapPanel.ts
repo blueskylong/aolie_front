@@ -4,7 +4,7 @@ import TableDto from "../../datamodel/dto/TableDto";
 import {CommonUtils} from "../../common/CommonUtils";
 import * as jsPlumb from "jsplumb";
 
-export default class TapPanel extends DmDesignBaseView<TableDto>  {
+export default class TapPanel extends DmDesignBaseView<TableDto> {
     private count = 0;
 
     protected createUI(): HTMLElement {
@@ -19,7 +19,7 @@ export default class TapPanel extends DmDesignBaseView<TableDto>  {
         $tap.find("a").text(label).attr("href", "#" + id);
         this.$element.find(".nav-tabs").append($tap);
 
-        let $body = $("<div id=\"" + id + "\" class=\" tab-pane\"><br>" +
+        let $body = $("<div id=\"" + id + "\" class=\" tab-pane\">" +
             "        </div>");
         $body.append(control);
         this.$element.find(".tab-content").append($body);
