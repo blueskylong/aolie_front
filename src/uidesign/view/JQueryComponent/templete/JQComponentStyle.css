@@ -89,7 +89,7 @@
 }
 
 .modal-body {
-    overflow: auto;
+    /*overflow: auto;*/
 }
 
 .modal-body:first-child {
@@ -106,4 +106,12 @@
     color: red;
 }
 
+.js-tree {
+    height: 100%;
+    overflow: auto;
+}
+
+.nav-tabs .nav-item.hide {
+    display: none;
+}
 

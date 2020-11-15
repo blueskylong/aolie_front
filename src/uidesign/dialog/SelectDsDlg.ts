@@ -5,6 +5,11 @@ import {UiUtils} from "../../common/UiUtils";
 
 export class SelectDsDlg extends Dialog<DialogInfo> {
     protected tree: JsTree<JsTreeInfo>;
+    private schemaId = 2;
+
+    setSchemaId(schemaId) {
+        this.schemaId = schemaId;
+    }
 
     protected getBody(): HTMLElement {
         let treeInfo = {
@@ -15,7 +20,9 @@ export class SelectDsDlg extends Dialog<DialogInfo> {
             rootName: "数据表",
             multiSelect: true,
             showSearch: true,
-            url: "/ui/findAllTableInfo/" + 2,
+            url: () => {
+                return "/ui/findAllTableInfo/" + this.schemaId
+            },
             onReady: () => {
                 this.tree.selectNode(this.importValue)
             }

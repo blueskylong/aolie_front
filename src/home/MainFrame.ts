@@ -77,6 +77,7 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
                         }
                     }
 
+                    $li.parent().children("li").removeClass("active");
                     $li.addClass('active');
 
                     $('ul:first', $li).slideDown(() => {

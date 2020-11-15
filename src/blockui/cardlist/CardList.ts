@@ -65,6 +65,14 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
         return result;
     }
 
+    showHead(isShowHead) {
+        if (this.isShowHead == isShowHead) {
+            return;
+        }
+        this.isShowHead = isShowHead;
+        this.updateShow();
+    }
+
     setRemoveAble(removeAble) {
         this.removeAble = removeAble;
         this.updateShow();
@@ -226,6 +234,7 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
                 that.cardValueChanged(extObject, data + "", source);
             }
         });
+        form.showHead(this.isShowHead);
         form.setBlockViewer(this.viewer);
         this.$element.append(form.getViewUI());
         form.afterComponentAssemble();

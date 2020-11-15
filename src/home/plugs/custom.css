@@ -952,6 +952,7 @@ a.user-profile {
 
 .right_col {
     border: red solid 1px;
+    overflow: auto;
 }
 
 .toolbar .button-split {

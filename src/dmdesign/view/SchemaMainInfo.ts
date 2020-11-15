@@ -5,6 +5,10 @@ import {GeneralEventListener} from "../../blockui/event/GeneralEventListener";
 import EventBus from "./EventBus";
 import {BeanFactory} from "../../decorator/decorator";
 import SchemaDto from "../../datamodel/dto/SchemaDto";
+import {InputDlg} from "../../blockui/dialogs/InputDlg";
+import {Dialog, DialogInfo} from "../../blockui/Dialog";
+import {DmDesignService} from "../service/DmDesignService";
+import {Alert} from "../../uidesign/view/JQueryComponent/Alert";
 
 /**
  * 包含方案树和方案明细信息的面板
@@ -14,6 +18,7 @@ export class SchemaMainInfo extends BorderLayout<BorderLayoutProperty> {
     private fSchema: Form;
     private selectChangeListener: GeneralEventListener;
     private valueChangeListener: GeneralEventListener;
+    private addDlg: InputDlg;
 
 
     getViewUI(): HTMLElement {
@@ -21,12 +26,74 @@ export class SchemaMainInfo extends BorderLayout<BorderLayoutProperty> {
             textField: "schemaName",
             rootName: "方案信息",
             idField: "schemaId",
-            url: "/dm/findAllSchemaDto"
+            url: "/dm/findAllSchemaDto",
+            buttons: [{
+                icon: "fa fa-plus",
+                title: "增加",
+                clickHandler: (event, data) => {
+                    this.doAdd(data);
+                }
+            }, {
+                icon: "fa fa-trash",
+                title: "删除",
+                isShow: (data) => {
+                    if (!data.data) {
+                        return false;
+                    }
+                    if (data.data.schemaId == 1 || data.data.schemaId == 2) {
+                        return false;
+                    }
+                    return true;
+                },
+                clickHandler: (event, data) => {
+                    this.doDelete(data);
+                }
+            }]
         });
         this.fSchema = Form.getInstance(25);
         this.addComponent(BorderLayout.west, this.schemaTree);
         this.addComponent(BorderLayout.center, this.fSchema);
+        this.fSchema.addValueChangeListener({
+            handleEvent: (eventType: string, data: object, source: object, extObject?: any) => {
+                this.fireValueChangeListener(data, source);
+            }
+        });
         return super.getViewUI();
+    }
+
+    private doDelete(data) {
+        if (data.data == null) {
+            Alert.showMessage("请选择删除的方案");
+            return;
+        }
+        if (data.data.schemaId == 1 || data.data.schemaId == 2) {
+            Alert.showMessage("系统方案,不可以删除");
+            return;
+        }
+        new Dialog({
+            title: "确认", content: "确定要删除方案[" + data.data.schemaName + "]吗?删除将不可恢复!",
+            onOk: () => {
+                DmDesignService.deleteSchema(data.data.schemaId, (data) => {
+                    this.schemaTree.reload();
+                    this.schemaTree.selectNodeById(2);
+                });
+                return true;
+            }
+        }).show();
+
+    }
+
+    private doAdd(data) {
+        new InputDlg({
+            title: "增加方案", inputTitle: "方案名称", isCanEmpty: false, onOk: (data) => {
+
+                DmDesignService.addSchema(data, (schemaId) => {
+                    this.schemaTree.reload();
+                    this.schemaTree.selectNodeById(schemaId);
+                });
+                return true;
+            }
+        }).show();
     }
 
 
@@ -61,6 +128,12 @@ export class SchemaMainInfo extends BorderLayout<BorderLayoutProperty> {
                 this.fireSchemaSelectChanged(data);
             }
         });
+
+    }
+
+    afterComponentAssemble(): void {
+        this.schemaTree.selectNodeById(3);//默认选择用户方案
+        super.afterComponentAssemble();
     }
 
     setValueChangeListener(valueChangeListener: GeneralEventListener) {
@@ -69,6 +142,13 @@ export class SchemaMainInfo extends BorderLayout<BorderLayoutProperty> {
 
     setEditable(canEdit) {
         this.fSchema.setEditable(canEdit);
+    }
+
+    refresh(schemaId?) {
+        this.schemaTree.reload();
+        if (schemaId) {
+            this.schemaTree.selectNodeById(schemaId);
+        }
     }
 
     destroy(): boolean {

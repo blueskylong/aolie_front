@@ -2,6 +2,7 @@ import {NetRequest} from "../../common/NetRequest";
 import {ColumnDto} from "../../datamodel/dto/ColumnDto";
 import {BeanFactory} from "../../decorator/decorator";
 import {Schema} from "../../datamodel/DmRuntime/Schema";
+import {CommonUtils} from "../../common/CommonUtils";
 
 
 export class DmDesignService {
@@ -67,6 +68,42 @@ export class DmDesignService {
      */
     static genColId() {
         return DmDesignService.COL_ID_SER--;
+    }
+
+    /**
+     * 增加方案
+     * @param schemaName
+     * @param callback
+     */
+    static addSchema(schemaName, callback: (data) => void) {
+        CommonUtils.handleResponse(
+            NetRequest.axios.post(DmDesignService.URL_ROOT + "/addSchema", {"schemaName": schemaName}),
+            callback
+        )
+    }
+
+    /**
+     * 删除方案
+     * @param schemaId
+     * @param callback
+     */
+    static deleteSchema(schemaId, callback: (data) => void) {
+        CommonUtils.handleResponse(
+            NetRequest.axios.delete(DmDesignService.URL_ROOT + "/deleteSchema/" + schemaId),
+            callback
+        )
+    }
+
+    /**
+     * 同步信息,需要手动保存
+     * @param tableId
+     * @param callback
+     */
+    static getSyncTableCols(tableId, callback: (data) => void) {
+        CommonUtils.handleResponse(
+            NetRequest.axios.get(DmDesignService.URL_ROOT + "/getSyncTableCols/" + tableId),
+            callback
+        )
     }
 
 }

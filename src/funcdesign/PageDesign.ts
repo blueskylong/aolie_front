@@ -16,6 +16,9 @@ import EventBus from "../dmdesign/view/EventBus";
 import {PageInfoDto} from "./dto/PageInfoDto";
 import {PageInfo} from "./dto/PageInfo";
 import {CodeLevelProvider} from "../common/CodeLevelProvider";
+import {Select} from "../uidesign/view/JQueryComponent/Select";
+import {IComponentGenerator} from "../uidesign/view/generator/IComponentGenerator";
+import {JQueryGeneralComponentGenerator} from "../uidesign/view/JQueryComponent/JQueryGeneralComponentGenerator";
 
 @MenuFunc()
 export default class PageDesign<T extends MenuFunctionInfo> extends MenuFunction<T> {
@@ -26,11 +29,24 @@ export default class PageDesign<T extends MenuFunctionInfo> extends MenuFunction
     private fPage: Form;
     private fAttr: Form;
     private designPanel: BorderDesignPanel;
-
     private addDialog: InputDlg;
+    private schemaId = Constants.DEFAULT_SCHEMA_ID;
+    private schemaSelect: Select<any>;
+    private generator: IComponentGenerator = new JQueryGeneralComponentGenerator();
 
     protected createUI(): HTMLElement {
-        return $(require("./template/PageDesign.html")).get(0);
+        let $ele = $(require("./template/PageDesign.html"));
+        let compInfo = Form.genSimpDto(Constants.ComponentType.select, "方案选择", 12, "c1", 85);
+        this.schemaSelect = <Select<any>>this.generator.generateComponent(compInfo.getComponentDto().dispType,
+            compInfo, $ele.find(".block-tree").get(0), {
+                handleEvent: (eventType: string, field: any, value: any, extObject?: any) => {
+                    this.schemaId = value;
+                    this.pageTree.reload();
+                    this.blockTree.reload();
+                }
+            });
+        $ele.find(".page-tree").append(this.schemaSelect.getViewUI());
+        return $ele.get(0);
     }
 
 
@@ -41,7 +57,9 @@ export default class PageDesign<T extends MenuFunctionInfo> extends MenuFunction
             codeField: "lvlCode",
             rootName: "页面信息",
             dnd: {isDraggable: true, onlyDroppable: false},
-            url: "/page/findPageInfos/" + Constants.DEFAULT_SCHEMA_ID
+            url: () => {
+                return "/page/findPageInfos/" + this.schemaId
+            }
         });
 
         this.blockTree = new JsTree<JsTreeInfo>({
@@ -49,7 +67,9 @@ export default class PageDesign<T extends MenuFunctionInfo> extends MenuFunction
             textField: "blockViewName",
             idField: "blockViewId",
             codeField: "lvlCode",
-            url: "/ui/getBlockViews/" + Constants.DEFAULT_SCHEMA_ID,
+            url: () => {
+                return "/ui/getBlockViews/" + this.schemaId
+            },
             dnd: {
                 isDraggable: true, onlyDroppable: true, isCanDrop: () => {
                     return false;
@@ -118,7 +138,7 @@ export default class PageDesign<T extends MenuFunctionInfo> extends MenuFunction
     }
 
     private addPage(pageName, parentId?) {
-        PageService.addPage(pageName, Constants.DEFAULT_SCHEMA_ID, parentId, (value) => {
+        PageService.addPage(pageName, this.schemaId, parentId, (value) => {
             this.pageTree.getJsTree().refresh(false);
             this.pageTree.selectNodeById(value);
         });
@@ -167,13 +187,11 @@ export default class PageDesign<T extends MenuFunctionInfo> extends MenuFunction
             }
             PageService.savePageFullInfo(pageInfo, (data) => {
                 this.pageTree.reload();
-                CommonUtils.readyDo(() => {
-                    return this.pageTree.isReady();
-                }, () => {
-                    this.pageTree.selectNodeById(pageInfoDto.pageId);
-                    CommonUtils.hideMask();
-                    Alert.showMessage("保存成功");
-                });
+
+                this.pageTree.selectNodeById(pageInfoDto.pageId);
+                CommonUtils.hideMask();
+                Alert.showMessage("保存成功");
+
             });
 
         } catch (e) {
@@ -196,16 +214,14 @@ export default class PageDesign<T extends MenuFunctionInfo> extends MenuFunction
                     if (this.pageTree.getCurrentData()) {
                         curId = this.pageTree.getCurrentData().pageId;
                     }
-                    PageService.updatePageLevel(obj, Constants.DEFAULT_SCHEMA_ID, (data) => {
+                    PageService.updatePageLevel(obj, this.schemaId, (data) => {
                         this.pageTree.reload();
                         if (curId) {
-                            CommonUtils.readyDo(() => {
-                                return this.pageTree.isReady();
-                            }, () => {
-                                this.pageTree.selectNodeById(curId);
-                                CommonUtils.hideMask();
-                                Alert.showMessage("保存成功");
-                            });
+
+                            this.pageTree.selectNodeById(curId);
+                            CommonUtils.hideMask();
+                            Alert.showMessage("保存成功");
+
                         }
 
                     });
@@ -274,5 +290,16 @@ export default class PageDesign<T extends MenuFunctionInfo> extends MenuFunction
         btns.push(button);
 
         return btns;
+    }
+
+    destroy(): boolean {
+        this.pageTree.destroy();
+        this.blockTree.destroy();
+        this.fPage.destroy();
+        this.fAttr.destroy();
+        this.designPanel.destroy();
+        this.addDialog.destroy();
+        this.splitCenter.destroy();
+        return super.destroy();
     }
 }

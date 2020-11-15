@@ -7,9 +7,10 @@ import "./uidesign/BlockDesign";
 import "./funcdesign/PageDesign";
 
 import "./test/TestFunc";
+import "./reference/ReferenceFunc"
 
 export class FunctionReg {
-    static menus = {"1": "DmDesign", "2": "BlockDesign", "3": "PageDesign", "99": "TestFunc"};
+    static menus = {"1": "DmDesign", "2": "BlockDesign", "3": "PageDesign", "4": "ReferenceFunc", "99": "TestFunc"};
 
     static getFuncName(url: string) {
         return this.menus[url] as string;

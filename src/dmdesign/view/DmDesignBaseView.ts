@@ -41,7 +41,7 @@ export default abstract class DmDesignBaseView<T> extends BaseUI<T> {
         }
         ]
     };
-    protected static JSPLUMB = jsPlumb.jsPlumb.getInstance(DmDesignBaseView.DEFAULT_PARAM as any);
+    public static JSPLUMB = jsPlumb.jsPlumb.getInstance(DmDesignBaseView.DEFAULT_PARAM as any);
     protected static TARGET_PARAM = {
         filter: '.column-title',
         filterExclude: false,
@@ -92,10 +92,20 @@ export default abstract class DmDesignBaseView<T> extends BaseUI<T> {
             }
             if (this == source) {
                 this.$element.addClass("active");
+                this.selfActived();
             } else {
                 this.$element.removeClass("active");
+                this.unActived();
             }
         }
+    }
+
+    protected selfActived() {
+
+    }
+
+    protected unActived() {
+
     }
 
     /**

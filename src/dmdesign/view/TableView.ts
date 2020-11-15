@@ -9,6 +9,8 @@ import {ColumnDto} from "../../datamodel/dto/ColumnDto";
 import {CommonUtils} from "../../common/CommonUtils";
 import {DmDesignService} from "../service/DmDesignService";
 import {Column} from "../../datamodel/DmRuntime/Column";
+import {BeanFactory} from "../../decorator/decorator";
+import {Alert} from "../../uidesign/view/JQueryComponent/Alert";
 
 
 export default class TableView extends DmDesignBaseView<TableInfo> implements AttrChangeListener {
@@ -24,6 +26,7 @@ export default class TableView extends DmDesignBaseView<TableInfo> implements At
     private callUp = false;
     private confirmDlg: Dialog<DialogInfo>;
     private isShrinked = false;//是否是收缩状态
+    private static activeTableView: TableView;
 
     /**
      * 增加右键菜单的开关,所有的表只需要一套菜单即可
@@ -62,11 +65,15 @@ export default class TableView extends DmDesignBaseView<TableInfo> implements At
                 callback: (key, options) => {
                     if (key === "delete") {
                         this.confirmDlg.show();
+                    } else if (key === "sync") {
+                        this.syncTable();
                     }
+
                 },
                 items: {
                     "delete": {name: "删除表", icon: "delete"},
-                    "copy": {name: "复制增加", icon: "edit"}
+                    "copy": {name: "复制增加", icon: "edit"},
+                    "sync": {name: "同步", icon: "fa-refresh"},
 
                 }
             });
@@ -82,6 +89,56 @@ export default class TableView extends DmDesignBaseView<TableInfo> implements At
                 return true;
             }
         });
+    }
+
+    private syncTable() {
+        if (TableView.activeTableView) {
+            TableView.activeTableView.doSync();
+        }
+    }
+
+    protected selfActived() {
+        TableView.activeTableView = this;
+    }
+
+    private doSync() {
+        if (this.properties.getTableDto().tableId < 0) {
+            Alert.showMessage("此表还没有保存,不需要同步!");
+            return;
+        }
+        DmDesignService.getSyncTableCols(this.properties.getTableDto().tableId, (data) => {
+            let columns = this.updateCols(BeanFactory.populateBeans(ColumnDto, data));
+            this.properties.setLstColumn(columns);
+            this.addColumns(this.$element.find(".table-body .list-group").get(0));
+        });
+
+    }
+
+    private updateCols(lstDtos: Array<ColumnDto>) {
+        let lstNewColumn = new Array<Column>();
+        if (lstDtos) {
+            for (let dto of lstDtos) {
+                lstNewColumn.push(this.findColumnByDto(dto));
+            }
+        }
+        return lstNewColumn;
+    }
+
+    private findColumnByDto(columnDto: ColumnDto) {
+        let lstColumn = this.properties.getLstColumn();
+        if (!lstColumn) {
+            return null;
+        }
+        for (let column of lstColumn) {
+            if (column.getColumnDto().columnId === columnDto.columnId) {
+                column.setColumnDto(columnDto);
+                return column;
+            }
+        }
+        let column = new Column();
+        columnDto.columnId = CommonUtils.genId();
+        column.setColumnDto(columnDto);
+        return column;
     }
 
     adjustProfile() {
@@ -281,8 +338,12 @@ export default class TableView extends DmDesignBaseView<TableInfo> implements At
     }
 
     private initCol() {
+        if (this.lstColumn) {
+            for (let colView of this.lstColumn) {
+                colView.destroy();
+            }
+        }
         if (this.properties.getLstColumn()) {
-
             this.lstColumn = new Array<ColumnView>();
             for (let column of this.properties.getLstColumn()) {
                 this.lstColumn.push(new ColumnView(column));

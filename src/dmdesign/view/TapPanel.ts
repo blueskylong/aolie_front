@@ -11,11 +11,11 @@ export default class TapPanel extends DmDesignBaseView<TableDto> {
         return $(require("../template/TapPanel.html")).get(0);
     }
 
-    public addTap(label: string, control: HTMLElement) {
+    public addTap(label: string, control: HTMLElement, compId?) {
         let $tap = $(" <li class=\"nav-item\">" +
             "            <a class=\"nav-link\" data-toggle=\"tab\" ></a>\n" +
             "        </li>");
-        let id = CommonUtils.genUUID();
+        let id = compId || CommonUtils.genUUID();
         $tap.find("a").text(label).attr("href", "#" + id);
         this.$element.find(".nav-tabs").append($tap);
 
@@ -37,6 +37,22 @@ export default class TapPanel extends DmDesignBaseView<TableDto> {
         let bodys = this.$element.find(".tab-pane");
         bodys.removeClass("active");
         $(bodys.get(index)).addClass("active");
+    }
+
+    public hideTap(index: number) {
+        if (index >= this.count) {
+            return;
+        }
+        let taps = this.$element.find(".nav-item");
+        $(taps.get(index)).addClass("hide");
+    }
+
+    public showTap(index: number) {
+        if (index >= this.count) {
+            return;
+        }
+        let taps = this.$element.find(".nav-item");
+        $(taps.get(index)).removeClass("hide");
     }
 
 

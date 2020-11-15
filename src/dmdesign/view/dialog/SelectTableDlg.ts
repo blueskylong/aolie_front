@@ -35,7 +35,7 @@ export class SelectTableDlg<T extends DialogInfo> extends Dialog<T> {
     show(...value) {
         super.show(value);
         if (this.selectCom instanceof Select) {
-            DmService.findCanSelectTable(this.importValue[2])
+            DmService.findCanSelectTable(this.importValue)
                 .then((result) => {
                     let lstTable = result.data;
                     for (let tableName of lstTable) {

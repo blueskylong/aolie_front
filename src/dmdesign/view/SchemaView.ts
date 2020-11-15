@@ -4,10 +4,9 @@ import DmDesignBaseView from "./DmDesignBaseView";
 import TableDto from "../../datamodel/dto/TableDto";
 import EventBus from "./EventBus";
 import {AttrChangeListener} from "./AttrChangeListener";
-import {ColumnDto} from "../../datamodel/dto/ColumnDto";
 import ColumnView from "./ColumnView";
 import {Connection} from "jsplumb";
-import {Dialog, DialogInfo} from "../../blockui/Dialog";
+import {DialogInfo} from "../../blockui/Dialog";
 import {RelationDlg} from "./dialog/RelationDlg";
 import {StringMap} from "../../common/StringMap";
 import {TableColumnRelationDto} from "../../datamodel/dto/TableColumnRelationDto";
@@ -24,6 +23,7 @@ import {UiService} from "../../blockui/service/UiService";
 import {ReferenceData} from "../../datamodel/dto/ReferenceData";
 import {Alert} from "../../uidesign/view/JQueryComponent/Alert";
 import {Toolbar, ToolbarInfo} from "../../uidesign/view/JQueryComponent/Toolbar";
+import {GeneralEventListener} from "../../blockui/event/GeneralEventListener";
 
 
 export default class SchemaView extends DmDesignBaseView<SchemaDto> implements AttrChangeListener {
@@ -31,6 +31,8 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
     static TYPE_COLUMN = "COLUMN";
     static DEFAULT_RELATION_TYPE = 2;
     static RELATION_TYPE_REF = 40;
+
+    private refreshEvent: GeneralEventListener;
 
     private dragHor = false;
     private dragVer = false;
@@ -57,6 +59,9 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
     private $title: JQuery;
     private destroying = false;
 
+    private contextPositionTop = 0;
+    private contextPositionLeft = 0;
+
 
     constructor(dto: SchemaDto) {
         super(dto);
@@ -68,9 +73,8 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
             });
 
         this.selectTableDlg = new SelectTableDlg<DialogInfo>({
-            height: 400,
-            title: "请选择要增加的表", onOk: (items) => {
-                return this.onSelectTable(items[0], items[1]);
+            title: "请选择要增加的表", onOk: (value) => {
+                return this.onSelectTable(value);
             }
         });
     }
@@ -86,6 +90,10 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
         this.tables.splice(this.tables.indexOf(tableView), 1);
         this.schema.getLstTable().splice(this.schema.getLstTable().indexOf(tableView.getDtoInfo()), 1);
         return true;
+    }
+
+    public setRefreshEvent(refreshEvent: GeneralEventListener) {
+        this.refreshEvent = refreshEvent;
     }
 
     private removeConnection(conId: string) {
@@ -108,8 +116,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
         return dto;
     }
 
-    private onSelectTable(left, top): boolean {
-        let tableName = this.selectTableDlg.getValue();
+    private onSelectTable(tableName): boolean {
         if (tableName) {
 
             let tableDto = new TableDto();
@@ -117,8 +124,8 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
             tableDto.tableName = tableName;
             tableDto.height = 1;
             tableDto.title = "新增表[" + tableName + "]";
-            tableDto.posLeft = left;
-            tableDto.posTop = top;
+            tableDto.posLeft = this.contextPositionLeft;
+            tableDto.posTop = this.contextPositionTop;
             let tableInfo = new TableInfo();
             tableInfo.setTableDto(tableDto);
             DmDesignService.findTableFieldAsColumnDto(tableName, this.properties.schemaId, this.properties.versionCode,
@@ -176,7 +183,10 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
                 alert(err);
             } else {
                 Alert.showMessage({message: "保存成功"});
-                this.refresh();
+                if (this.refreshEvent) {
+                    this.refreshEvent.handleEvent("refresh", this.properties.schemaId, null);
+                }
+                // this.refresh();
             }
         })
     }
@@ -197,14 +207,17 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
             callback: (key, options, event) => {
                 if (key === "add") {
                     this.selectTableDlg.setExistsTableNames(this.collectExistsTableNames());
-                    this.selectTableDlg.show($(event.target)
-                        .closest(".context-menu-root").position().left - CommonUtils.getOffsetLeftByBody(this.$canvas.get(0)),
-                        $(event.target).closest(".context-menu-root").position().top - CommonUtils.getOffsetTopByBody(this.$canvas.get(0)),
-                        this.properties.schemaId);
+                    this.contextPositionLeft = $(event.target)
+                        .closest(".context-menu-root").position().left - CommonUtils.getOffsetLeftByBody(this.$canvas.get(0));
+                    this.contextPositionTop = $(event.target).closest(".context-menu-root").position().top - CommonUtils.getOffsetTopByBody(this.$canvas.get(0));
+                    this.selectTableDlg.show(this.properties.schemaId);
+                } else if (key === "refresh") {
+                    this.refresh(this.schema.getSchemaDto());
                 }
             },
             items: {
-                "add": {name: "增加表", icon: "add"}
+                "add": {name: "增加表", icon: "add"},
+                "refresh": {name: "刷新", icon: "fa-refresh"}
             }
         } as any);
         EventBus.addListener(EventBus.POSITION_CHANGE_EVENT,
@@ -309,6 +322,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
         this.destroyElement();
         this.getJsplumb().reset(true);
         this.initTableAndRelation();
+
     }
 
     private restore() {
@@ -339,6 +353,10 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
     }
 
     private initTableAndRelation() {
+        if (!this.properties) {
+            this.ready = true;
+            return;
+        }
         DmService.findSchemaInfo(this.properties.schemaId, this.properties.versionCode)
             .then((result) => {
                 let schema = BeanFactory.populateBean(Schema, result.data);
@@ -357,8 +375,13 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
                 if (this.dataReady) {
                     this.dataReady();
                 }
+                this.setTitle(schema.getSchemaDto().schemaName);
             });
 
+    }
+
+    private setTitle(title) {
+        this.$title.find(".schema-title").text(title);
     }
 
     private async initReference() {

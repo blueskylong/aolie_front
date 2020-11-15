@@ -41,4 +41,9 @@ export class DesignUiService {
             NetRequest.axios.delete(
                 this.URL_ROOT + "/deleteBlockView/" + blockViewId), callback);
     }
+
+    static updateBlockLevel(mapIdToCode: Object, schemaId, callback: (data) => void) {
+        CommonUtils.handleResponse(
+            NetRequest.axios.post(this.URL_ROOT + "/updateBlockLevel/" + schemaId, mapIdToCode), callback);
+    }
 }

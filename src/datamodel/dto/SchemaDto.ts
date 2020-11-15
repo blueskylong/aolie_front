@@ -6,4 +6,5 @@ export default class SchemaDto extends BaseDto {
     public memo: string;
     public width: number;
     public height: number;
+    public dataOperId: number;
 }

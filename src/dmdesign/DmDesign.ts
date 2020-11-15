@@ -29,11 +29,10 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
     private tapPanel: TapPanel;
     private fAttr: Form;
     private schemaInfo: SchemaMainInfo;
+    private fReference: Form;
     private fTable: Form;
     private listFormula: CardList<BlockViewDto>;
     private listConstraint: CardList<BlockViewDto>;
-
-    private schemaTree: JsTree<JsTreeInfo>;
     private schemaDto: SchemaDto;
 
     /**
@@ -56,6 +55,7 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
         this.addTabInfoUI(this.$element);
         this.addAttrUI(this.$element);
         this.addSchemaUI(this.$element);
+
     };
 
     private getUI() {
@@ -66,12 +66,15 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
      * 生成
      */
     private addSchemaUI($parent: JQuery) {
-        this.schemaDto = new SchemaDto();
-        this.schemaDto.schemaId = 2;
-        this.schemaDto.schemaName = "业务方案";
-        this.schemaView = new SchemaView(this.schemaDto);
+        this.schemaView = new SchemaView(null);
         this.schemaView.setDataReadyListener(() => {
             this.updateItemData();
+        });
+        this.schemaView.setRefreshEvent({
+            handleEvent: (type, schemaId) => {
+                this.schemaInfo.refresh(schemaId);
+
+            }
         });
         this.schemaDto = this.schemaView.getDtoInfo();
         $parent.find("#" + this.ID_SCHEMA).append(this.schemaView.getViewUI());
@@ -105,6 +108,7 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
     private updateItemData() {
         this.updateConstraint();
         this.fAttr.setValue({});
+        this.fReference.setValue({});
         this.fTable.setValue({});
         this.listFormula.setValue(null);
     }
@@ -118,7 +122,6 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
 
     private showSchema(schemaDto: SchemaDto) {
         this.schemaView.refresh(schemaDto);
-        //TODO
     }
 
     /**
@@ -133,6 +136,12 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
         this.schemaInfo.setSelectChangeListener({
             handleEvent: (eventType: string, schemaDto: any, other: object) => {
                 this.showSchema(schemaDto);
+
+                if (schemaDto.schemaId == 0) {
+                    this.tapPanel.showTap(4);
+                } else {
+                    this.tapPanel.hideTap(4);
+                }
             }
         });
 
@@ -169,6 +178,8 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
             return Constraint.genConstraintDto(this.schemaDto.schemaId, this.schemaDto.versionCode);
         });
 
+        this.fReference = Form.getInstance(90);
+        this.tapPanel.addTap("引用信息", this.fReference.getViewUI());
 
         let table = new TableDemo(new ServerRenderProvider(30));
 
@@ -185,15 +196,14 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
         this.listFormula.setEditable(editable);
         this.fTable.setEditable(editable);
         this.fAttr.setEditable(editable);
+        this.fReference.setEditable(editable);
     }
 
     /**
      * 生成右边的属性事件
      */
     private addAttrUI($parent: JQuery) {
-        let dto = new BlockViewDto();
-        dto.blockViewId = 20;
-        this.fAttr = new Form(dto);
+        this.fAttr = Form.getInstance(20);
         $parent.find("#" + this.ID_ATTR).append(this.fAttr.getViewUI());
         this.fAttr.afterComponentAssemble();
         let thas = this;
@@ -202,7 +212,6 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
                 thas.schemaView.columnAttrChanged(form.getValue().get("columnId") as any, fieldName as any, value);
             }
         });
-
     }
 
     /**
@@ -214,11 +223,13 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
         this.fTable.destroy();
         this.fAttr.destroy();
         this.schemaInfo.destroy();
+        this.fReference.destroy();
         this.listFormula.destroy();
         this.listConstraint.destroy();
         this.schemaView = null;
         this.fTable = null;
         this.fAttr = null;
+        this.fReference = null;
         this.schemaInfo = null;
         this.listFormula = null;
         this.listConstraint = null;

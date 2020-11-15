@@ -7125,7 +7125,7 @@
                             e.preventDefault();
                             break;
                         default:
-                             break;
+                            break;
                     }
                 })
                 .on('keydown', function (e) {
@@ -7529,7 +7529,7 @@
                             if (o === true) {
 
                                 ///////////增加其它控件的支持
-                                if (sourceTree.settings.dnd.isCanDrop) {
+                                if (sourceTree && sourceTree.settings && sourceTree.settings.dnd.isCanDrop) {
                                     if (!sourceTree.settings.dnd.isCanDrop(
                                         data.data.origin.get_json(data.data.nodes).data,
                                         lastmv ? lastmv.par : null, data.event.target)) {
@@ -7598,6 +7598,10 @@
                         nodes[i] = data.data.origin ? data.data.origin.get_node(data.data.nodes[i]) : data.data.nodes[i];
                     }
                     lastmv.ins[data.data.origin && (data.data.origin.settings.dnd.always_copy || (data.data.origin.settings.dnd.copy && (data.event.metaKey || data.event.ctrlKey))) ? 'copy_node' : 'move_node'](nodes, lastmv.par, lastmv.pos, false, false, false, data.data.origin);
+                    //增加事件
+                    if (sourceTree&&sourceTree.settings&&sourceTree.settings.dnd.onDrop) {
+                        sourceTree.settings.dnd.onDrop(data.data.nodes[0]);
+                    }
                 } else {
                     i = $(data.event.target).closest('.jstree');
                     if (i.length && laster && laster.error && laster.error === 'check') {

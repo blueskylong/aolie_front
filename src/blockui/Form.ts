@@ -65,6 +65,7 @@ export class Form extends BaseComponent<BlockViewDto> {
 
     showHead(isShow) {
         this.isShowTitle = isShow;
+        this.updateTitle();
 
     }
 
@@ -74,6 +75,9 @@ export class Form extends BaseComponent<BlockViewDto> {
     }
 
     updateTitle() {
+        if (!this.$element) {
+            return;
+        }
         if (this.isShowTitle) {
             this.$element.find(".form-head").removeClass(Form.HIDDEN_CLASS);
         } else {
@@ -128,6 +132,7 @@ export class Form extends BaseComponent<BlockViewDto> {
             }
             this.createSubComponents(this.$formBody.get(0), node);
         }
+        this.updateTitle();
     }
 
     setDisplayComponent(viewer: BlockViewer) {
@@ -286,6 +291,7 @@ export class Form extends BaseComponent<BlockViewDto> {
         this.lstComponent = null;
         this.values = null;
         this.generator = null;
+        this.lstCloseListener = null;
 
         return super.destroy();
     }
@@ -307,7 +313,7 @@ export class Form extends BaseComponent<BlockViewDto> {
         return viewer;
     }
 
-    static genSimpDto(type, title, horSpan, field) {
+    static genSimpDto(type, title, horSpan, field, refId?) {
         let dto = new ComponentDto();
         dto.dispType = type;
         dto.title = title;
@@ -316,12 +322,15 @@ export class Form extends BaseComponent<BlockViewDto> {
         dto.componentId = CommonUtils.nextInt();
         let colDto = new ColumnDto();
         colDto.fieldName = field;
+        colDto.refId = refId;
         colDto.columnId = dto.columnId;
         let column = new Column();
         column.setColumnDto(colDto);
         let comp = new Component();
         comp.setColumn(column);
         comp.setComponentDto(dto);
+
+
         return comp;
     }
 }

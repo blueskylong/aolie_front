@@ -1,6 +1,8 @@
 import BaseUI from "../uidesign/view/BaseUI";
 import ClickEvent = JQuery.ClickEvent;
 import {BaseComponent} from "../uidesign/view/BaseComponent";
+import DmDesignBaseView from "../dmdesign/view/DmDesignBaseView";
+import * as jsPlumb from "jsplumb";
 
 export class Dialog<T extends DialogInfo> extends BaseUI<T> {
     private static TEMPLATE = require("./templete/Dialog.html");
@@ -18,6 +20,8 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
         this.importValue = value;
         this.$element.modal({backdrop: "static"});
         this.$element.modal('show');
+        jsPlumb.jsPlumb.getInstance({} as any).draggable(this.$element);
+
     }
 
     public close() {

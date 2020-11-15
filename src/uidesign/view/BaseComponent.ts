@@ -66,5 +66,9 @@ export abstract class BaseComponent<T> extends BaseUI<T> {
 
     public abstract setEnable(enable: boolean);
 
+    destroy(): boolean {
+        this.changeEventHandler = null;
+        return super.destroy();
+    }
 
 }

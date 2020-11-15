@@ -15,11 +15,17 @@ import {GlobalParams} from "../common/GlobalParams";
 import {BlockViewDto} from "./dto/BlockViewDto";
 import {Constants} from "../common/Constants";
 import {InputDlg} from "../blockui/dialogs/InputDlg";
+import {Select} from "./view/JQueryComponent/Select";
+import {IComponentGenerator} from "./view/generator/IComponentGenerator";
+import {JQueryGeneralComponentGenerator} from "./view/JQueryComponent/JQueryGeneralComponentGenerator";
+import {CodeLevelProvider} from "../common/CodeLevelProvider";
+import PageService from "../funcdesign/serivce/PageService";
+import {UiService} from "../blockui/service/UiService";
 
 @MenuFunc()
 export default class BlockDesign<T extends MenuFunctionInfo> extends MenuFunction<T> {
     private schemaId = 2;
-
+    private generator: IComponentGenerator = new JQueryGeneralComponentGenerator();
     private selectDsDlg: SelectDsDlg;
 
     private dsTree: JsTree<JsTreeInfo>;
@@ -36,6 +42,7 @@ export default class BlockDesign<T extends MenuFunctionInfo> extends MenuFunctio
     private blockTree: JsTree<JsTreeInfo>;
     private selectedTable: Array<number>;
     private blockDlg: InputDlg;
+    private schemaSelect: Select<any>;
 
     private confirmDlg: Dialog<DialogInfo>;
 
@@ -55,7 +62,7 @@ export default class BlockDesign<T extends MenuFunctionInfo> extends MenuFunctio
         });
         this.blockDlg = new InputDlg({
             title: "增加视图",
-            inputTitle: "社图名称",
+            inputTitle: "视图名称",
             isCanEmpty: false,
             onOk: (items) => {
                 this.addView(this.blockDlg.getValue());
@@ -83,17 +90,39 @@ export default class BlockDesign<T extends MenuFunctionInfo> extends MenuFunctio
             textField: "blockViewName",
             idField: "blockViewId",
             codeField: "lvlCode",
-            url: "/ui/getBlockViews/" + this.schemaId,
-            dnd: {isDraggable: false},
+            url: () => {
+                return "/ui/getBlockViews/" + this.schemaId
+            },
+            dnd: {isDraggable: true, onlyDroppable: false},
             buttons: [{
                 icon: "fa fa-trash",
                 title: "删除",
                 clickHandler: (event, data) => {
                     this.doDelete(data);
                 }
-            }]
+            }, {
+                icon: "fa fa-plus",
+                title: "增加",
+                clickHandler: (event, data) => {
+                    this.blockTree.selectNode(data.id);
+                    this.doAdd();
+                }
+            }],
+            onReady: () => {
+                // this.clearAttrShow();
+            }
 
         });
+        let compInfo = Form.genSimpDto(Constants.ComponentType.select, "方案选择", 12, "c1", 85);
+        this.schemaSelect = <Select<any>>this.generator.generateComponent(compInfo.getComponentDto().dispType,
+            compInfo, $ele.find(".block-tree").get(0), {
+                handleEvent: (eventType: string, field: any, value: any, extObject?: any) => {
+                    this.schemaId = value;
+                    this.blockTree.reload();
+                    this.clearAttrShow();
+                }
+            });
+        $ele.find(".block-tree").append(this.schemaSelect.getViewUI());
         $ele.find(".block-tree").append(this.blockTree.getViewUI());
 
         this.designPanel = new DesignPanel<any>({});
@@ -117,17 +146,15 @@ export default class BlockDesign<T extends MenuFunctionInfo> extends MenuFunctio
             return;
         }
         let parentId = "null";
-        let node = this.dsTree.getSelectData(true);
+        let node = this.blockTree.getCurrentNode();
         if (node && node.data) {
-            parentId = node.data.lvlCode;
+            parentId = node.data.blockViewId;
         }
         DesignUiService.genNewBlockViewer(viewName, this.schemaId, parentId, (newId) => {
             this.blockTree.getJsTree().refresh(false, true);
-            CommonUtils.readyDo(() => {
-                return this.blockTree.isReady()
-            }, () => {
-                this.blockTree.selectNodeById(newId);
-            })
+
+            this.blockTree.selectNodeById(newId);
+
 
         });
 
@@ -140,15 +167,21 @@ export default class BlockDesign<T extends MenuFunctionInfo> extends MenuFunctio
         this.designPanel.afterComponentAssemble();
         this.fBlock.afterComponentAssemble();
         this.fColAttr.afterComponentAssemble();
+        this.schemaSelect.afterComponentAssemble();
         this.ready = true;
     }
 
     private bindEvent() {
         this.$element.find(".split-pane")['splitPane']();
         this.$element.find(".btnSelectDs").on("click", (e) => {
+            this.selectDsDlg.setSchemaId(this.schemaId);
             this.selectDsDlg.show(this.selectedTable);
         });
-
+        this.blockTree.addDropListener({
+            handleEvent: (eventType: string, data: any, source: any, extObject?: any) => {
+                this.saveBlockLvl();
+            }
+        });
 
         this.blockTree.addSelectListener({
             handleEvent: (type, data) => {
@@ -197,6 +230,48 @@ export default class BlockDesign<T extends MenuFunctionInfo> extends MenuFunctio
             if (!this.designPanel.valueChanged(data, value)) {
                 this.fColAttr.setValue(this.designPanel.getCurrentData());
             }
+        }
+    }
+
+    private saveBlockLvl() {
+
+
+        let oraData = this.blockTree.getJsTree().get_json(null, {flat: false});
+        if (oraData && oraData.length > 0) {
+            let obj = {};
+            let provider = new CodeLevelProvider();
+            let data = oraData[0].children;
+            for (let row of data) {
+                this.makeLevel(provider, row, obj);
+            }
+            let curId = null;
+            if (this.blockTree.getCurrentData()) {
+                curId = this.blockTree.getCurrentData().blockViewId;
+            }
+            DesignUiService.updateBlockLevel(obj, Constants.DEFAULT_SCHEMA_ID, (data) => {
+                this.blockTree.reload();
+                if (curId) {
+                    this.blockTree.selectNodeById(curId);
+                    CommonUtils.hideMask();
+                }
+            });
+        }
+        return true;
+
+
+    }
+
+    private makeLevel(codePro: CodeLevelProvider, node, obj) {
+
+        let curCode = codePro.getNext();
+        obj[node.data.blockViewId] = curCode;
+
+        if (node.children && node.children.length > 0) {
+            codePro.goSub();
+            for (let subNode of node.children) {
+                this.makeLevel(codePro, subNode, obj);
+            }
+            codePro.setCurCode(curCode);
         }
     }
 
@@ -251,7 +326,7 @@ export default class BlockDesign<T extends MenuFunctionInfo> extends MenuFunctio
         if (data) {
             node = data;
         }
-        if (!node) {
+        if (!node.data) {
             Alert.showMessage({message: "请选择要删除的视图"});
             return;
         }
@@ -278,10 +353,11 @@ export default class BlockDesign<T extends MenuFunctionInfo> extends MenuFunctio
 
     }
 
-    private clearAttrShow() {
+    public clearAttrShow() {
         this.designPanel.showBlock(null, GlobalParams.loginVersion);
         this.fBlock.setValue({});
         this.fColAttr.setValue({});
+        this.dsTree.setValue({});
     }
 }
 

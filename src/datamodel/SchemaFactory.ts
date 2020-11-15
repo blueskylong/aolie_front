@@ -17,7 +17,7 @@ export class SchemaFactory {
     /**
      * 其它用于便利查询的缓存
      */
-    static CACHE_OTHER = new StringMap();
+    static CACHE_OTHER = new StringMap<StringMap<any>>();
 
     static KEY_COL_TABLE = "COL_TABLE";
     static KEY_COLID_COL = "COLID_COL";
@@ -34,14 +34,21 @@ export class SchemaFactory {
     }
 
     init() {
-        DmService.findSchemaInfo(SchemaFactory.schemaId, GlobalParams.loginVersion).then(
-            (result) => {
-                let schema = BeanFactory.populateBean(Schema, result.data);
-                SchemaFactory.CACHE_SCHEMA
-                    .set(CommonUtils.genKey(SchemaFactory.schemaId, GlobalParams.loginVersion), schema);
-                this.initShortSearchInfo(schema);
+        DmService.findSchemaIds((data) => {
+            if (data) {
+                for (let id of data) {
+                    DmService.findSchemaInfo(id, GlobalParams.loginVersion).then(
+                        (result) => {
+                            let schema = BeanFactory.populateBean(Schema, result.data);
+                            SchemaFactory.CACHE_SCHEMA
+                                .set(CommonUtils.genKey(SchemaFactory.schemaId, GlobalParams.loginVersion), schema);
+                            this.initShortSearchInfo(schema);
+                        }
+                    )
+                }
             }
-        )
+        });
+
     }
 
     /**
@@ -49,17 +56,20 @@ export class SchemaFactory {
      * @param schema
      */
     private initShortSearchInfo(schema: Schema) {
-        SchemaFactory.CACHE_OTHER.delete(schema.getSchemaDto().schemaId + "");
-        let mapColIdToTable = new StringMap();
-        let mapColIdToCol = new StringMap();
-        let mapTableIdToTable = new StringMap();
+        let mapColIdToTable = SchemaFactory.CACHE_OTHER.get(SchemaFactory.KEY_COL_TABLE)
+            ? SchemaFactory.CACHE_OTHER.get(SchemaFactory.KEY_COL_TABLE) : new StringMap<any>();
+        let mapColIdToCol = SchemaFactory.CACHE_OTHER.get(SchemaFactory.KEY_COLID_COL)
+            ? SchemaFactory.CACHE_OTHER.get(SchemaFactory.KEY_COLID_COL) : new StringMap<any>();
+        let mapTableIdToTable = SchemaFactory.CACHE_OTHER.get(SchemaFactory.KEY_TABLEID_TABLE)
+            ? SchemaFactory.CACHE_OTHER.get(SchemaFactory.KEY_TABLEID_TABLE) : new StringMap<any>();
+        let version = schema.getSchemaDto().versionCode;
         if (schema.getLstTable()) {
             for (let table of schema.getLstTable()) {
-                mapTableIdToTable.set(table.getTableDto().tableId + "", table);
+                mapTableIdToTable.set(table.getTableDto().tableId + "_" + version, table);
                 if (table.getLstColumn()) {
                     for (let col of table.getLstColumn()) {
-                        mapColIdToCol.set(col.getColumnDto().columnId + "", col);
-                        mapColIdToTable.set(col.getColumnDto().columnId + "", table);
+                        mapColIdToCol.set(col.getColumnDto().columnId + "_" + version, col);
+                        mapColIdToTable.set(col.getColumnDto().columnId + "_" + version, table);
                     }
                 }
             }
@@ -73,16 +83,20 @@ export class SchemaFactory {
      * 根据列ID查询相应的表(视图)信息
      * @param colId
      */
-    static getTableByColId(colId): TableInfo {
-        return (<StringMap<any>>SchemaFactory.CACHE_OTHER.get(SchemaFactory.KEY_COL_TABLE)).get(colId + "");
+    static getTableByColId(colId, version?): TableInfo {
+        version = version ? version : GlobalParams.getLoginVersion();
+        return (<StringMap<any>>SchemaFactory.CACHE_OTHER
+            .get(SchemaFactory.KEY_COL_TABLE)).get(colId + "_" + version);
     }
 
     /**
      * 根据表(视图)ID查询表(视图)信息
      * @param tableid
      */
-    static getTableByTableId(tableid): TableInfo {
-        return (<StringMap<any>>SchemaFactory.CACHE_OTHER.get(SchemaFactory.KEY_TABLEID_TABLE)).get(tableid + "");
+    static getTableByTableId(tableid, version?: string): TableInfo {
+        version = version ? version : GlobalParams.getLoginVersion();
+        return (<StringMap<any>>SchemaFactory
+            .CACHE_OTHER.get(SchemaFactory.KEY_TABLEID_TABLE)).get(tableid + "_" + version);
     }
 
 

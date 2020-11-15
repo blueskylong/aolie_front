@@ -18,6 +18,8 @@ export class DesignBox extends BaseUI<DesignBoxInfo> {
     private $masker: JQuery;
     private selectChangeListener: GeneralEventListener;
 
+    private dropHandler: (event, data) => void;
+
     protected createUI(): HTMLElement {
         let $ele = $(require("../template/DesignBox.html"));
         this.$masker = $ele.find(".masker");
@@ -34,7 +36,7 @@ export class DesignBox extends BaseUI<DesignBoxInfo> {
 
     afterComponentAssemble(): void {
         super.afterComponentAssemble();
-        $(document).on("dnd_stop.vakata.jstree", (event, data) => {
+        this.dropHandler = (event, data) => {
 
             //这个是放到面板上
             if (this.$element.find(data.event.target).length > 0
@@ -42,7 +44,8 @@ export class DesignBox extends BaseUI<DesignBoxInfo> {
                 this.showComp(data.data.origin.get_node(data.data.nodes[0]).data.blockViewId);
                 this.selectMe();
             }
-        });
+        };
+        $(document).on("dnd_stop.vakata.jstree", this.dropHandler);
         this.bindEvent();
     }
 
@@ -150,6 +153,7 @@ export class DesignBox extends BaseUI<DesignBoxInfo> {
 
     destroy(): boolean {
         this.clear();
+        $(document).off("dnd_stop.vakata.jstree", this.dropHandler);
         return super.destroy();
     }
 

@@ -32,6 +32,10 @@ export class StringMap<V> {
         return this.obj[key as any] as any;
     }
 
+    getObject() {
+        return this.obj;
+    }
+
     has(key: string): boolean {
         return this.obj.hasOwnProperty(key);
     }

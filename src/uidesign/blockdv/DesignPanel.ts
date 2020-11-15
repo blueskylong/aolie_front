@@ -38,6 +38,7 @@ export class DesignPanel<T> extends BaseUI<T> {
     //默认显示面板
     private isShowForm = true;
     private dTable: DesignTable;
+    private dropHandler: (event, data) => void;
 
 
     protected createUI(): HTMLElement {
@@ -87,7 +88,7 @@ export class DesignPanel<T> extends BaseUI<T> {
         this.$compBody = this.$element.find(".form-body");
         this.$element.find(".split-pane")['splitPane']();
         this.compTree.afterComponentAssemble();
-        $(document).on("dnd_stop.vakata.jstree", (event, data) => {
+        this.dropHandler = (event, data) => {
             if (!this.blockViewer) {
                 return;
             }
@@ -108,9 +109,10 @@ export class DesignPanel<T> extends BaseUI<T> {
 
             } else {//这里是控件树自己拖动
                 this.resortComponentByTree();
-
             }
-        });
+        };
+
+        $(document).on("dnd_stop.vakata.jstree", this.dropHandler);
 
         super.afterComponentAssemble();
     }
@@ -431,6 +433,7 @@ export class DesignPanel<T> extends BaseUI<T> {
         this.selectListener = null;
         this.$compBody = null;
         EventBus.clearEvent();
+        $(document).off("dnd_stop.vakata.jstree", this.dropHandler);
         return super.destroy();
     }
 

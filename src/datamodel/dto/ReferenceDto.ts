@@ -13,4 +13,7 @@ export class ReferenceDto extends BaseDto {
      * 如果是统一表中的引用,则要提供类型
      */
     public commonType: string;
+
+    private tableId: number;
+    private treeLike: number;
 }

@@ -5,6 +5,7 @@ import {NetRequest} from "../../common/NetRequest";
 import "../../jsplugs/jstree";
 import ClickEvent = JQuery.ClickEvent;
 import {GeneralEventListener} from "../event/GeneralEventListener";
+import {StringMap} from "../../common/StringMap";
 
 export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
 
@@ -27,7 +28,9 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
     private btns: JQuery;
     private silence = false;
 
+
     private selectedListener: Array<GeneralEventListener> = new Array<GeneralEventListener>();
+    private dropListener: Array<GeneralEventListener> = new Array<GeneralEventListener>();
 
     protected createUI(): HTMLElement {
         return $(require("../templete/JsTree.html")).get(0);
@@ -45,7 +48,10 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         },
         "dnd": {
             onlyDroppable: true,
-            is_draggable: false
+            is_draggable: false,
+            onDrop: (node) => {
+                this.fireDropEvent(node);
+            }
         },
         "plugins": [
             "contextmenu", "dnd", "search",
@@ -108,6 +114,29 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         this.selectedListener.push(listener);
     }
 
+    addDropListener(listener: GeneralEventListener) {
+        this.dropListener.push(listener);
+    }
+
+    protected fireDropEvent(nodeId) {
+        if (this.dropListener.length > 0) {
+            for (let listener of this.dropListener) {
+                listener.handleEvent("drop-tree", nodeId, null);
+            }
+        }
+    }
+
+    destroy(): boolean {
+        this.jsTree.destroy(false);
+        this.$jsTree = null;
+        this.currentNode = null;
+        this.hoverData = null;
+        this.btns = null;
+        this.selectedListener = null;
+        this.dropListener = null;
+        return super.destroy();
+    }
+
     private createTree() {
         if (this.properties.multiSelect) {
             this.treeProps.plugins.push("checkbox")
@@ -120,7 +149,13 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         if (this.properties.url) {
             // data可以是一个函数,实现异步查询返回处理
             this.treeProps.core['data'] = (obj, callback) => {
-                NetRequest.axios.get(this.properties.url).then((result) => {
+                let url = null;
+                if (typeof this.properties.url === "string") {
+                    url = this.properties.url;
+                } else if (typeof this.properties.url === "function") {
+                    url = this.properties.url();
+                }
+                NetRequest.axios.get(url).then((result) => {
                     if (result.status == 200) {
                         callback(this.makeTreeData(result.data));
                         return;
@@ -179,6 +214,7 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
             if (this.currentNode === data.node) {
                 return;
             }
+            this.currentNode = data.node;
             this.fireSelectChangeListener(data.node.data);
         });
 
@@ -212,6 +248,7 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
                 return;
             }
             let $ele = $(e.target);
+
             if ($ele.hasClass("jstree-anchor")) {
                 this.btns.removeClass("hidden");
                 this.btns.offset({top: $ele.offset().top, left: $ele.offset().left + $ele.width() + 3});
@@ -219,7 +256,7 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
             } else {
                 this.btns.addClass("hidden");
             }
-
+            this.changeButtons();
         });
         this.btns.on("mouseover", (e) => {
             e.stopPropagation();
@@ -229,6 +266,22 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
             this.btns.addClass("hidden");
             this.hoverData = null;
         });
+    }
+
+    /**
+     * 根据设置显示按钮
+     */
+    private changeButtons() {
+        if (this.properties.buttons && this.hoverData) {
+            let $buttons = this.btns.find(".tree-button");
+            for (let i = 0; i < this.properties.buttons.length; i++) {
+                let btnDefine = this.properties.buttons[i];
+                if (btnDefine.isShow) {
+                    btnDefine.isShow(this.hoverData) ? $($buttons.get(i)).removeClass(JsTree.HIDDEN_CLASS) :
+                        $($buttons.get(i)).addClass(JsTree.HIDDEN_CLASS);
+                }
+            }
+        }
     }
 
 
@@ -325,6 +378,7 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
             nodeRoot.data = null;
             result.push(nodeRoot);
         }
+        let map = new StringMap<any>();
         if (data) {
             for (let row of data) {
                 node = new Node();
@@ -332,9 +386,14 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
                 if (!code) {
                     node.id = CommonUtils.genUUID();
                     node.parent = rootId;
+
                 } else {
                     node.id = code;
+                    map.set(code, node);
                     node.parent = code.length > 3 ? code.substr(0, code.length - 3) : rootId;
+                    if (!map.has(node.parent)) {
+                        node.parent = rootId;
+                    }
                 }
                 node.text = row[this.properties.textField];
                 node.key = row[this.properties.idField];
@@ -444,7 +503,7 @@ export interface JsTreeInfo {
     codeField?: string;
     idField?: string;
     showSearch?: boolean;
-    url?: string,
+    url?: string | Function,
     parentField?: string;
     lvl?: Array<number>;
     onReady?: () => void;
@@ -476,5 +535,6 @@ export interface TreeButton {
     text?: string;
     icon?: string;
     title?: string;
+    isShow?: (data) => boolean;
     clickHandler?: (event: ClickEvent, data) => void;
 }
