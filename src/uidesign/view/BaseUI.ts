@@ -5,6 +5,7 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
     protected static HIDDEN_CLASS = "hidden";
     protected properties: T;
     protected template: string;
+    protected lstReadyListener: Array<(source: any) => void>;
     /**
      * dom
      */
@@ -13,9 +14,26 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
     protected $element: JQuery;
 
     protected ready = false;
+    protected destroied = false;
 
     constructor(properties: T) {
+
         this.properties = properties;
+    }
+
+    addReadyListener(handler: (source: any) => void) {
+        if (!this.lstReadyListener) {
+            this.lstReadyListener = new Array<() => void>();
+        }
+        this.lstReadyListener.push(handler);
+    }
+
+    fireReadyEvent() {
+        if (this.lstReadyListener) {
+            for (let listener of this.lstReadyListener) {
+                listener(this);
+            }
+        }
     }
 
     public getDtoInfo() {
@@ -37,7 +55,7 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
             this.initSubControllers();
             this.initEvent();
         }
-
+        this.$element.attr("component-class", this.constructor.name);
         return this.element;
     }
 
@@ -60,6 +78,7 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
     public afterComponentAssemble(): void {
 
         this.ready = true;
+        this.fireReadyEvent();
     };
 
     /**
@@ -91,7 +110,13 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
             this.$element = null;
             this.element = null;
         }
+        this.lstReadyListener = null;
+        this.destroied = true;
         return true;
+    }
+
+    isDestroied() {
+        return this.destroied;
     }
 
     public hide() {

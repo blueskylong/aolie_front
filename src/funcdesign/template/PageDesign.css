@@ -72,4 +72,13 @@
     border: 2px #f9ff13 solid;
 }
 
+.page-design-panel .ui-title ,.empty-menu-hint{
+    height: 100%;
+    display: -webkit-box;
+    -webkit-box-align: center;
+    -webkit-box-pack: center;
+    font-size: xx-large;
+    color: rgba(22,33,55,0.6);
+}
+
 

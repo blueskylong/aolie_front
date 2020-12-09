@@ -7,7 +7,7 @@ body {
 }
 
 .split-pane-divider {
-    background-color: rgba(232, 123, 121, 0.6);
+    background-color: rgba(19, 104, 64, 0.6);
 }
 
 html {
@@ -24,8 +24,17 @@ html {
     background-color: white;
     border: 1px solid #ced4da;
 }
-.form-control input[type="radio"], input[type="checkbox"]{
+
+.form-control input[type="radio"], input[type="checkbox"] {
     height: calc(1.4em);
+}
+
+.form-group[component-class="Hidden"] {
+    display: none;
+}
+
+.design-component .form-group[component-class="Hidden"] {
+    display: inherit;
 }
 
 .mask-panel {
@@ -78,6 +87,11 @@ html {
 .k-line4-5 {
     animation: k-loadingA 1.5s 1.2s infinite;
     background-color: #388E3C;
+}
+
+.full-display {
+    height: 100%;
+    width: 100%;
 }
 
 @keyframes k-loadingA {

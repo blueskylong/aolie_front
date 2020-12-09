@@ -5,6 +5,9 @@ import {GlobalParams} from "../common/GlobalParams";
 import {BeanFactory} from "../decorator/decorator";
 import {StringMap} from "../common/StringMap";
 import {TableInfo} from "./DmRuntime/TableInfo";
+import {Logger} from "../common/Logger";
+import {TableColumnRelation} from "./DmRuntime/TableColumnRelation";
+import {Column} from "./DmRuntime/Column";
 
 export class SchemaFactory {
     static schemaId = 2;
@@ -13,7 +16,7 @@ export class SchemaFactory {
     /**
      * 方案缓存
      */
-    static CACHE_SCHEMA = new StringMap();
+    static CACHE_SCHEMA = new StringMap<Schema>();
     /**
      * 其它用于便利查询的缓存
      */
@@ -29,7 +32,7 @@ export class SchemaFactory {
      * @param schemaId
      * @param version
      */
-    static getSchema(schemaId: number, version: string) {
+    static getSchema(schemaId: number, version: string): Schema {
         return SchemaFactory.CACHE_SCHEMA.get(CommonUtils.genKey(schemaId, version));
     }
 
@@ -41,7 +44,7 @@ export class SchemaFactory {
                         (result) => {
                             let schema = BeanFactory.populateBean(Schema, result.data);
                             SchemaFactory.CACHE_SCHEMA
-                                .set(CommonUtils.genKey(SchemaFactory.schemaId, GlobalParams.loginVersion), schema);
+                                .set(CommonUtils.genKey(id, GlobalParams.loginVersion), schema);
                             this.initShortSearchInfo(schema);
                         }
                     )
@@ -89,6 +92,12 @@ export class SchemaFactory {
             .get(SchemaFactory.KEY_COL_TABLE)).get(colId + "_" + version);
     }
 
+    static getColumnById(colId, version?): Column {
+        version = version ? version : GlobalParams.getLoginVersion();
+        return (<StringMap<any>>SchemaFactory.CACHE_OTHER
+            .get(SchemaFactory.KEY_COLID_COL)).get(colId + "_" + version);
+    }
+
     /**
      * 根据表(视图)ID查询表(视图)信息
      * @param tableid
@@ -97,6 +106,28 @@ export class SchemaFactory {
         version = version ? version : GlobalParams.getLoginVersion();
         return (<StringMap<any>>SchemaFactory
             .CACHE_OTHER.get(SchemaFactory.KEY_TABLEID_TABLE)).get(tableid + "_" + version);
+    }
+
+    static getTableRelation(tableId1, tableId2): TableColumnRelation {
+        let tableInfo = this.getTableByTableId(tableId1);
+        if (!tableInfo) {
+            Logger.error("没有查询到表信息");
+            return null;
+        }
+        let schemaId = tableInfo.getTableDto().schemaId;
+        let schema = SchemaFactory.getSchema(schemaId, tableInfo.getTableDto().versionCode);
+        let lstRelation = schema.getLstRelation();
+        if (!lstRelation) {
+            return null;
+        }
+        for (let relation of lstRelation) {
+            if ((relation.getTableTo().getTableDto().tableId == tableId1 && relation.getTableFrom().getTableDto().tableId == tableId2)
+                || (relation.getTableTo().getTableDto().tableId == tableId2 && relation.getTableFrom().getTableDto().tableId == tableId1)) {
+                return relation;
+            }
+        }
+        return null;
+
     }
 
 

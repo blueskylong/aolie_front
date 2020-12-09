@@ -6,9 +6,11 @@ import "../../jsplugs/jstree";
 import ClickEvent = JQuery.ClickEvent;
 import {GeneralEventListener} from "../event/GeneralEventListener";
 import {StringMap} from "../../common/StringMap";
+import {CodeLevelProvider} from "../../common/CodeLevelProvider";
 
 export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
-
+    static request_get = "get";
+    static request_post = "post";
 
     static EVENT_SELECT_CHANGED = "treeSelectChanged"
 
@@ -27,8 +29,6 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
     private isCounting = false;
     private btns: JQuery;
     private silence = false;
-
-
     private selectedListener: Array<GeneralEventListener> = new Array<GeneralEventListener>();
     private dropListener: Array<GeneralEventListener> = new Array<GeneralEventListener>();
 
@@ -76,6 +76,13 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         this.getJsTree().set_text(this.currentNode, str);
     }
 
+    changeNodeText(id, str) {
+        let node = this.getJsTree().get_node(id);
+        if (node) {
+            this.getJsTree().set_text(node, str);
+        }
+    }
+
     private onReady() {
         if (this.properties.onReady) {
             this.properties.onReady();
@@ -85,6 +92,7 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
     afterComponentAssemble(): void {
         this.createTree();
         this.bindEvent();
+        super.afterComponentAssemble();
     }
 
     selectNode(node: any) {
@@ -127,13 +135,15 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
     }
 
     destroy(): boolean {
-        this.jsTree.destroy(false);
-        this.$jsTree = null;
-        this.currentNode = null;
-        this.hoverData = null;
-        this.btns = null;
-        this.selectedListener = null;
-        this.dropListener = null;
+        if (this.jsTree && this.$jsTree) {
+            this.jsTree.destroy(false);
+            this.$jsTree = null;
+            this.currentNode = null;
+            this.hoverData = null;
+            this.btns = null;
+            this.selectedListener = null;
+            this.dropListener = null;
+        }
         return super.destroy();
     }
 
@@ -155,13 +165,19 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
                 } else if (typeof this.properties.url === "function") {
                     url = this.properties.url();
                 }
-                NetRequest.axios.get(url).then((result) => {
-                    if (result.status == 200) {
-                        callback(this.makeTreeData(result.data));
-                        return;
-                    }
-                    alert("Tree encounter error!")
-                })
+                if (url) {
+                    NetRequest.axios[this.properties.requestMethod || JsTree.request_get](url, this.makeFilter())
+                        .then((result) => {
+                            if (result.status == 200) {
+                                callback(this.makeTreeData(result.data));
+                                return;
+                            }
+                            alert("Tree encounter error!")
+                        });
+
+                } else {
+                    callback(this.makeTreeData([]));
+                }
             }
 
         }
@@ -172,6 +188,16 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
             this.setValue(null);
         }
         this.createToolbar();
+    }
+
+    /**
+     * 生成查询条件,一般的树是不需要查询条件的,主要是为了子类使用
+     */
+    protected makeFilter() {
+        if (this.properties.getFilter) {
+            return this.properties.getFilter();
+        }
+        return {}
     }
 
     private createToolbar() {
@@ -223,6 +249,7 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
             if (this.treeProps.dnd['isCanDrop']) {
                 this.$element.children("li").addClass("droppable");
             }
+            this.ready = true;
             if (this.properties.url) {
                 this.onReady();
             }
@@ -358,11 +385,12 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
 
     }
 
-    protected makeTreeDataByCode(data: Array<object>) {
+    protected makeTreeDataByCode(data: Array<object>, lvlProvider?: CodeLevelProvider) {
         let result = new Array<Node>();
         let node: Node;
         let code;
         let rootId = JsTree.ROOT_KEY;
+        lvlProvider = lvlProvider || CodeLevelProvider.getDefaultCodePro();
         this.properties.idField = this.properties.idField || Node.ID_FIELD;
         this.properties.codeField = this.properties.codeField || Node.CODE_FIELD;
         this.properties.textField = this.properties.textField || Node.TEXT_FIELD;
@@ -379,18 +407,33 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
             result.push(nodeRoot);
         }
         let map = new StringMap<any>();
+        //先收集所有的编辑数据
         if (data) {
+            let codeField = this.properties.codeField;
+            for (let row of data) {
+                map.set(row[codeField], null);
+            }
+            data.sort((row1, row2) => {
+                if (row1[codeField] > row2[codeField]) {
+                    return 1;
+                } else if (row1[codeField] === row2[codeField]) {
+                    return 0;
+                } else {
+                    return -1
+                }
+            });
             for (let row of data) {
                 node = new Node();
-                code = row[this.properties.codeField];
+                code = row[codeField];
                 if (!code) {
                     node.id = CommonUtils.genUUID();
                     node.parent = rootId;
 
                 } else {
                     node.id = code;
-                    map.set(code, node);
-                    node.parent = code.length > 3 ? code.substr(0, code.length - 3) : rootId;
+                    lvlProvider.setCurCode(code);
+
+                    node.parent = lvlProvider.getPreLvlString() ? lvlProvider.getPreLvlString() : rootId;
                     if (!map.has(node.parent)) {
                         node.parent = rootId;
                     }
@@ -502,6 +545,7 @@ export interface JsTreeInfo {
     rootName?: string;
     codeField?: string;
     idField?: string;
+    requestMethod?: string;
     showSearch?: boolean;
     url?: string | Function,
     parentField?: string;
@@ -510,7 +554,7 @@ export interface JsTreeInfo {
     buttons?: Array<TreeButton>;
     dnd?: DragAndDrop;
     rootId?: string;
-
+    getFilter?: () => object;
 }
 
 export interface DragAndDrop {

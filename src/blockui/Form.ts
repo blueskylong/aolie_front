@@ -21,23 +21,23 @@ export class Form extends BaseComponent<BlockViewDto> {
     /**
      * 字段名对应控件
      */
-    private subComponents: StringMap<BaseComponent<Component>> = new StringMap<BaseComponent<Component>>();
-    private lstComponent: Array<Component>;
-    private values: StringMap<object>;
+    protected subComponents: StringMap<BaseComponent<Component>> = new StringMap<BaseComponent<Component>>();
+    protected lstComponent: Array<Component>;
+    protected values: StringMap<object>;
 
-    private _blockViewId: number;
-    private _version: string;
-    private generator: IComponentGenerator = new JQueryGeneralComponentGenerator();
+    protected _blockViewId: number;
+    protected _version: string;
+    protected generator: IComponentGenerator = new JQueryGeneralComponentGenerator();
 
-    private editable = true;
-    private enabled = true;
-    private isShowTitle = false;
-    private isShowClose = false;
-    private lstCloseListener: Array<(form: Form) => void>;
+    protected editable = true;
+    protected enabled = true;
+    protected isShowTitle = false;
+    protected isShowClose = false;
+    protected lstCloseListener: Array<(form: Form) => void>;
 
-    private $formBody: JQuery;
+    protected $formBody: JQuery;
 
-    private viewer: BlockViewer;
+    protected viewer: BlockViewer;
     //是否本地使用
     private isLocal = false;
 
@@ -133,6 +133,11 @@ export class Form extends BaseComponent<BlockViewDto> {
             this.createSubComponents(this.$formBody.get(0), node);
         }
         this.updateTitle();
+        this.onUiDataReady();
+    }
+
+    protected onUiDataReady() {
+
     }
 
     setDisplayComponent(viewer: BlockViewer) {
@@ -194,10 +199,19 @@ export class Form extends BaseComponent<BlockViewDto> {
     }
 
     getValue(): StringMap<object> {
+        this.stopEdit();
         if (!this.values) {
             this.values = new StringMap<object>();
         }
         return this.values;
+    }
+
+    setFieldValue(field, value) {
+        let comp = this.subComponents.get(field);
+        if (comp) {
+            comp.setValue(value);
+        }
+        this.values.set(field, value);
     }
 
     getValueForObject<T>(clazz: { new(...args: Array<any>): T }): T {
@@ -208,7 +222,7 @@ export class Form extends BaseComponent<BlockViewDto> {
     setEditable(editable: boolean) {
         this.editable = editable;
         if (this.subComponents) {
-            this.subComponents.forEach((value, key, map) => {
+            this.subComponents.forEach((key,value,  map) => {
                 value.setEditable(editable);
             });
         }
@@ -221,7 +235,7 @@ export class Form extends BaseComponent<BlockViewDto> {
     setEnable(enable: boolean) {
         this.enabled = enable;
         if (this.subComponents) {
-            this.subComponents.forEach((value, key, map) => {
+            this.subComponents.forEach((key,value,  map) => {
                 value.setEnable(enable);
             });
         }
@@ -246,7 +260,7 @@ export class Form extends BaseComponent<BlockViewDto> {
 
     protected updateSubComponentValues() {
         let objValue;
-        this.subComponents.forEach((value, key, map) => {
+        this.subComponents.forEach((key,value,  map) => {
             objValue = this.values.get(key);
             if (CommonUtils.isEmpty(objValue)) {
                 this.subComponents.get(key).setValue(null);
@@ -283,7 +297,7 @@ export class Form extends BaseComponent<BlockViewDto> {
     destroy(): boolean {
         //先移除子控件
         if (this.subComponents) {
-            this.subComponents.forEach((value, key, map) => {
+            this.subComponents.forEach(( key,value, map) => {
                 value.destroy();
             });
         }

@@ -11,9 +11,13 @@ import {GeneralEventListener} from "../../blockui/event/GeneralEventListener";
 import {PageDetailDto} from "../dto/PageDetailDto";
 import {UiService} from "../../blockui/service/UiService";
 import {PageInfoDto} from "../dto/PageInfoDto";
+import {TreeUI} from "../../blockui/JsTree/TreeUI";
+import {ReferenceTree} from "../../blockui/JsTree/ReferenceTree";
+import PageUI from "../../blockui/PageUI";
 
 export class DesignBox extends BaseUI<DesignBoxInfo> {
     private pageDetailDto: PageDetailDto;
+
     private baseUi: BaseUI<any>;
     private $masker: JQuery;
     private selectChangeListener: GeneralEventListener;
@@ -41,7 +45,8 @@ export class DesignBox extends BaseUI<DesignBoxInfo> {
             //这个是放到面板上
             if (this.$element.find(data.event.target).length > 0
                 || data.event.target === this.$element.find(".design-body").get(0)) {
-                this.showComp(data.data.origin.get_node(data.data.nodes[0]).data.blockViewId);
+                let selData = data.data.origin.get_node(data.data.nodes[0]).data;
+                this.showComp(selData.id, selData.type);
                 this.selectMe();
             }
         };
@@ -90,7 +95,11 @@ export class DesignBox extends BaseUI<DesignBoxInfo> {
     attrChanged(property, value) {
         if (this.pageDetailDto) {
             this.pageDetailDto[property] = value;
+            if (property == 'showType' && this.pageDetailDto.viewType == Constants.PageViewType.blockView) {
+                this.showComp(this.pageDetailDto, null);
+            }
         }
+
     }
 
     getName() {
@@ -109,35 +118,67 @@ export class DesignBox extends BaseUI<DesignBoxInfo> {
         return BeanFactory.populateBean(BlockViewDto, data);
     }
 
-    async showComp(blockViewinfo: string | PageDetailDto) {
+    async showComp(pageDetail: string | PageDetailDto, type) {
         this.clear();
         let viewer = null;
         let blockViewId = null;
-        if (typeof blockViewinfo != "object") {
-            blockViewId = blockViewinfo as any;
-            this.pageDetailDto = this.createDefaultPageDetail(blockViewId);
+        if (typeof pageDetail != "object") {//如果是String,则表示是拖放产生的
+            blockViewId = pageDetail as any;
+            this.pageDetailDto = this.createDefaultPageDetail(blockViewId, type);
         } else {
-            blockViewId = blockViewinfo.viewId;
-            this.pageDetailDto = blockViewinfo;
+            blockViewId = pageDetail.viewId;
+            this.pageDetailDto = pageDetail;
         }
-        viewer = await UiService.getSchemaViewer(blockViewId);
-        if (viewer.blockViewDto.defaultShowType == Constants.DispType.table) {
-            this.baseUi = new Table(new ServerRenderProvider(blockViewId));
+
+        if (this.pageDetailDto.viewType == Constants.PageViewType.blockView) {
+            //以下显示块
+            //如果是表
+            viewer = await UiService.getSchemaViewer(blockViewId);
+            let showType = viewer.blockViewDto.defaultShowType;
+            this.$element.find(".ui-title").text("视图:" + viewer.blockViewDto.blockViewName);
+            if (this.pageDetailDto.showType) {
+                showType = this.pageDetailDto.showType;
+            }
+            if (showType == Constants.DispType.table) {
+                this.baseUi = new Table(new ServerRenderProvider(blockViewId));
+                this.$element.append(this.baseUi.getViewUI());
+                (<Table>this.baseUi).showTable();
+            } else if (showType == Constants.DispType.tree) {
+                //TODO 生成树
+                let treeInstance = TreeUI.getTreeInstance(blockViewId);
+                this.baseUi = treeInstance;
+                this.$element.append(this.baseUi.getViewUI());
+                this.baseUi.afterComponentAssemble();
+            } else {
+                this.baseUi = Form.getInstance(blockViewId);
+                this.$element.append(this.baseUi.getViewUI());
+                this.baseUi.afterComponentAssemble();
+            }
+        } else if (this.pageDetailDto.viewType == Constants.PageViewType.reference) {//引用只可以用树
+            let treeInstance = ReferenceTree.getTreeInstance(this.pageDetailDto.viewId, this.pageDetailDto.versionCode);
+            this.baseUi = treeInstance;
             this.$element.append(this.baseUi.getViewUI());
-            (<Table>this.baseUi).showTable();
-        } else {
-            this.baseUi = Form.getInstance(viewer.blockViewDto.blockViewId);
+            this.baseUi.afterComponentAssemble();
+            CommonUtils.readyDo(() => {
+                return treeInstance.getTree().isReady()
+            }, () => {
+                this.$element.find(".ui-title").text("引用:" + treeInstance.getReferenceName());
+            });
+
+        } else {//嵌套其它页面
+            this.baseUi = PageUI.getInstance(blockViewId, null);
             this.$element.append(this.baseUi.getViewUI());
             this.baseUi.afterComponentAssemble();
         }
 
     }
 
-    private createDefaultPageDetail(blockViewId) {
+    private createDefaultPageDetail(blockViewId, viewType) {
         let dto = new PageDetailDto();
         dto.viewId = CommonUtils.genId();
         dto.initHeight = 1;
         dto.initWidth = 1;
+        dto.viewType = viewType;
         dto.pagePosition = this.getName();
         dto.viewId = blockViewId;
         return dto;
@@ -149,6 +190,9 @@ export class DesignBox extends BaseUI<DesignBoxInfo> {
         }
         this.baseUi = null;
         this.pageDetailDto = null;
+        if (this.$element) {
+            this.$element.find(".ui-title").text("无");
+        }
     }
 
     destroy(): boolean {

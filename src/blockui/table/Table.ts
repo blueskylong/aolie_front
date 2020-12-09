@@ -4,7 +4,8 @@ import BaseUI from "../../uidesign/view/BaseUI";
 import {CommonUtils} from "../../common/CommonUtils";
 import "./table.css";
 import {TableRenderProvider} from "./TableRenderProvider";
-import EventBus from "../../dmdesign/view/EventBus";
+import {GeneralEventListener} from "../event/GeneralEventListener";
+import {Constants} from "../../common/Constants";
 
 
 class Table extends BaseUI<TableRenderProvider> {
@@ -13,6 +14,7 @@ class Table extends BaseUI<TableRenderProvider> {
      */
     static CHECK_COL_ID = "cb";
     private isMaskChange = false;
+    private lstSelectChangeListener: Array<GeneralEventListener> = new Array<GeneralEventListener>();
 
     private isEditable = true;
     //同blockId,即界面设置器中的Id,但如果是本地表格类型，则使用这个uuid
@@ -28,6 +30,9 @@ class Table extends BaseUI<TableRenderProvider> {
      */
     protected $fullElement;
 
+    static getInstance(renderPro: TableRenderProvider) {
+        return new Table(renderPro);
+    }
 
     constructor(renderPro: TableRenderProvider) {
         super(renderPro);
@@ -59,6 +64,7 @@ class Table extends BaseUI<TableRenderProvider> {
 
     }
 
+
     public getEditable() {
         return this.isEditable;
     }
@@ -69,8 +75,24 @@ class Table extends BaseUI<TableRenderProvider> {
         this.$element.setGridParam("cellEdit", editable).trigger("reloadGrid");
     }
 
+    addColumn() {
+
+    }
+
     public stopEdit() {
         this.$element.trigger("blur");
+    }
+
+    addSelectChangeListener(listener: GeneralEventListener) {
+        this.lstSelectChangeListener.push(listener);
+    }
+
+    protected fireSelectChangeEvent() {
+        if (this.lstSelectChangeListener && this.lstSelectChangeListener.length > 0) {
+            for (let listener of this.lstSelectChangeListener) {
+                listener.handleEvent(Constants.GeneralEventType.SELECT_CHANGE_EVENT, this.getCurrentRow(), this);
+            }
+        }
     }
 
     private colmunNavHandler(d: any, e: any) {
@@ -164,13 +186,13 @@ class Table extends BaseUI<TableRenderProvider> {
      * 重载数据，可编辑表格不会触发检验
      * @param searchData
      */
-    reloadData(searchData?) {
-
+    reloadData() {
+        if (this.properties.setAllowLoadData) {
+            this.properties.setAllowLoadData(true);
+        }
+        this.$element.trigger("reloadGrid");
     }
 
-    reparseOptions(target: any) {
-
-    }
 
     /**
      * 过滤显示数据
@@ -438,8 +460,9 @@ class Table extends BaseUI<TableRenderProvider> {
     onSelectRow(rowid: string, state: boolean, eventObject: JQuery.Event) {
         this.$element.find("tr").removeClass("selected");
         this.$element.find("#" + rowid).addClass("selected");
-
+        this.fireSelectChangeEvent();
     }
+
 
     showSearch(isShow) {
         this.$element.filterToolbar({
@@ -461,6 +484,7 @@ class Table extends BaseUI<TableRenderProvider> {
             },
             loadComplete: () => {
                 this.ready = true;
+                this.fireReadyEvent();
             },
             onCellSelect: (rowid, iCol, cellcontent, event) => {
                 //当是编辑的列，加上editable-cell 样式，就可以编辑了
@@ -498,6 +522,15 @@ class Table extends BaseUI<TableRenderProvider> {
         if (!option.hideSearch) {
             this.showSearch(true);
         }
+        this.ready = true;
+        this.fireReadyEvent();
+
+    }
+
+    /**
+     * 这里不做任何事情
+     */
+    afterComponentAssemble(): void {
 
     }
 
@@ -509,6 +542,7 @@ class Table extends BaseUI<TableRenderProvider> {
         this.$element = this.$fullElement;
         this.$fullElement = null;
         return super.destroy();
+        this.lstSelectChangeListener = null;
     }
 
 

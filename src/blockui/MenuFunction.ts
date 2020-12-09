@@ -1,5 +1,6 @@
 import BaseUI from "../uidesign/view/BaseUI";
 import {MenuButton} from "../home/dto/MenuButton";
+import {MenuDto} from "../home/dto/MenuDto";
 
 export abstract class MenuFunction<T extends MenuFunctionInfo> extends BaseUI<T> {
     private stateChangeListener: () => void;
@@ -37,5 +38,5 @@ export abstract class MenuFunction<T extends MenuFunctionInfo> extends BaseUI<T>
 }
 
 export interface MenuFunctionInfo {
-
+    menuDto: MenuDto;
 }

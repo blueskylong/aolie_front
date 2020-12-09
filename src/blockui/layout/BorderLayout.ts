@@ -103,6 +103,25 @@ export class BorderLayout<T extends BorderLayoutProperty> extends BaseUI<T> {
         return com;
     }
 
+    destroy(): boolean {
+        if (this.eastUi && !this.eastUi.isDestroied()) {
+            this.eastUi.destroy();
+        }
+        if (this.northUi && !this.northUi.isDestroied()) {
+            this.northUi.destroy();
+        }
+        if (this.southUi && !this.southUi.isDestroied()) {
+            this.southUi.destroy();
+        }
+        if (this.westUi && !this.westUi.isDestroied()) {
+            this.westUi.destroy();
+        }
+        if (this.centerUi && !this.centerUi.isDestroied()) {
+            this.centerUi.destroy();
+        }
+        return super.destroy();
+    }
+
     private createVerticalSplit(leftClass, rightClass, parent: JQuery, leftWidth?, rightWidth?) {
         if (!leftWidth && !rightWidth) {
             throw new Error("未指定分隔面板二边的宽度");

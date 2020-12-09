@@ -43,6 +43,8 @@ export default class PageDesign<T extends MenuFunctionInfo> extends MenuFunction
                     this.schemaId = value;
                     this.pageTree.reload();
                     this.blockTree.reload();
+                    this.designPanel.showPage(null);
+                    this.fPage.setValue({});
                 }
             });
         $ele.find(".page-tree").append(this.schemaSelect.getViewUI());
@@ -64,11 +66,11 @@ export default class PageDesign<T extends MenuFunctionInfo> extends MenuFunction
 
         this.blockTree = new JsTree<JsTreeInfo>({
             rootName: "视图",
-            textField: "blockViewName",
-            idField: "blockViewId",
-            codeField: "lvlCode",
+            textField: "name",
+            idField: "id",
+            codeField: "code",
             url: () => {
-                return "/ui/getBlockViews/" + this.schemaId
+                return "/page/getPageElements/" + this.schemaId
             },
             dnd: {
                 isDraggable: true, onlyDroppable: true, isCanDrop: () => {
@@ -100,8 +102,13 @@ export default class PageDesign<T extends MenuFunctionInfo> extends MenuFunction
     private bindEvent() {
         this.pageTree.addSelectListener({
             handleEvent: (eventType: string, data: object, source: object, extObject?: any) => {
-                this.designPanel.showPage(data['pageId']);
-                this.fPage.setValue(data);
+                if (data) {
+                    this.designPanel.showPage(data['pageId']);
+                    this.fPage.setValue(data);
+                } else {
+                    this.designPanel.showPage(null);
+                    this.fPage.setValue({});
+                }
             }
         });
         this.designPanel.setListener({

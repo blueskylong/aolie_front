@@ -52,6 +52,8 @@ export interface TableRenderProvider {
      */
     getBlockInfo?(): BlockViewer;
 
+    setAllowLoadData?(allow: boolean)
+
     /**
      * 取得表参数
      */
@@ -59,12 +61,18 @@ export interface TableRenderProvider {
 
     setEditable(editable): void;
 
+    setExtFilterProvider(extFilterProvider: ExtFilterProvider);
+
+
+    setOperatorProvider(pro: (grid, rows, state) => string);
+
 }
 
 
 export class ServerRenderProvider implements TableRenderProvider {
 
-    static ServerDataUrl = CommonUtils.getServerUrl("/data/findBlockData")
+    static ServerDataUrl = CommonUtils.getServerUrl("/data/findBlockData");
+
     /**
      * 是否可以编辑
      */
@@ -72,6 +80,21 @@ export class ServerRenderProvider implements TableRenderProvider {
     protected viewer: BlockViewer;
     protected tableOption: FreeJqGrid.JqGridOptions;
     protected isReady = false;
+    private operatorProvider: (grid, rows, state) => string;
+
+    setOperatorProvider(pro: (grid, rows, state) => string) {
+        this.operatorProvider = pro;
+    }
+
+    /**
+     * 表不会主动去调用查询,需要手动触发
+     */
+    protected allowLoadData = false;
+
+    /**
+     * 额外的过滤条件过滤 ,其优先级要大于控件自己生成的条件,会有覆盖的现象
+     */
+    protected extFilterProvider: ExtFilterProvider;
 
     protected lstColumn: Array<ColumnModel> = new Array<ColumnModel>();
     protected groupHeader = {
@@ -81,6 +104,14 @@ export class ServerRenderProvider implements TableRenderProvider {
     };
 
     constructor(protected blockId: string | number) {
+    }
+
+    /**
+     * 设置是不是允许访问服务器
+     * @param allow
+     */
+    setAllowLoadData(allow: boolean) {
+        this.allowLoadData = allow;
     }
 
     /**
@@ -95,6 +126,10 @@ export class ServerRenderProvider implements TableRenderProvider {
         ele.attr("id", extParams.id);
         ele.attr("name", extParams.name);
         return ele.get(0);
+    }
+
+    setExtFilterProvider(extFilterProvider: ExtFilterProvider) {
+        this.extFilterProvider = extFilterProvider;
     }
 
     /**
@@ -172,11 +207,23 @@ export class ServerRenderProvider implements TableRenderProvider {
                 }
 
             }
+            //最后增加一个操作列
+            this.lstColumn.push(this.createOperatorColModel());
 
         }
 
     }
 
+    private createOperatorColModel(): ColumnModel {
+        return {
+            name: '操作', search: false, width: 50, edittype: "button", formatter: (grid, rows, state) => {
+                if (this.operatorProvider) {
+                    return this.operatorProvider(grid, rows, state);
+                }
+                return "";
+            }
+        } //操作列
+    }
 
     private createGroupHeader(node: TreeNode<Component>) {
 
@@ -235,9 +282,19 @@ export class ServerRenderProvider implements TableRenderProvider {
             this.tableOption.url = ServerRenderProvider.ServerDataUrl + "/" + this.blockId;
             this.tableOption.datatype = "json";
             let blockId = this.blockId;
+            let that = this;
             this.tableOption.beforeRequest = function () {
+                if (!that.allowLoadData) {
+                    return false;
+                }
                 this.p.postData["blockId"] = blockId;
-            }
+                if (that.extFilterProvider) {
+                    let extFilter = that.extFilterProvider.getExtFilter(that, this.p.postData as any);
+                    if (extFilter) {
+                        this.p.postData["extFilter"] = JSON.stringify(extFilter);
+                    }
+                }
+            };
             return new Promise<FreeJqGrid.JqGridOptions>((resolve) => {
                 resolve(this.tableOption);
             });
@@ -292,6 +349,10 @@ export class LocalRenderProvider extends ServerRenderProvider {
 
 }
 
+export interface ExtFilterProvider {
+    getExtFilter(source: object, oldFilter: object): object;
+}
+
 
 let DEFAULT_TABLE_CONFIG: FreeJqGrid.JqGridOptions = {
     guiStyle: "bootstrapPrimary",
@@ -333,6 +394,7 @@ let DEFAULT_TABLE_CONFIG: FreeJqGrid.JqGridOptions = {
             cell: "cell"
         }
     }
+
 
 };
 

@@ -6,11 +6,16 @@ import {Form} from "../Form";
 import {CommonUtils} from "../../common/CommonUtils";
 import {Toolbar, ToolbarInfo} from "../../uidesign/view/JQueryComponent/Toolbar";
 import {GlobalParams} from "../../common/GlobalParams";
+import {ServerRenderProvider} from "../table/TableRenderProvider";
+import {NetRequest} from "../../common/NetRequest";
+import {GeneralEventListener} from "../event/GeneralEventListener";
+import {Constants} from "../../common/Constants";
 
 /**
  * 此控件,会在原始的指针值上维护数据,可以直接使用传入的值 ,也可以使用getValue取得新组织的数据.
  */
 export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
+    static serverDataUrl = CommonUtils.getServerUrl("/data/findBlockData");
     static CARD_CLASS = "form-card";
     static EMPTY_CLASS = "empty";
     protected viewer: BlockViewer = null;
@@ -24,6 +29,8 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
     protected values = [];
     protected removeAble = false;
     protected isShowHead = false;
+    protected curForm: Form = null;
+    private lstSelectChangeListener: Array<GeneralEventListener>;
 
 
     protected createUI(): HTMLElement {
@@ -43,6 +50,16 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
         return $ele.get(0);
     }
 
+    protected fireSelectChangeEvent() {
+        if (!this.lstSelectChangeListener || this.lstSelectChangeListener.length == 0) {
+            return;
+        }
+        let value = this.curForm ? this.curForm.getValue() : null;
+        for (let listener of this.lstSelectChangeListener) {
+            listener.handleEvent(Constants.GeneralEventType.SELECT_CHANGE_EVENT, value, null);
+        }
+    }
+
     static getInstance(blockId, version?) {
         let blockDto = new BlockViewDto();
         blockDto.blockViewId = blockId;
@@ -55,6 +72,10 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
         this.properties = this.viewer.blockViewDto as any;
     }
 
+    afterComponentAssemble(): void {
+        super.afterComponentAssemble();
+    }
+
     getValue(): any {
         let result = new Array();
         if (this.lstForm) {
@@ -65,6 +86,22 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
         return result;
     }
 
+    loadData(filter?) {
+        CommonUtils.readyDo(() => {
+                return !!this.viewer;
+            },
+            () => {
+                NetRequest.axios.post(CardList.serverDataUrl + "/" + this.viewer.getBlockViewDto().blockViewId
+                    , filter ? {"extFilter": filter} : {}).then((data => {
+                    this.setValue(data.data);
+                })).catch((e) => {
+
+                });
+            })
+
+    }
+
+
     showHead(isShowHead) {
         if (this.isShowHead == isShowHead) {
             return;
@@ -73,7 +110,7 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
         this.updateShow();
     }
 
-    setRemoveAble(removeAble) {
+    setRemoveable(removeAble) {
         this.removeAble = removeAble;
         this.updateShow();
     }
@@ -169,8 +206,19 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
         }
     }
 
+    addSelectChangeListener(listener: GeneralEventListener) {
+        if (!this.lstSelectChangeListener) {
+            this.lstSelectChangeListener = [];
+        }
+        this.lstSelectChangeListener.push(listener);
+    }
+
     setValue(values: Array<any>) {
         this.values = values;
+        if (!this.values) {
+            this.values = [];
+        }
+
         CommonUtils.readyDo(() => {
             return !!this.viewer;
         }, () => {
@@ -222,7 +270,8 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
         }
     }
 
-    removeCard(form: Form) {
+    private removeCard(form: Form) {
+        form.destroy();
         $(form.getViewUI()).remove();
     }
 
@@ -234,9 +283,19 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
                 that.cardValueChanged(extObject, data + "", source);
             }
         });
+
         form.showHead(this.isShowHead);
         form.setBlockViewer(this.viewer);
         this.$element.append(form.getViewUI());
+        $(form.getViewUI()).on("click", (event) => {
+            if (this.curForm === form) {
+                return;
+            }
+            this.curForm = form;
+            this.fireSelectChangeEvent();
+            this.$element.find(".dm-form").removeClass("active");
+            $(this.curForm.getViewUI()).addClass("active");
+        });
         form.afterComponentAssemble();
         if (!this.lstForm) {
             this.lstForm = new Array();
@@ -250,6 +309,10 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
         form.setEditable(this.editable);
         form.addCloseListener((form) => {
             this.deleteRow(this.lstForm.indexOf(form));
+            if (this.curForm == form) {
+                this.fireSelectChangeEvent();
+                this.curForm = null;
+            }
         });
         this.lstForm.push(form);
     }
@@ -263,7 +326,6 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
             return;
         }
         this.values[index][fieldName] = value;
-
 
     }
 

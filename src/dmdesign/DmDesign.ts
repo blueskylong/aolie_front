@@ -16,9 +16,13 @@ import TableDto from "../datamodel/dto/TableDto";
 import {MenuFunc} from "../decorator/decorator";
 import {MenuFunction, MenuFunctionInfo} from "../blockui/MenuFunction";
 import {CommonUtils} from "../common/CommonUtils";
-import {JsTree, JsTreeInfo} from "../blockui/JsTree/JsTree";
 import {SchemaMainInfo} from "./view/SchemaMainInfo";
 import {BorderLayoutProperty} from "../blockui/layout/BorderLayout";
+import {ReferenceCard} from "./view/ReferenceCard";
+import {Schema} from "../datamodel/DmRuntime/Schema";
+import {ReferenceDto} from "../datamodel/dto/ReferenceDto";
+import {Constants} from "../common/Constants";
+import TableView from "./view/TableView";
 
 @MenuFunc()
 export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T> {
@@ -29,7 +33,7 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
     private tapPanel: TapPanel;
     private fAttr: Form;
     private schemaInfo: SchemaMainInfo;
-    private fReference: Form;
+    private fReference: ReferenceCard;
     private fTable: Form;
     private listFormula: CardList<BlockViewDto>;
     private listConstraint: CardList<BlockViewDto>;
@@ -70,6 +74,12 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
         this.schemaView.setDataReadyListener(() => {
             this.updateItemData();
         });
+        this.schemaView.setBeforeSave((schema: Schema) => {
+            if (this.isReferenceSchema()) {
+                return this.fReference.check(schema.getLstTableDto())
+            }
+            return true;
+        });
         this.schemaView.setRefreshEvent({
             handleEvent: (type, schemaId) => {
                 this.schemaInfo.refresh(schemaId);
@@ -85,17 +95,22 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
         this.schemaView.afterComponentAssemble();
         this.schemaView.setItemSelectListener((type, dto) => {
             //这里要先把最后的变化生效
-            if (dto instanceof TableDto) {
+            if (dto instanceof TableDto) {//如果选择的是表
                 this.fTable.setValue(dto);
                 this.updateConstraint(dto);
-            } else {
+                if (this.isReferenceSchema()) {
+                    let tableView = this.schemaView.findTableById(dto.tableId);
+                    this.updateReference(tableView);
+                }
+            } else {//如果选择了列
                 this.fAttr.setValue((<Column>dto).getColumnDto());
-                //如果选择了
+                //找到列对应的表
                 let tableView = this.schemaView.findTableById((<Column>dto).getColumnDto().tableId);
-
+                this.updateReference(tableView);
                 this.fTable.setValue(tableView.getDtoInfo());
                 this.listFormula.setValue((<Column>dto).getLstFormulaDto());
             }
+
         });
         CommonUtils.readyDo(() => {
             return this.schemaView.isReady();
@@ -105,10 +120,26 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
 
     }
 
+    private updateReference(tableView: TableView) {
+        if (this.isReferenceSchema()) {
+            let lstReferenceDto = tableView.getDtoInfo().getLstReference();
+            if (!lstReferenceDto) {
+                lstReferenceDto = new Array<ReferenceDto>();
+                tableView.getDtoInfo().setLstReference(lstReferenceDto);
+            }
+            this.fReference.showTable(tableView.getDtoInfo().getTableDto().tableId, lstReferenceDto);
+        }
+    }
+
+
+    private isReferenceSchema() {
+        return this.schemaDto && this.schemaDto.schemaId == Constants.DEFAULT_REFERENCE_ID;
+    }
+
     private updateItemData() {
         this.updateConstraint();
         this.fAttr.setValue({});
-        this.fReference.setValue({});
+        this.fReference.clearShow();
         this.fTable.setValue({});
         this.listFormula.setValue(null);
     }
@@ -121,6 +152,7 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
     }
 
     private showSchema(schemaDto: SchemaDto) {
+        this.schemaDto = schemaDto;
         this.schemaView.refresh(schemaDto);
     }
 
@@ -136,7 +168,6 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
         this.schemaInfo.setSelectChangeListener({
             handleEvent: (eventType: string, schemaDto: any, other: object) => {
                 this.showSchema(schemaDto);
-
                 if (schemaDto.schemaId == 0) {
                     this.tapPanel.showTap(4);
                 } else {
@@ -178,8 +209,10 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
             return Constraint.genConstraintDto(this.schemaDto.schemaId, this.schemaDto.versionCode);
         });
 
-        this.fReference = Form.getInstance(90);
+        this.fReference = new ReferenceCard(null);
+
         this.tapPanel.addTap("引用信息", this.fReference.getViewUI());
+        this.fReference.setEditable(true);
 
         let table = new TableDemo(new ServerRenderProvider(30));
 

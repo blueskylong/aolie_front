@@ -8,6 +8,7 @@ import FormulaDto from "../dto/FormulaDto";
 import {TableColumnRelation} from "./TableColumnRelation";
 import {Column} from "./Column";
 import {ConstraintDto} from "../dto/ConstraintDto";
+import TableDto from "../dto/TableDto";
 
 export class Schema {
     private schemaDto: SchemaDto;
@@ -67,6 +68,17 @@ export class Schema {
 
     getLstTable(): Array<TableInfo> {
         return this.lstTable;
+    }
+
+    getLstTableDto() {
+        if (this.lstTable) {
+            let result = new Array<TableDto>();
+            for (let table of this.lstTable) {
+                result.push(table.getTableDto());
+            }
+            return result;
+        }
+        return null;
     }
 
     @PopulateBean(TableInfo)

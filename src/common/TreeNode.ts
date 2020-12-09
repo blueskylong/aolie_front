@@ -111,7 +111,7 @@ export class TreeNodeFactory {
         let lstNode = new Array<TreeNode<T>>();
         let parentCode;
         let parentNode;
-        nodes.forEach((value, key, map) => {
+        nodes.forEach((key, value, map) => {
             if (key.length === 3) {//如果是三位则直接是第一层节点
                 lstNode.push(value);
             } else {

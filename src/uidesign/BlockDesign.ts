@@ -234,8 +234,6 @@ export default class BlockDesign<T extends MenuFunctionInfo> extends MenuFunctio
     }
 
     private saveBlockLvl() {
-
-
         let oraData = this.blockTree.getJsTree().get_json(null, {flat: false});
         if (oraData && oraData.length > 0) {
             let obj = {};

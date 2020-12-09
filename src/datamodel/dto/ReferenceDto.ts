@@ -14,6 +14,6 @@ export class ReferenceDto extends BaseDto {
      */
     public commonType: string;
 
-    private tableId: number;
-    private treeLike: number;
+    public tableId: number;
+    public treeLike: number;
 }

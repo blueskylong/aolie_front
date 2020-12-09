@@ -186,10 +186,13 @@ export class BeanFactory {
         if (params instanceof _constructor) {
             return params;
         }
+        if (params instanceof StringMap) {
+            params = BeanFactory.mapToObj(params) as any;
+        }
         let obj = new _constructor();
 
         if (params instanceof StringMap) {
-            params.forEach((value, key, map) => {
+            params.forEach((key, value, map) => {
                 let setString = "set" + key.substr(0, 1).toUpperCase() + key.substr(1);
                 if (typeof obj[setString] === "function") {
                     obj[setString](value);
@@ -223,6 +226,9 @@ export class BeanFactory {
         if (params[0] instanceof _constructor) {
             return params;
         }
+        if (params[0] instanceof StringMap) {
+            params = BeanFactory.mapToObj(params) as any;
+        }
         let result = new Array<T>();
         for (let param of params) {
             let obj = new _constructor();
@@ -238,6 +244,20 @@ export class BeanFactory {
             result.push(obj);
         }
 
+        return result;
+    }
+
+    private static mapToObj(value: StringMap<any> | Array<StringMap<any>>) {
+        if (!value) {
+            return {};
+        }
+        if (value instanceof StringMap) {
+            return value.getObject();
+        }
+        let result = [];
+        for (let map of value) {
+            result.push(map.getObject());
+        }
         return result;
     }
 

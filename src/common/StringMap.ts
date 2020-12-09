@@ -22,9 +22,11 @@ export class StringMap<V> {
     }
 
 
-    forEach(callbackfn: (value: V, key: string, map: StringMap<V>) => void, thisArg?: any): void {
+    forEach(callbackfn: (key: string, value: V, map: StringMap<V>) => any, thisArg?: any): void {
         for (let key in this.obj) {
-            callbackfn(this.obj[key], key, this);
+            if (callbackfn(key, this.obj[key], this) === false) {
+                break;
+            }
         }
     }
 
@@ -63,5 +65,22 @@ export class StringMap<V> {
             i++;
         }
         return i;
+    }
+
+    isEqual(map: StringMap<any>) {
+        if (!map) {
+            return false;
+        }
+        if (map.getSize() != this.getSize()) {
+            return false;
+        }
+        let result = true;
+        map.forEach((key, value, map) => {
+            if (!this.has(key) || this.get(key) != value) {
+                result = false;
+                return false;
+            }
+        })
+        return result;
     }
 }

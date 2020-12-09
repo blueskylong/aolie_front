@@ -24,12 +24,13 @@ import {ReferenceData} from "../../datamodel/dto/ReferenceData";
 import {Alert} from "../../uidesign/view/JQueryComponent/Alert";
 import {Toolbar, ToolbarInfo} from "../../uidesign/view/JQueryComponent/Toolbar";
 import {GeneralEventListener} from "../../blockui/event/GeneralEventListener";
+import {DmConstants} from "../../datamodel/DmConstants";
 
 
 export default class SchemaView extends DmDesignBaseView<SchemaDto> implements AttrChangeListener {
     static TYPE_TABLE = "TABLE";
     static TYPE_COLUMN = "COLUMN";
-    static DEFAULT_RELATION_TYPE = 2;
+    static DEFAULT_RELATION_TYPE = DmConstants.RelationType.oneToMulti;
     static RELATION_TYPE_REF = 40;
 
     private refreshEvent: GeneralEventListener;
@@ -62,6 +63,8 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
     private contextPositionTop = 0;
     private contextPositionLeft = 0;
 
+    private beforeSave: (schema: Schema) => boolean;
+    private afterSave: () => void;
 
     constructor(dto: SchemaDto) {
         super(dto);
@@ -79,9 +82,17 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
         });
     }
 
+    setBeforeSave(beforeSave: (schema: Schema) => boolean) {
+        this.beforeSave = beforeSave;
+    }
+
+    setAfterSave(afterSave: () => void) {
+        this.afterSave = afterSave;
+    }
+
     private removeTable(tableView: TableView): boolean {
         //删除所有与此表的连接信息
-        this.connectionRelations.forEach((value, key, map) => {
+        this.connectionRelations.forEach((key, value, map) => {
             if (tableView.findColumn(value.fieldTo) || tableView.findColumn(value.fieldFrom)) {
                 this.removeConnection(key);
             }
@@ -166,15 +177,16 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
     }
 
     saveSchema() {
-        if (!this.check()) {
-            return;
-        }
         this.schema.prepareData();
         if (this.tables) {
             for (let table of this.tables) {
                 table.prepareData();
             }
         }
+        if (!this.check()) {
+            return;
+        }
+
         this.schema.getSchemaDto().width = this.$canvas.width();
         this.schema.getSchemaDto().height = this.$canvas.height();
         this.schema.setLstRelation(this.getRelations());
@@ -182,6 +194,9 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
             if (err) {
                 alert(err);
             } else {
+                if (this.afterSave) {
+                    this.afterSave();
+                }
                 Alert.showMessage({message: "保存成功"});
                 if (this.refreshEvent) {
                     this.refreshEvent.handleEvent("refresh", this.properties.schemaId, null);
@@ -193,7 +208,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
 
     getRelations() {
         let result = new Array<TableColumnRelation>();
-        this.connectionRelations.forEach((dto, key, map) => {
+        this.connectionRelations.forEach((key, dto, map) => {
             let relation = new TableColumnRelation();
             relation.setDto(dto);
             result.push(relation);
@@ -239,7 +254,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
                         return;
                     }
                     if (source instanceof TableView) {
-                        this.itemSelectListener(SchemaView.TYPE_TABLE, source.getDtoInfo().getTableDto());
+                        this.itemSelectListener(SchemaView.TYPE_TABLE, source.getDtoInfo().getTableDto(), source.getDtoInfo());
                     } else if (source instanceof ColumnView) {
                         this.itemSelectListener(SchemaView.TYPE_COLUMN, source.getDtoInfo());
                     }
@@ -623,7 +638,9 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
             });
         this.$canvas.on('mousewheel',
             (e) => {
-
+                if (!e.ctrlKey) {
+                    return;
+                }
                 var delta = -e.originalEvent['wheelDelta'] || e.originalEvent['detail'];//firefox使用detail:下3上-3,其他浏览器使用wheelDelta:下-120上120//下滚
                 let scale = SchemaView.JSPLUMB.getZoom();
                 if (delta > 0) {//缩小
@@ -724,6 +741,11 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
      * 检查合法
      */
     private check() {
+        if (this.beforeSave) {
+            if (!this.beforeSave(this.schema)) {
+                return false;
+            }
+        }
         return true;//TODO
     }
 

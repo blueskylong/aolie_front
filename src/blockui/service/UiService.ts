@@ -4,6 +4,8 @@ import {ReferenceData} from "../../datamodel/dto/ReferenceData";
 import {NetRequest} from "../../common/NetRequest";
 import {StringMap} from "../../common/StringMap";
 import {CommonUtils} from "../../common/CommonUtils";
+import {ReferenceDto} from "../../datamodel/dto/ReferenceDto";
+import {PageInfo} from "../../funcdesign/dto/PageInfo";
 
 export class UiService {
     private static URL_ROOT = "/ui";
@@ -24,6 +26,17 @@ export class UiService {
         }
         let result = await UiService.getSchemaViewerDirect(blockViewerId);
         UiService.CACHE.set(key, result);
+        return result;
+    }
+
+    /**
+     * 取得一个UI信息
+     * @param blockViewerId
+     * @param version
+     */
+    static async findPageInfo(pageId: number) {
+        let viewData = await NetRequest.axios.get("/page/findPageInfo/" + pageId);
+        let result = BeanFactory.populateBean(PageInfo, viewData.data) as any;
         return result;
     }
 
@@ -63,6 +76,18 @@ export class UiService {
 
     static clearCache(blockViewerId: number) {
         UiService.CACHE.delete(UiService.PREFIX_KEY_BLOCK + blockViewerId);
+    }
+
+
+    /**
+     * 取得一个引用信息
+     * @param blockViewerId
+     * @param version
+     */
+    static async getReferenceDto(refId: number) {
+        let data = await NetRequest.axios.get("/dm/getReferenceDto/" + refId);
+        let result = BeanFactory.populateBean(ReferenceDto, data.data) as any;
+        return result;
     }
 
 }

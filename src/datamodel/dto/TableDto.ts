@@ -44,4 +44,9 @@ export default class TableDto extends BaseDto {
      * 高度
      */
     public height: number;
+    /**
+     * 默认编辑视图
+     */
+    public blockViewId: number;
+
 }

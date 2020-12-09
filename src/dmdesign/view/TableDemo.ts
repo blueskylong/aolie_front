@@ -1,8 +1,8 @@
 import {Table} from "../../blockui/table/Table";
 import {CommonUtils} from "../../common/CommonUtils";
-import {DmService} from "../../datamodel/service/DmService";
+import {ManagedTable} from "../../blockui/managedView/ManagedTable";
 
-export class TableDemo extends Table {
+export class TableDemo extends ManagedTable {
     getOptions(): FreeJqGrid.JqGridOptions {
         return {
             colNames: ['列1', '列2', 'Client', 'Amount', 'Tax', 'Total', 'Notes'],
@@ -51,6 +51,7 @@ export class TableDemo extends Table {
             setTimeout(() => {
                 this.stopEdit();
             }, 10000);
+            this.reloadData();
         })
 
 

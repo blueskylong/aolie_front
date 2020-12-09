@@ -81,17 +81,19 @@ export class BorderDesignPanel extends BorderLayout<BorderLayoutProperty> {
 
     showPage(pageId) {
         this.clear();
-        PageService.findPageDetail(pageId, (data) => {
-            let lstDto = BeanFactory.populateBeans(PageDetailDto, data);
-            if (lstDto && lstDto.length > 0) {
-                for (let dto of lstDto) {
-                    let comp = this.getCompByPosition(dto.pagePosition);
-                    if (comp) {
-                        comp.showComp(dto);
+        if (pageId) {
+            PageService.findPageDetail(pageId, (data) => {
+                let lstDto = BeanFactory.populateBeans(PageDetailDto, data);
+                if (lstDto && lstDto.length > 0) {
+                    for (let dto of lstDto) {
+                        let comp = this.getCompByPosition(dto.pagePosition);
+                        if (comp) {
+                            comp.showComp(dto, null);
+                        }
                     }
                 }
-            }
-        })
+            });
+        }
     }
 
     attrChanged(property, value) {

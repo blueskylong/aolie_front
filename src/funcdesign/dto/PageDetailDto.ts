@@ -1,4 +1,3 @@
-import SchemaDto from "../../datamodel/dto/SchemaDto";
 import {BaseDto} from "../../datamodel/dto/BaseDto";
 
 export class PageDetailDto extends BaseDto {
@@ -8,4 +7,8 @@ export class PageDetailDto extends BaseDto {
     pagePosition: string;
     initWidth: number;
     initHeight: number;
+    showType: number;
+    innerButton: number;
+    viewType: number;
+    loadOnshow: number;
 }

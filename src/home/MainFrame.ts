@@ -3,8 +3,10 @@ import BaseUI from "../uidesign/view/BaseUI";
 import "./plugs/custom.css";
 import {IMainFrame} from "../App/IMainFrame";
 import {ApplicationContext, BeanFactory} from "../decorator/decorator";
-import {MenuFunction} from "../blockui/MenuFunction";
+import {MenuFunction, MenuFunctionInfo} from "../blockui/MenuFunction";
 import {CommonUtils} from "../common/CommonUtils";
+import {MenuDto} from "./dto/MenuDto";
+import {Alert} from "../uidesign/view/JQueryComponent/Alert";
 
 export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFrame {
     private CURRENT_URL = window.location.href.split('#')[0].split('?')[0];
@@ -159,13 +161,24 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
         });
     }
 
-    showFunc(funcName: string, params?: object) {
+    showFunc(funcInfo: string | MenuDto, params?: object) {
         CommonUtils.showMask();
-
+        let funcName = "";
+        let menuDto: MenuDto = null;
         try {
+            if (typeof funcInfo == "string") {
+                funcName = funcInfo;
+                menuDto = new MenuDto();
+                menuDto.funcName = funcInfo;
+                menuDto.params = JSON.stringify(params);
+            } else {
+                funcName = funcInfo.funcName;
+                menuDto = funcInfo;
+                params = $.extend(JSON.parse(funcInfo.params || "{}"), params || {});
+            }
             let func = ApplicationContext.getMenuFunc(funcName);
             if (!func) {
-                alert("指定的功能不存在");
+                Alert.showMessage("指定的功能不存在");
                 CommonUtils.hideMask();
                 return;
             }
@@ -173,8 +186,10 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
                 this.lastFunc.destroy();
                 this.$body.children().remove();
             }
-            this.lastFunc = null;
-            let baseUi = <MenuFunction<any>>BeanFactory.createBean(func, [params || {}]);
+
+            this
+                .lastFunc = null;
+            let baseUi = <MenuFunction<any>>BeanFactory.createBean(func, [{menuDto: menuDto}]);
             this.lastFunc = baseUi;
             this.$body.append(this.lastFunc.getViewUI());
             this.lastFunc.afterComponentAssemble();
@@ -186,8 +201,8 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
             this.initButtons();
             return <MenuFunction<any>>this.lastFunc;
         } catch (e) {
-            console.log(e.message);
             CommonUtils.hideMask();
+            throw e;
         }
     }
 

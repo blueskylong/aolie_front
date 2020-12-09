@@ -49,12 +49,6 @@ export abstract class BaseComponent<T> extends BaseUI<T> {
         }
     }
 
-    /**
-     * 取得对应列信息
-     */
-    public getColumnId(): number {
-        return 0;
-    }
 
     public abstract setValue(value: any);
 
