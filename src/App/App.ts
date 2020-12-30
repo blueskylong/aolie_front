@@ -1,6 +1,5 @@
 import {MainFrame} from "../home/MainFrame";
 import {IMainFrame} from "./IMainFrame";
-import {FunctionReg} from "../FunctionReg";
 import {MenuFunction} from "../blockui/MenuFunction";
 import {CommonUtils} from "../common/CommonUtils";
 import {SchemaFactory} from "../datamodel/SchemaFactory";
@@ -28,7 +27,7 @@ export class App {
                     return;
                 }
             }
-            this.lastFunc = this.mainFrame.showFunc(FunctionReg.getFuncName(e.newURL.substr(e.newURL.lastIndexOf("#") + 1)));
+            this.mainFrame.showFunc(e.newURL.substr(e.newURL.lastIndexOf("#") + 1) as number);
         };
 
         /**
@@ -37,7 +36,7 @@ export class App {
         $(() => {
             let hash = window.location.hash;
             if (!CommonUtils.isEmpty(hash) && "" !== hash) {
-                this.lastFunc = this.mainFrame.showFunc(FunctionReg.getFuncName(hash.substr(1)));
+                this.mainFrame.showFunc(parseInt(hash.substr(1)));
             }
         });
 

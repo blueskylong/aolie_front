@@ -1,8 +1,5 @@
-import {MenuFunction} from "../blockui/MenuFunction";
-import {MenuDto} from "../home/dto/MenuDto";
-
 export interface IMainFrame {
-    showFunc(funcName: string | MenuDto): MenuFunction<any>;
+    showFunc(menuId: number): boolean;
 
     /**
      * 取得视图的组件
