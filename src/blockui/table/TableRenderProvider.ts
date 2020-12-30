@@ -8,6 +8,8 @@ import {TreeNode, TreeNodeFactory} from "../../common/TreeNode";
 import {CommonUtils} from "../../common/CommonUtils";
 import {Component} from "../uiruntime/Component";
 import FormatterOptions = FreeJqGrid.FormatterOptions;
+import {Alert} from "../../uidesign/view/JQueryComponent/Alert";
+import {Constants} from "../../common/Constants";
 
 /**
  * 表体渲染接口,这个针对jqTable.
@@ -76,7 +78,7 @@ export class ServerRenderProvider implements TableRenderProvider {
     /**
      * 是否可以编辑
      */
-    protected isEditable = true;
+    protected isEditable = false;
     protected viewer: BlockViewer;
     protected tableOption: FreeJqGrid.JqGridOptions;
     protected isReady = false;
@@ -281,6 +283,12 @@ export class ServerRenderProvider implements TableRenderProvider {
             await this.init();
             this.tableOption = $.extend(true, {}, DEFAULT_TABLE_CONFIG);
             this.tableOption.colModel = this.getColumnModel();
+            this.tableOption.ondblClickRow = (rowid: string, iRow: number, iCol: number, eventObject: JQueryEventObject) => {
+                if (!rowid) {
+                    return;
+                }
+                table.fireEvent(Constants.GeneralEventType.EVENT_DBL_CLICK, table.getRowData(rowid), table);
+            };
             this.tableOption.url = ServerRenderProvider.ServerDataUrl + "/" + this.blockId;
             this.tableOption.datatype = "json";
             let blockId = this.blockId;
@@ -338,6 +346,9 @@ export class LocalRenderProvider extends ServerRenderProvider {
         if (!this.tableOption) {
             await this.init();
             this.tableOption = $.extend(true, {}, DEFAULT_TABLE_CONFIG);
+            this.tableOption.ondblClickRow = (rowid: string, iRow: number, iCol: number, eventObject: JQueryEventObject) => {
+                table.fireEvent(Constants.GeneralEventType.EVENT_DBL_CLICK, table.getRowData(rowid), table);
+            };
             this.tableOption.colModel = this.getColumnModel();
             return new Promise<FreeJqGrid.JqGridOptions>((resolve) => {
                 resolve(this.tableOption);

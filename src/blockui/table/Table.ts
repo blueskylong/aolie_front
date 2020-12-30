@@ -1,14 +1,11 @@
 import * as _ from 'underscore';
 import {TableTools} from "./TableTools";
-import BaseUI from "../../uidesign/view/BaseUI";
 import {CommonUtils} from "../../common/CommonUtils";
 import "./table.css";
 import {TableRenderProvider} from "./TableRenderProvider";
 import {GeneralEventListener} from "../event/GeneralEventListener";
 import {Constants} from "../../common/Constants";
-import {ButtonInfo, Toolbar} from "../../uidesign/view/JQueryComponent/Toolbar";
-import {Alert} from "../../uidesign/view/JQueryComponent/Alert";
-import {eventNames} from "cluster";
+import {ButtonInfo} from "../../uidesign/view/JQueryComponent/Toolbar";
 import {BaseComponent} from "../../uidesign/view/BaseComponent";
 
 
@@ -19,15 +16,20 @@ export class Table extends BaseComponent<TableRenderProvider> {
     static CHECK_COL_ID = "cb";
     static TOOLBAR_BUTTON_CLASS = "table-col-button";
     private isMaskChange = false;
-    private lstSelectChangeListener: Array<GeneralEventListener> = new Array<GeneralEventListener>();
+    protected static EVENT_UI_READY = "UI_READY_EVENT";
 
     private isEditable = true;
     //同blockId,即界面设置器中的Id,但如果是本地表格类型，则使用这个uuid
     private tableId: string = CommonUtils.genUUID();
     private hasShow = false;//是否已被初始化过
-    private lstLoadCompleteListener: Array<GeneralEventListener> = new Array<GeneralEventListener>();
     private colBtns: Array<ButtonInfo>;
     private toolBtns: Array<ButtonInfo>;
+
+
+    /**
+     * 是不是宽度是父亲的百分百
+     */
+    private isAutoFitWidth = true;
 
     /**
      * 行ID的字段名
@@ -49,22 +51,14 @@ export class Table extends BaseComponent<TableRenderProvider> {
     setMultiSelect(isMulti) {
         this.$element.setGridParam({multiselect: isMulti}, true);
         if (!isMulti) {
-            this.$element.hideCol(Table.CHECK_COL_ID);
+            this.$element.hideCol(Table.CHECK_COL_ID, {notSkipFrozen: true});
         } else {
-            this.$element.showCol(Table.CHECK_COL_ID);
+            this.$element.showCol(Table.CHECK_COL_ID, {notSkipFrozen: true});
         }
     }
 
     addLoadCompleteListener(listener: GeneralEventListener) {
-        this.lstLoadCompleteListener.push(listener);
-    }
-
-    protected fireLoadCompleteEvent() {
-        if (this.lstLoadCompleteListener.length > 0) {
-            for (let listener of this.lstLoadCompleteListener) {
-                listener.handleEvent("loadComplate", null, this);
-            }
-        }
+        this.addListener(Table.EVENT_UI_READY, listener);
     }
 
     isMultiSelect() {
@@ -77,6 +71,10 @@ export class Table extends BaseComponent<TableRenderProvider> {
             return;
         }
         this.removeSelected();
+    }
+
+    protected onUiReady() {
+        // this.$element.jqGrid("setGrid")
     }
 
     protected getTableId() {
@@ -104,15 +102,7 @@ export class Table extends BaseComponent<TableRenderProvider> {
     }
 
     addSelectChangeListener(listener: GeneralEventListener) {
-        this.lstSelectChangeListener.push(listener);
-    }
-
-    protected fireSelectChangeEvent() {
-        if (this.lstSelectChangeListener && this.lstSelectChangeListener.length > 0) {
-            for (let listener of this.lstSelectChangeListener) {
-                listener.handleEvent(Constants.GeneralEventType.SELECT_CHANGE_EVENT, this.getCurrentRow(), this);
-            }
-        }
+        this.addListener(Constants.GeneralEventType.SELECT_CHANGE_EVENT, listener);
     }
 
     private colmunNavHandler(d: any, e: any) {
@@ -200,6 +190,7 @@ export class Table extends BaseComponent<TableRenderProvider> {
      */
     refreshData() {
         this.reloadData();
+
     }
 
     /**
@@ -476,11 +467,20 @@ export class Table extends BaseComponent<TableRenderProvider> {
         return this.getTableId() + "-pager";
     }
 
+    protected initEvent() {
+        $(window).on("resize." + this.hashCode, (event) => {
+            if (this.isAutoFitWidth) {
+                this.$element.setGridWidth(this.$fullElement.parent().width() - 3);
+            }
+        });
+        super.initEvent();
+    }
+
 
     onSelectRow(rowid: string, state: boolean, eventObject: JQuery.Event) {
         this.$element.find("tr").removeClass("selected");
         this.$element.find("#" + rowid).addClass("selected");
-        this.fireSelectChangeEvent();
+        this.fireEvent(Constants.GeneralEventType.SELECT_CHANGE_EVENT, this.getCurrentRow(), this);
     }
 
 
@@ -499,9 +499,8 @@ export class Table extends BaseComponent<TableRenderProvider> {
             this.properties.setOperatorProvider((grid, row, state) => {
                 return Table.createColButtonString(btns, row);
             });
-
-            this.$element.setColWidth(2, btns.length*30);
-
+            this.$element.setColWidth(2, btns.length * 30, false);
+            this.showOperatorCol();
         }
     }
 
@@ -527,6 +526,7 @@ export class Table extends BaseComponent<TableRenderProvider> {
         this.hasShow = true;
         let option = await this.properties.getOptions(this);
         let multiSelect = option.multiselect;
+        this.isAutoFitWidth = !!option.autowidth;
 
         let param: FreeJqGrid.JqGridOptions = {colModel: []};
         param = $.extend(true, {
@@ -534,7 +534,7 @@ export class Table extends BaseComponent<TableRenderProvider> {
                 this.onSelectRow(rowid, state, eventObject);
             },
             loadComplete: () => {
-                this.fireLoadCompleteEvent();
+                this.fireEvent(Table.EVENT_UI_READY, null, this);
                 this.updateButtonEvent();
             },
             onCellSelect: (rowid, iCol, cellcontent, event) => {
@@ -588,16 +588,18 @@ export class Table extends BaseComponent<TableRenderProvider> {
                 refresh: false,
                 search: false
             });
+        this.setMultiSelect(false);
+        this.onUiReady();
         this.fireReadyEvent();
 
     }
 
     hideOperatorCol() {
-        this.$fullElement.setGridParam().hideCol("name");
+        this.$element.hideCol("name");
     }
 
     showOperatorCol() {
-        this.$fullElement.setGridParam().showCol("name");
+        this.$element.showCol("name");
     }
 
     /**
@@ -618,9 +620,8 @@ export class Table extends BaseComponent<TableRenderProvider> {
     destroy(): boolean {
         this.$element = this.$fullElement;
         this.$fullElement = null;
+        $(window).off("." + this.hashCode);
         return super.destroy();
-        this.lstSelectChangeListener = null;
-        this.lstLoadCompleteListener = null;
     }
 
     protected static createColButtonString(btns: Array<ButtonInfo>, row) {

@@ -65,12 +65,13 @@ export class ManagedRefTree<T extends ReferenceTreeInfo> extends ReferenceTree<T
             this.getTree().addSelectListener({
                 handleEvent: (eventType: string, data: any, source: any, extObject?: any) => {
                     if (this.listener) {
-                        let data = this.getTree().getCurrentData();
+                        let data = this.getTree().getCurrentNode();
                         let id = null;
-                        if (data) {
-                            id = data.id;
+                        if (data && data.data) {
+                            id = data.data.id;
                         }
-                        this.listener.referenceSelectChanged(this, this.properties.refId, id, (!data.children || data.children.length == 0));
+                        this.listener.referenceSelectChanged(this, this.properties.refId, id,
+                            (data && (!data.children || data.children.length == 0)));
                     }
                 }
             });

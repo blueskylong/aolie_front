@@ -22,9 +22,11 @@ import {Dialog} from "../Dialog";
 import {UiService} from "../service/UiService";
 import {SchemaFactory} from "../../datamodel/SchemaFactory";
 import {HandleResult} from "../../common/HandleResult";
+import {GeneralEventListener} from "../event/GeneralEventListener";
 
 
 export class ManagedTable extends Table implements AutoManagedUI {
+
 
     protected dsIds = new Array<any>();
     protected refCols = new StringMap<Array<Column>>();
@@ -33,6 +35,8 @@ export class ManagedTable extends Table implements AutoManagedUI {
 
     protected extFilter = {};
     protected extFilterTemp = {};
+    private lstUseBtn = new Array<MenuButtonDto>();
+    private lstToolBtn = new Array<MenuButtonDto>();
 
     static getManagedInstance(renderPro: TableRenderProvider, pageDetail: PageDetailDto) {
         let table = new ManagedTable(renderPro);
@@ -73,6 +77,22 @@ export class ManagedTable extends Table implements AutoManagedUI {
         }
     }
 
+    onUiReady() {
+        this.addDblClickLister({
+            handleEvent: (eventType: string, data: any, source: any, extObject?: any) => {
+                if (this.hasBtn(Constants.TableOperatorType.edit)) {
+                    this.doView(true, data);
+                    return;
+                }
+                if (this.hasBtn(Constants.TableOperatorType.view)) {
+                    this.doView(false, data);
+                    return;
+                }
+
+            }
+        });
+    }
+
 
     dataChanged(source: any, tableId, mapKeyAndValue, changeType) {
         if (source == this) {
@@ -92,12 +112,12 @@ export class ManagedTable extends Table implements AutoManagedUI {
 
     afterComponentAssemble(): void {
         super.afterComponentAssemble();
+
         if (this.pageDetail.loadOnshow) {
             CommonUtils.readyDo(() => {
                 return this.isReady();
             }, () => {
                 this.reload();
-
             })
         }
     }
@@ -163,6 +183,10 @@ export class ManagedTable extends Table implements AutoManagedUI {
         })
     }
 
+    addDblClickLister(listener: GeneralEventListener) {
+        this.addListener(Constants.GeneralEventType.EVENT_DBL_CLICK, listener);
+    }
+
     destroy(): boolean {
         this.dsIds = null;
         this.refCols = null;
@@ -182,8 +206,8 @@ export class ManagedTable extends Table implements AutoManagedUI {
         if (!btns || btns.length == 0) {
             return;
         }
-        let lstUseBtn = new Array<MenuButtonDto>();
-        let lstToolBtn = new Array<MenuButtonDto>();
+        this.lstUseBtn = new Array<MenuButtonDto>();
+        this.lstToolBtn = new Array<MenuButtonDto>();
         //这里可以做得更好点,在表格的按钮区显示"增加"这一类的统一按钮
         for (let btn of btns) {
             //这里是控件要求
@@ -191,66 +215,101 @@ export class ManagedTable extends Table implements AutoManagedUI {
                 || btn.tableOpertype === Constants.TableOperatorType.edit
                 || (btn.tableOpertype !== Constants.TableOperatorType.add && !btn.forOne)) {
                 btn.isUsed = true;
-                lstUseBtn.push(btn);
+                this.lstUseBtn.push(btn);
             } else if (btn.tableOpertype === Constants.TableOperatorType.add ||
                 btn.forOne) {
                 btn.isUsed = true;
-                lstToolBtn.push(btn);
+                this.lstToolBtn.push(btn);
             }
         }
-        if (lstUseBtn.length > 0) {
-            this.setColOperatorButtons(this.toButtonInfo(lstUseBtn));
+        if (this.lstUseBtn.length > 0) {
+            this.setColOperatorButtons(this.toButtonInfo(this.lstUseBtn));
         }
-        if (lstToolBtn.length > 0) {
-            this.setToolbarButton(this.toButtonInfo(lstToolBtn));
+        if (this.lstToolBtn.length > 0) {
+            this.setToolbarButton(this.toButtonInfo(this.lstToolBtn));
         }
     }
 
+    /**
+     * 是否存在指定按钮
+     * @param btnType
+     */
+    private hasBtn(btnType) {
+        if (this.lstToolBtn) {
+            for (let btn of this.lstToolBtn) {
+                if (btn.tableOpertype === btnType) {
+                    return true;
+                }
+            }
+        }
+        if (this.lstUseBtn) {
+            for (let btn of this.lstUseBtn) {
+                if (btn.tableOpertype === btnType) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    protected doAdd() {
+        let dlgInfo: ManagedDialogInfo =
+            {
+                dsId: this.dsIds[0],
+                initValue: this.extFilter,
+                title: "增加",
+                operType: Constants.TableOperatorType.add,
+                callback: () => {
+                    this.manageCenter.dataChanged(this, this.dsIds[0],
+                        null, Constants.TableDataChangedType.added);
+                    this.reload();
+                }
+            };
+
+        new ManagedDlg(dlgInfo).show();
+    }
+
+    private doDelete(data) {
+        Dialog.showConfirm("确定要删除此行吗?", () => {
+            let tableInfo = SchemaFactory.getTableByTableId(this.dsIds[0]);
+            UiService.deleteRowByIds([data[tableInfo.getKeyField()]], this.dsIds[0], (result: HandleResult) => {
+                if (this.manageCenter) {
+                    this.manageCenter.dataChanged(this, this.dsIds[0],
+                        null, Constants.TableDataChangedType.deleted);
+                    this.reload();
+                }
+            });
+        });
+    }
+
+    private doView(canEdit: boolean, data) {
+        let dlgInfo: ManagedDialogInfo =
+            {
+                dsId: this.dsIds[0],
+                initValue: this.getKeyValue(data),
+                title: canEdit ? "修改" : "查看",
+                operType: canEdit ? Constants.TableOperatorType.edit : Constants.TableOperatorType.view,
+                callback: () => {
+                    let obj = {};
+                    obj[this.getKeyField()] = this.getKeyValue(data);
+                    this.manageCenter.dataChanged(this, this.dsIds[0],
+                        obj, Constants.TableDataChangedType.edited);
+                    this.reload();
+                }
+            };
+
+        new ManagedDlg(dlgInfo).show();
+    }
+
+//menuBtnDto.tableOpertype === Constants.TableOperatorType.edit
     protected componentButtonClicked(event: ClickEvent, menuBtnDto: MenuButtonDto, data) {
         if (menuBtnDto.tableOpertype === Constants.TableOperatorType.add) {
-            let dlgInfo: ManagedDialogInfo =
-                {
-                    dsId: this.dsIds[0],
-                    initValue: this.extFilter,
-                    title: "增加",
-                    operType: Constants.TableOperatorType.add,
-                    callback: () => {
-                        this.manageCenter.dataChanged(this, this.dsIds[0],
-                            null, Constants.TableDataChangedType.added);
-                        this.reload();
-                    }
-                };
-
-            new ManagedDlg(dlgInfo).show();
+            this.doAdd();
         } else if (menuBtnDto.tableOpertype === Constants.TableOperatorType.delete) {
-            Dialog.showConfirm("确定要删除此行吗?", () => {
-                let tableInfo = SchemaFactory.getTableByTableId(this.dsIds[0]);
-                UiService.deleteRowByIds([data[tableInfo.getKeyField()]], this.dsIds[0], (result: HandleResult) => {
-                    if (this.manageCenter) {
-                        this.manageCenter.dataChanged(this, this.dsIds[0],
-                            null, Constants.TableDataChangedType.deleted);
-                        this.reload();
-                    }
-                });
-            });
+            this.doDelete(data);
         } else if (menuBtnDto.tableOpertype === Constants.TableOperatorType.edit ||
             menuBtnDto.tableOpertype === Constants.TableOperatorType.view) {
-            let dlgInfo: ManagedDialogInfo =
-                {
-                    dsId: this.dsIds[0],
-                    initValue: this.getKeyValue(data),
-                    title: menuBtnDto.tableOpertype === Constants.TableOperatorType.edit ? "修改" : "查看",
-                    operType: menuBtnDto.tableOpertype,
-                    callback: () => {
-                        let obj = {};
-                        obj[this.getKeyField()] = this.getKeyValue(data);
-                        this.manageCenter.dataChanged(this, this.dsIds[0],
-                            obj, Constants.TableDataChangedType.edited);
-                        this.reload();
-                    }
-                };
-
-            new ManagedDlg(dlgInfo).show();
+            this.doView(menuBtnDto.tableOpertype === Constants.TableOperatorType.edit, data);
         }
     }
 

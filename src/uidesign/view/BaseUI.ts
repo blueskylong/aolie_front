@@ -1,4 +1,5 @@
 import {GeneralEventListener} from "../../blockui/event/GeneralEventListener";
+import {StringMap} from "../../common/StringMap";
 
 export default abstract class BaseUI<T> implements GeneralEventListener {
     protected static UN_VISIBLE_CLASS = "un-visible";
@@ -6,6 +7,7 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
     protected properties: T;
     protected template: string;
     protected lstReadyListener: Array<(source: any) => void>;
+    protected mapListener: StringMap<Array<GeneralEventListener>> = new StringMap<Array<GeneralEventListener>>();
     /**
      * dom
      */
@@ -16,9 +18,34 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
     protected ready = false;
     protected destroied = false;
 
-    constructor(properties: T) {
+    protected hashCode: number = -1;
 
+    constructor(properties: T) {
         this.properties = properties;
+        this.hashCode = $.hashCode();
+    }
+
+    protected addListener(type, listener: GeneralEventListener) {
+        if (!type) {
+            return;
+        }
+        let generalEventListeners = this.mapListener.get(type);
+        if (!generalEventListeners) {
+            generalEventListeners = new Array<GeneralEventListener>();
+            this.mapListener.set(type, generalEventListeners);
+        }
+        if (generalEventListeners.indexOf(listener) == -1) {
+            generalEventListeners.push(listener);
+        }
+    }
+
+    public fireEvent(type: string, data?, source?, extObj?) {
+        let generalEventListeners = this.mapListener.get(type);
+        if (generalEventListeners) {
+            for (let listener of generalEventListeners) {
+                listener.handleEvent(type, data, source, extObj);
+            }
+        }
     }
 
     addReadyListener(handler: (source: any) => void) {
@@ -113,6 +140,7 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
             this.element = null;
         }
         this.lstReadyListener = null;
+        this.mapListener.clear();
         this.destroied = true;
         return true;
     }

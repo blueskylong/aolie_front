@@ -10,6 +10,12 @@ export class App {
     private maskChange = false;
 
     start() {
+        let i = 0;
+        $.hashCode = () => {
+            return function () {
+                return i++;
+            }()
+        };
         new SchemaFactory().init();
         this.mainFrame = this.createMainFrame();
         let $body = $("body");

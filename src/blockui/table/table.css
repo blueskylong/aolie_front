@@ -60,13 +60,24 @@
     font-size: 16px;
     color: #1E90FF;
 }
-.ui-jqgrid.ui-jqgrid-bootstrap > .ui-jqgrid-view span.table-col-button.fa:hover{
+
+.ui-jqgrid.ui-jqgrid-bootstrap > .ui-jqgrid-view span.table-col-button.fa:hover {
     color: darkorange;
 }
-.ui-pg-table.navtable[role="toolbar"]{
-    margin-right:30px ;
+
+.ui-pg-table.navtable[role="toolbar"] {
+    margin-right: 30px;
 
 }
-.ui-pg-table.navtable[role="toolbar"] .btn{
+
+.ui-pg-table.navtable[role="toolbar"] .btn {
     color: #1E90FF;
+}
+
+/* End Eorm edit */
+/*.ui-jqgrid .edit-cell {}*/
+.ui-jqgrid .selected-row,
+div.ui-jqgrid .selected-row td {
+    font-style: normal;
+    background-color: rgba(30, 144, 255, 0.2);
 }

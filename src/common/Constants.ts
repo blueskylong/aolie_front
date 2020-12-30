@@ -86,7 +86,11 @@ export class Constants {
         /**
          * 值变化事件
          */
-        VALUE_CHANGE_EVENT: "VALUE_CHANGED"
+        VALUE_CHANGE_EVENT: "VALUE_CHANGED",
+        /**
+         * 双击事件
+         */
+        EVENT_DBL_CLICK: "DBL_CLICK"
     };
 
     /**
