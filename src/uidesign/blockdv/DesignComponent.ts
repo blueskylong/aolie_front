@@ -16,7 +16,6 @@ export class DesignComponent<T extends Component> extends BaseComponent<T> {
     private lstSubComp = new Array<DesignComponent<Component>>();
     private $masker: JQuery;
 
-    private editable = true;
 
 
     protected createUI(): HTMLElement {

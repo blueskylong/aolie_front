@@ -1,5 +1,4 @@
 import {MenuFunc} from "../decorator/decorator";
-import {MenuFunction, MenuFunctionInfo} from "../blockui/MenuFunction";
 import {JsTree, JsTreeInfo} from "../blockui/JsTree/JsTree";
 import "./templates/BlockDesign.css";
 import {SelectDsDlg} from "./dialog/SelectDsDlg";
@@ -7,7 +6,6 @@ import {DesignUiService} from "./service/DesignUiService";
 import {DesignPanel} from "./blockdv/DesignPanel";
 import {Form} from "../blockui/Form";
 import EventBus from "../dmdesign/view/EventBus";
-import {MenuButton} from "../home/dto/MenuButton";
 import {CommonUtils} from "../common/CommonUtils";
 import {Alert} from "./view/JQueryComponent/Alert";
 import {Dialog, DialogInfo} from "../blockui/Dialog";
@@ -19,11 +17,13 @@ import {Select} from "./view/JQueryComponent/Select";
 import {IComponentGenerator} from "./view/generator/IComponentGenerator";
 import {JQueryGeneralComponentGenerator} from "./view/JQueryComponent/JQueryGeneralComponentGenerator";
 import {CodeLevelProvider} from "../common/CodeLevelProvider";
-import PageService from "../funcdesign/serivce/PageService";
-import {UiService} from "../blockui/service/UiService";
+import {MenuInfo} from "../sysfunc/menu/dto/MenuInfo";
+import {MenuFunction} from "../blockui/MenuFunction";
+import {MenuButtonDto} from "../sysfunc/menu/dto/MenuButtonDto";
+import {DmConstants} from "../datamodel/DmConstants";
 
 @MenuFunc()
-export default class BlockDesign<T extends MenuFunctionInfo> extends MenuFunction<T> {
+export default class BlockDesign<T extends MenuInfo> extends MenuFunction<T> {
     private schemaId = 2;
     private generator: IComponentGenerator = new JQueryGeneralComponentGenerator();
     private selectDsDlg: SelectDsDlg;
@@ -95,14 +95,16 @@ export default class BlockDesign<T extends MenuFunctionInfo> extends MenuFunctio
             },
             dnd: {isDraggable: true, onlyDroppable: false},
             buttons: [{
-                icon: "fa fa-trash",
-                title: "删除",
+                id: "delete",
+                iconClass: "fa fa-trash",
+                hint: "删除",
                 clickHandler: (event, data) => {
                     this.doDelete(data);
                 }
             }, {
-                icon: "fa fa-plus",
-                title: "增加",
+                id: "add",
+                iconClass: "fa fa-plus",
+                hint: "增加",
                 clickHandler: (event, data) => {
                     this.blockTree.selectNode(data.id);
                     this.doAdd();
@@ -168,7 +170,7 @@ export default class BlockDesign<T extends MenuFunctionInfo> extends MenuFunctio
         this.fBlock.afterComponentAssemble();
         this.fColAttr.afterComponentAssemble();
         this.schemaSelect.afterComponentAssemble();
-        this.ready = true;
+        super.afterComponentAssemble();
     }
 
     private bindEvent() {
@@ -246,7 +248,7 @@ export default class BlockDesign<T extends MenuFunctionInfo> extends MenuFunctio
             if (this.blockTree.getCurrentData()) {
                 curId = this.blockTree.getCurrentData().blockViewId;
             }
-            DesignUiService.updateBlockLevel(obj, Constants.DEFAULT_SCHEMA_ID, (data) => {
+            DesignUiService.updateBlockLevel(obj, DmConstants.DEFAULT_SCHEMA_ID, (data) => {
                 this.blockTree.reload();
                 if (curId) {
                     this.blockTree.selectNodeById(curId);
@@ -293,19 +295,19 @@ export default class BlockDesign<T extends MenuFunctionInfo> extends MenuFunctio
         return true;
     }
 
-    getButton(): Array<MenuButton> {
-        let addButton = new MenuButton();
-        addButton.action = "doAdd";
+    getButton(): Array<MenuButtonDto> {
+        let addButton = new MenuButtonDto();
+        addButton.funcName = "doAdd";
         addButton.title = "增加";
-        addButton.icon = "fa fa-plus-circle";
-        let saveButton = new MenuButton();
-        saveButton.action = "doSave";
+        addButton.iconClass = "fa fa-plus-circle";
+        let saveButton = new MenuButtonDto();
+        saveButton.funcName = "doSave";
         saveButton.title = "保存";
-        saveButton.icon = "fa fa-floppy-o";
-        let deleteButton = new MenuButton();
-        deleteButton.action = "doDelete";
+        saveButton.iconClass = "fa fa-floppy-o";
+        let deleteButton = new MenuButtonDto();
+        deleteButton.funcName = "doDelete";
         deleteButton.title = "删除";
-        deleteButton.icon = "fa fa-trash";
+        deleteButton.iconClass = "fa fa-trash";
 
         return [addButton, saveButton, deleteButton];
     }

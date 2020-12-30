@@ -1,4 +1,7 @@
 import {ComponentDto} from "../uidesign/dto/ComponentDto";
+import {UserDto} from "../sysfunc/user/UserDto";
+import {RoleDto} from "../sysfunc/user/RoleDto";
+import {LoginUser} from "../sysfunc/user/LoginUser";
 
 export class MockServer {
 
@@ -82,6 +85,23 @@ export class MockServer {
         arr.push(comp);
 
         return arr;
+    }
+
+    static getLoginUser() {
+        let user = new LoginUser();
+        user.accountCode = "admin";
+        user.userId = 999;
+        user.enabled = 1;
+        user.userName = "超级管理员";
+        avatar:"";
+
+        let roleDto = new RoleDto();
+        roleDto.roleId = 1;
+        roleDto.roleName = "管理员";
+        roleDto.xh;
+        user.setRoleDto(roleDto);
+        return user;
+
     }
 
 }

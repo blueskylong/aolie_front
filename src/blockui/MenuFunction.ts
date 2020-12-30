@@ -1,8 +1,8 @@
 import BaseUI from "../uidesign/view/BaseUI";
-import {MenuButton} from "../home/dto/MenuButton";
-import {MenuDto} from "../home/dto/MenuDto";
+import {MenuButtonDto} from "../sysfunc/menu/dto/MenuButtonDto";
+import {MenuInfo} from "../sysfunc/menu/dto/MenuInfo";
 
-export abstract class MenuFunction<T extends MenuFunctionInfo> extends BaseUI<T> {
+export abstract class MenuFunction<T extends MenuInfo> extends BaseUI<T> {
     private stateChangeListener: () => void;
 
     /**
@@ -12,13 +12,13 @@ export abstract class MenuFunction<T extends MenuFunctionInfo> extends BaseUI<T>
         return true;
     }
 
-    getButton(): Array<MenuButton> {
+    getButton(): Array<MenuButtonDto> {
         return null;
     }
 
-    handleButtonClick(actionCode) {
-        if (this[actionCode] && typeof this[actionCode] === "function") {
-            this[actionCode]();
+    handleButtonClick(btn: MenuButtonDto) {
+        if (this[btn.funcName] && typeof this[btn.funcName] === "function") {
+            this[btn.funcName]();
         }
         //TODO
     }
@@ -37,6 +37,4 @@ export abstract class MenuFunction<T extends MenuFunctionInfo> extends BaseUI<T>
 
 }
 
-export interface MenuFunctionInfo {
-    menuDto: MenuDto;
-}
+

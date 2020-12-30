@@ -3,10 +3,10 @@ import {BaseComponent} from "../../uidesign/view/BaseComponent";
 import {CommonUtils} from "../../common/CommonUtils";
 import {NetRequest} from "../../common/NetRequest";
 import "../../jsplugs/jstree";
-import ClickEvent = JQuery.ClickEvent;
 import {GeneralEventListener} from "../event/GeneralEventListener";
 import {StringMap} from "../../common/StringMap";
 import {CodeLevelProvider} from "../../common/CodeLevelProvider";
+import {ButtonInfo} from "../../uidesign/view/JQueryComponent/Toolbar";
 
 export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
     static request_get = "get";
@@ -31,8 +31,11 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
     private silence = false;
     private selectedListener: Array<GeneralEventListener> = new Array<GeneralEventListener>();
     private dropListener: Array<GeneralEventListener> = new Array<GeneralEventListener>();
+    protected enabled = true;
+    protected dragable = false;
 
     protected createUI(): HTMLElement {
+        this.dragable = this.properties && this.properties.dnd && this.properties.dnd.isDraggable;
         return $(require("../templete/JsTree.html")).get(0);
     }
 
@@ -48,7 +51,9 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         },
         "dnd": {
             onlyDroppable: true,
-            is_draggable: false,
+            is_draggable: () => {
+                return this.getCanDragable()
+            },
             onDrop: (node) => {
                 this.fireDropEvent(node);
             }
@@ -96,6 +101,7 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
     }
 
     selectNode(node: any) {
+        this.jsTree.deselect_all();
         this.jsTree.select_node(node);
     }
 
@@ -153,7 +159,6 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         }
         this.treeProps.dnd.onlyDroppable = false;
 
-        this.treeProps.dnd.is_draggable = this.properties.dnd && this.properties.dnd.isDraggable ? true : false;
 
         this.treeProps = $.extend(true, this.treeProps, this.properties);
         if (this.properties.url) {
@@ -190,6 +195,17 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         this.createToolbar();
     }
 
+    setDraggable(canDragSort) {
+        this.dragable = canDragSort;
+        if (this.isReady()) {
+            this.getJsTree().refresh();
+        }
+    }
+
+    getCanDragable() {
+        return this.dragable;
+    }
+
     /**
      * 生成查询条件,一般的树是不需要查询条件的,主要是为了子类使用
      */
@@ -202,20 +218,36 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
 
     private createToolbar() {
         this.btns = this.$element.find(".tree-button-toolbar");
-
+        if (this.btns) {
+            this.btns.children().off("click");
+            this.btns.children().remove();
+        }
         if (this.properties.buttons) {
             for (let btn of this.properties.buttons) {
                 let $btn = $("<span class='tree-button "
-                    + (btn.icon ? btn.icon : "") + " title='" + (btn.title || btn.text || '') + "'>"
-                    + (btn.text ? btn.text : "") + "</span>");
+                    + (btn.iconClass ? btn.iconClass : "") + "' title='" + (btn.hint || btn.text || '') + "'>"
+                    // + (btn.text ? btn.text : "") 这里先不使用文字显示,
+                    + "</span>");
                 if (btn.clickHandler) {
                     $btn.on("click", (e) => {
+                        if (!this.enabled) {
+                            return;
+                        }
                         btn.clickHandler(e, this.hoverData);
                     });
                 }
                 this.btns.append($btn);
             }
         }
+    }
+
+    /**
+     * 设置显示的按钮
+     * @param btns
+     */
+    setButtons(btns: Array<ButtonInfo>) {
+        this.properties.buttons = btns;
+        this.createToolbar();
     }
 
     private fireSelectChangeListener(data) {
@@ -271,7 +303,7 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         );
 
         this.$element.on("mouseover", (e) => {
-            if (!this.properties.buttons) {
+            if (!this.properties.buttons || !this.enabled) {
                 return;
             }
             let $ele = $(e.target);
@@ -348,8 +380,11 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
     }
 
     setEnable(enable: boolean) {
+        this.enabled = enable;
+
         let data = this.jsTree.get_json(null, {flat: true});
-        if (enable) {
+        if (!enable) {
+            this.btns.addClass("hidden");
             for (let row of data) {
                 let node = this.jsTree.get_node(row.id);
                 this.jsTree.disable_node(node);
@@ -462,6 +497,10 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         return this.jsTree.get_json(node);
     }
 
+    isLeaf(node: string | object) {
+        return this.jsTree.is_leaf(node);
+    }
+
     getSelectData(full = true, onlyLeaf = false) {
         if (this.properties.multiSelect) {
             if (onlyLeaf) {
@@ -489,8 +528,13 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         return node && !node.data;
     }
 
+    isRoot(node: any) {
+        return node && !node.data;
+    }
+
 
     reload() {
+        this.ready = false;
         this.getJsTree().refresh(false, true);
     }
 
@@ -551,7 +595,7 @@ export interface JsTreeInfo {
     parentField?: string;
     lvl?: Array<number>;
     onReady?: () => void;
-    buttons?: Array<TreeButton>;
+    buttons?: Array<ButtonInfo>;
     dnd?: DragAndDrop;
     rootId?: string;
     getFilter?: () => object;
@@ -575,10 +619,10 @@ export interface DragAndDrop {
 }
 
 
-export interface TreeButton {
-    text?: string;
-    icon?: string;
-    title?: string;
-    isShow?: (data) => boolean;
-    clickHandler?: (event: ClickEvent, data) => void;
-}
+// export interface TreeButton {
+//     text?: string;
+//     icon?: string;
+//     title?: string;
+//     isShow?: (data) => boolean;
+//     clickHandler?: (event: ClickEvent, data) => void;
+// }

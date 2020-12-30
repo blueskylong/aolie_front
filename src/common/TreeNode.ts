@@ -57,6 +57,7 @@ export class TreeNode<T> {
         if (!this._children) {
             this._children = new Array<TreeNode<T>>();
         }
+        child.parent = this;
         this._children.push(child);
     }
 }

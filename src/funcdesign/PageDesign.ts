@@ -1,27 +1,29 @@
 import "./template/PageDesign.css"
-import {MenuFunction, MenuFunctionInfo} from "../blockui/MenuFunction";
+import {MenuFunction,} from "../blockui/MenuFunction";
 import {BeanFactory, MenuFunc} from "../decorator/decorator";
 import {JsTree, JsTreeInfo} from "../blockui/JsTree/JsTree";
 import {Constants} from "../common/Constants";
 import {BorderLayout, BorderLayoutProperty} from "../blockui/layout/BorderLayout";
 import {Form} from "../blockui/Form";
 import {BorderDesignPanel} from "./widget/BorderDesignPanel";
-import {MenuButton} from "../home/dto/MenuButton";
+
 import {InputDlg} from "../blockui/dialogs/InputDlg";
 import {Alert} from "../uidesign/view/JQueryComponent/Alert";
 import PageService from "./serivce/PageService";
 import {CommonUtils} from "../common/CommonUtils";
 import {Dialog, DialogInfo} from "../blockui/Dialog";
-import EventBus from "../dmdesign/view/EventBus";
 import {PageInfoDto} from "./dto/PageInfoDto";
 import {PageInfo} from "./dto/PageInfo";
 import {CodeLevelProvider} from "../common/CodeLevelProvider";
 import {Select} from "../uidesign/view/JQueryComponent/Select";
 import {IComponentGenerator} from "../uidesign/view/generator/IComponentGenerator";
 import {JQueryGeneralComponentGenerator} from "../uidesign/view/JQueryComponent/JQueryGeneralComponentGenerator";
+import {MenuInfo} from "../sysfunc/menu/dto/MenuInfo";
+import {MenuButtonDto} from "../sysfunc/menu/dto/MenuButtonDto";
+import {DmConstants} from "../datamodel/DmConstants";
 
 @MenuFunc()
-export default class PageDesign<T extends MenuFunctionInfo> extends MenuFunction<T> {
+export default class PageDesign<T extends MenuInfo> extends MenuFunction<T> {
 
     private pageTree: JsTree<JsTreeInfo>;
     private blockTree: JsTree<JsTreeInfo>;
@@ -30,7 +32,7 @@ export default class PageDesign<T extends MenuFunctionInfo> extends MenuFunction
     private fAttr: Form;
     private designPanel: BorderDesignPanel;
     private addDialog: InputDlg;
-    private schemaId = Constants.DEFAULT_SCHEMA_ID;
+    private schemaId = DmConstants.DEFAULT_SCHEMA_ID;
     private schemaSelect: Select<any>;
     private generator: IComponentGenerator = new JQueryGeneralComponentGenerator();
 
@@ -266,34 +268,34 @@ export default class PageDesign<T extends MenuFunctionInfo> extends MenuFunction
         return null;
     }
 
-    getButton(): Array<MenuButton> {
+    getButton(): Array<MenuButtonDto> {
         let btns = [];
-        let button = new MenuButton();
-        button.icon = Constants.Icons.add;
+        let button = new MenuButtonDto();
+        button.iconClass = Constants.Icons.add;
         button.title = "增加";
-        button.action = "doAdd";
+        button.funcName = "doAdd";
         btns.push(button);
 
-        button = new MenuButton();
-        button.icon = Constants.Icons.delete;
+        button = new MenuButtonDto();
+        button.iconClass = Constants.Icons.delete;
         button.title = "删除";
-        button.action = "doDelete";
+        button.funcName = "doDelete";
         btns.push(button);
 
-        button = new MenuButton();
-        button.icon = Constants.Icons.save;
+        button = new MenuButtonDto();
+        button.iconClass = Constants.Icons.save;
         button.title = "保存";
-        button.action = "doSave";
+        button.funcName = "doSave";
         btns.push(button);
 
-        button = new MenuButton();
+        button = new MenuButtonDto();
         button.title = "|";
         btns.push(button);
 
-        button = new MenuButton();
-        button.icon = Constants.Icons.save;
+        button = new MenuButtonDto();
+        button.iconClass = Constants.Icons.save;
         button.title = "保存级次";
-        button.action = "doSaveLvl";
+        button.funcName = "doSaveLvl";
         btns.push(button);
 
         return btns;

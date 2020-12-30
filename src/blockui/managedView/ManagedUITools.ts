@@ -6,25 +6,40 @@ import {Component} from "../uiruntime/Component";
 import {DmConstants} from "../../datamodel/DmConstants";
 import {Table} from "../table/Table";
 import {ColumnDto} from "../../datamodel/dto/ColumnDto";
+import {MenuButtonDto} from "../../sysfunc/menu/dto/MenuButtonDto";
+import {ButtonInfo} from "../../uidesign/view/JQueryComponent/Toolbar";
+import ClickEvent = JQuery.ClickEvent;
+import {CommonUtils} from "../../common/CommonUtils";
+import {CacheUtils} from "../../common/CacheUtils";
+import {UiService} from "../service/UiService";
 
 export class ManagedUITools {
+    static cacheType = "UI";
+
     /**
      * 取得主健值
      * @param tableId
      */
-    public static getDsKeyValue(tableId, row): StringMap<any> {
+    public static getDsKeyValue(tableId, row): object {
         let tableInfo = SchemaFactory.getTableByTableId(tableId);
-        let columns = tableInfo.findKeyColumns();
+        let columns = tableInfo.getKeyColumns();
         if (!columns || columns.length == 0) {
             Alert.showMessage("数据表没有主键");
             return null;
         }
-        let value = row || {};
+        if (!row) {
+            return null;
+        }
+        let value = row;
         let result = new StringMap();
         for (let column of columns) {
             result.set(column.getColumnDto().fieldName, value[column.getColumnDto().fieldName]);
         }
-        return result;
+        return result.getValueAsObject();
+    }
+
+    public static getPageSchemaInfo(pageId: string, version: string) {
+
     }
 
     /**
@@ -75,7 +90,7 @@ export class ManagedUITools {
      */
     public static getTableRelationField(tableId, dsIds): Array<string> {
         //非同一源,但相关的,则需要到后台查询
-        let tableRelation = SchemaFactory.getTableRelation(tableId, dsIds[0]);
+        let tableRelation = SchemaFactory.getTablesRelation(tableId, dsIds[0]);
         if (!tableRelation) {
             return null;
         }
@@ -98,7 +113,20 @@ export class ManagedUITools {
 
     }
 
-    public static findRow(tableId, mapKeyAndValue, data: Array<any>, valueField: string) {
+    public static async getPageSchema(page, version) {
+        let key = CommonUtils.genKey(page, version);
+        let schemaId = CacheUtils.get(ManagedUITools.cacheType, key);
+        if (schemaId) {
+            return schemaId;
+        } else {
+            let schemaId = await UiService.findPageSchemaId(page);
+            CacheUtils.put(ManagedUITools.cacheType, key, schemaId);
+            return schemaId;
+        }
+
+    }
+
+    public static findRow(tableId, mapKeyAndValue: object, data: Array<any>, valueField: string) {
         if (!mapKeyAndValue) {
             return null;
         }
@@ -115,9 +143,9 @@ export class ManagedUITools {
         return null;
     }
 
-    private static isInRow(row, map: StringMap<any>) {
+    private static isInRow(row, map: object) {
         let result = true;
-        map.forEach((key, value, map) => {
+        new StringMap(map).forEach((key, value, map) => {
             if (!row.hasOwnProperty(key) || row[key] != value) {
                 result = false;
                 return false;
@@ -134,6 +162,7 @@ export class ManagedUITools {
      * @param refIdValue
      */
     public static makeFilter(refId, dsIds, extFilter, refIdValue) {
+        //可能会有多个字段,但这个情况非常少
         let referFields = ManagedUITools.getReferField(refId, dsIds);
         if (!referFields) {
             return false;
@@ -145,9 +174,69 @@ export class ManagedUITools {
             }
         } else {
             for (let col of referFields) {
-                extFilter[col.getColumnDto().fieldName] = extFilter;
+                extFilter[col.getColumnDto().fieldName] = refIdValue;
             }
         }
         return true;
+    }
+
+    /**
+     * 查询与指定表相关的按钮,就是指定表的增删改查操作.
+     * @param lstBtn
+     * @param dsId
+     */
+    public static findRelationButtons(lstBtn: Array<MenuButtonDto>, tableId: number, isFilterUsed = false) {
+        if (!lstBtn || lstBtn.length == 0) {
+            return null;
+        }
+        let result = new Array<MenuButtonDto>();
+        for (let btnInfo of lstBtn) {
+            if (btnInfo.relationTableid == tableId) {
+                if (!isFilterUsed || !btnInfo.isUsed) {
+                    result.push(btnInfo);
+                }
+            }
+        }
+        return result;
+
+    }
+
+
+    static genKeyFieldValue(tableId) {
+        let tableInfo = SchemaFactory.getTableByTableId(tableId);
+        let columns = tableInfo.getKeyColumns();
+        if (!columns || columns.length == 0) {
+            Alert.showMessage("数据表没有主键");
+            return null;
+        }
+        let result = new StringMap();
+        for (let column of columns) {
+            result.set(column.getColumnDto().fieldName, CommonUtils.genId());
+        }
+        return result.getValueAsObject();
+    }
+
+    static getKeyColumn(dsId) {
+        let tableInfo = SchemaFactory.getTableByTableId(dsId);
+        //查询主表字段.
+        let columns = tableInfo.getKeyColumns();
+        //如果没有主表,则不处理
+        let result = new Array<Column>();
+        if (columns && columns.length !== 0) {
+            for (let column of columns) {
+                if (column.getColumnDto().isKey && column.getColumnDto().isKey == 1) {
+                    result.push(column);
+                }
+            }
+        }
+        return result;
+    }
+
+    static getOneKeyColumnField(dsId) {
+        let cols = ManagedUITools.getKeyColumn(dsId);
+        if (!cols || cols.length != 1) {
+            throw new Error("不正确的主键字段配置");
+        }
+        return cols[0].getColumnDto().fieldName;
     }
 }

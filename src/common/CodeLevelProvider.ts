@@ -43,8 +43,7 @@ export class CodeLevelProvider {
             throw new Error('当前编码不符合长度要求，当前长度为：' + curCode.length + '  可能的长度为：' + this.rules);
         }
         this.curCode = curCode;
-
-
+        return this;
     }
 
     // 取得取级下一个节点
@@ -71,15 +70,16 @@ export class CodeLevelProvider {
         }
         return this.curCode;
     }
+
     /**取得下一个子节点,从000开始*/
-    public goSub(){
-            if (CommonUtils.isEmpty(this.curCode)) {
-                this.curCode = this.createLvlStr(this.rules[0], 0);
-            } else {
-                let curLvlNum = this.getCurLvlNum();
-                let curLvlLength = this.rules[curLvlNum + 1] - this.rules[curLvlNum];
-                this.curCode = this.curCode + this.createLvlStr(curLvlLength, 0);
-            }
+    public goSub() {
+        if (CommonUtils.isEmpty(this.curCode)) {
+            this.curCode = this.createLvlStr(this.rules[0], 0);
+        } else {
+            let curLvlNum = this.getCurLvlNum();
+            let curLvlLength = this.rules[curLvlNum + 1] - this.rules[curLvlNum];
+            this.curCode = this.curCode + this.createLvlStr(curLvlLength, 0);
+        }
     }
 
     // 取得上一级的全编码

@@ -23,8 +23,9 @@ export default class ColumnView extends DmDesignBaseView<Column> implements Attr
 
 
     afterComponentAssemble(): void {
-
-        setTimeout(() => {
+        CommonUtils.readyDo(() => {
+            return !!this.element;
+        }, () => {
             ColumnView.JSPLUMB.makeSource(this.element, ColumnView.SOURCE_PARAM);
             ColumnView.JSPLUMB.makeTarget(this.element, ColumnView.TARGET_PARAM);
             if (!ColumnView.isAddedContextMenu) {
@@ -43,7 +44,7 @@ export default class ColumnView extends DmDesignBaseView<Column> implements Attr
                 });
                 ColumnView.isAddedContextMenu = true;
             }
-        }, 200)
+        })
 
     }
 

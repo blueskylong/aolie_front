@@ -45,6 +45,17 @@ export class UiService {
      * @param blockViewerId
      * @param version
      */
+    static async findPageSchemaId(pageId: number) {
+        let result = await NetRequest.axios.get("/page/findPageSchemaId/" + pageId);
+        return result.data;
+
+    }
+
+    /**
+     * 取得一个UI信息
+     * @param blockViewerId
+     * @param version
+     */
     static async getSchemaViewerDirect(blockViewerId: number) {
         let key = UiService.PREFIX_KEY_BLOCK + blockViewerId;
         let viewData = await NetRequest.axios.get(this.URL_ROOT + "/getSchemaViewer/" + blockViewerId);
@@ -74,6 +85,21 @@ export class UiService {
         return null;
     }
 
+    /**
+     * 取得引用信息
+     * @param refId
+     * @param version
+     */
+    static async findColumnReferenceData(refId: number, colId: number, extFilter: any) {
+
+        let result = await NetRequest.axios.post(this.URL_ROOT + "/findColumnReferenceData/" + refId + "/" + colId,
+            extFilter);
+        if (result && result.data) {
+            return BeanFactory.populateBeans(ReferenceData, result.data);
+        }
+        return null;
+    }
+
     static clearCache(blockViewerId: number) {
         UiService.CACHE.delete(UiService.PREFIX_KEY_BLOCK + blockViewerId);
     }
@@ -88,6 +114,45 @@ export class UiService {
         let data = await NetRequest.axios.get("/dm/getReferenceDto/" + refId);
         let result = BeanFactory.populateBean(ReferenceDto, data.data) as any;
         return result;
+    }
+
+    /**
+     * 保存增加或修改的数据.
+     * @param rows
+     * @param dsId
+     * @param callback
+     */
+    static saveRows(rows: Array<any>, dsId: number, callback: (result) => void) {
+        CommonUtils.handleResponse(NetRequest.axios.post("/data/saveRows/" + dsId, rows), callback);
+    }
+
+    /**
+     * 根据ID删除
+     * @param ids
+     * @param dsId
+     * @param callback
+     */
+    static deleteRowByIds(ids: Array<number>, dsId: number, callback: (result) => void) {
+        CommonUtils.handleResponse(NetRequest.axios.post("/data/deleteRowByIds/" + dsId, ids), callback);
+    }
+
+    /**
+     * 更新层次编码
+     */
+    static updateLevel(mapIdToCode, viewId: number, callback: (result) => void) {
+        CommonUtils.handleResponse(NetRequest.axios.post("/data/updateLevel/" + viewId, mapIdToCode), callback);
+    }
+
+    /**
+     * 查找表单行
+     * @param dsId
+     * @param rowId
+     * @param callback
+     */
+
+    static findTableRow(dsId, rowId, callback: (result) => void) {
+        CommonUtils.handleResponse(NetRequest.axios.get("/data/findTableRow/" + dsId + "/" + rowId
+        ), callback);
     }
 
 }

@@ -22,6 +22,8 @@ export class TreeUI<T extends BlockViewDto> extends BaseComponent<T> {
     protected extFilter = {};
     protected treeInfo: JsTreeInfo;
 
+    protected lstOnceReady: Array<() => void> = new Array<() => void>();
+
     static getTreeInstance(blockId, version?) {
         let blockDto = new BlockViewDto();
         blockDto.blockViewId = blockId;
@@ -59,7 +61,10 @@ export class TreeUI<T extends BlockViewDto> extends BaseComponent<T> {
         };
         this.jsTree = new JsTree<any>(this.treeInfo);
         this.$element.append(this.jsTree.getViewUI());
-        this.onUiDataReady();
+        this.jsTree.addReadyListener(() => {
+            this.onUiDataReady();
+        })
+
 
     }
 
@@ -69,7 +74,7 @@ export class TreeUI<T extends BlockViewDto> extends BaseComponent<T> {
 
     afterComponentAssemble(): void {
         CommonUtils.readyDo(() => {
-            return !!this.jsTree
+            return !!this.jsTree;
         }, () => {
             this.jsTree.afterComponentAssemble();
             super.afterComponentAssemble();
@@ -109,9 +114,21 @@ export class TreeUI<T extends BlockViewDto> extends BaseComponent<T> {
         treeInfo.requestMethod = JsTree.request_post;
         treeInfo.getFilter = () => {
             return {blockId: this.blockViewId, extFilter: JSON.stringify(this.extFilter), "_search": true};
+        };
+        treeInfo.onReady = () => {
+            this.fireOnceReadyEvent();
         }
         return treeInfo;
 
+    }
+
+    private fireOnceReadyEvent() {
+        if (this.lstOnceReady.length > 0) {
+            for (let listener of this.lstOnceReady) {
+                listener();
+            }
+            this.lstOnceReady.splice(0, this.lstOnceReady.length);
+        }
     }
 
     private findCompByTreeType(type, lstComponent: Array<Component>) {
@@ -123,9 +140,13 @@ export class TreeUI<T extends BlockViewDto> extends BaseComponent<T> {
         return null;
     }
 
-    reload() {
+    reload(onReady?: () => void) {
         this.canLoadData = true;
+        if (onReady) {
+            this.lstOnceReady.push(onReady);
+        }
         this.jsTree.reload();
+
     }
 
     protected createUI(): HTMLElement {

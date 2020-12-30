@@ -123,11 +123,19 @@ export function PopulateBean<T>(constructor: { new(...args: Array<any>): T }) {
             if (Array.isArray(args[0])) {
                 let arg = new Array<T>();
                 if (args[0].length > 0) {
+                    //如果都是指定的类别,就不再生成新的对象
+                    //这里只判断一条
+                    if (args[0][0] instanceof constructor) {
+                        return origin.apply(this, args);
+                    }
                     for (let obj of args[0]) {
                         arg.push(BeanFactory.populateBean(constructor, obj));
                     }
+                    args[0] = arg;
+                } else {
+                    return origin.apply(this, args)
                 }
-                args[0] = arg;
+
             } else {
                 args[0] = BeanFactory.populateBean(constructor, args[0]);
             }

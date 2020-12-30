@@ -72,8 +72,9 @@ export class DesignPanel<T> extends BaseUI<T> {
                 }
             },
             buttons: [{
-                icon: "fa fa-trash",
-                title: "删除",
+                id: "delete",
+                iconClass: "fa fa-trash",
+                hint: "删除",
                 clickHandler: (event, data) => {
                     this.deleteComp(data);
                 }

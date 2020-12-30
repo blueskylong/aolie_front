@@ -28,14 +28,16 @@ export class SchemaMainInfo extends BorderLayout<BorderLayoutProperty> {
             idField: "schemaId",
             url: "/dm/findAllSchemaDto",
             buttons: [{
-                icon: "fa fa-plus",
-                title: "增加",
-                clickHandler: (event, data) => {
+                id: "add",
+                iconClass: "fa fa-plus",
+                hint: "增加",
+                clickHandler: (event, data, id) => {
                     this.doAdd(data);
                 }
             }, {
-                icon: "fa fa-trash",
-                title: "删除",
+                id: "delete",
+                iconClass: "fa fa-trash",
+                hint: "删除",
                 isShow: (data) => {
                     if (!data.data) {
                         return false;
@@ -112,10 +114,6 @@ export class SchemaMainInfo extends BorderLayout<BorderLayoutProperty> {
 
     setSelectChangeListener(listener: GeneralEventListener) {
         this.selectChangeListener = listener;
-    }
-
-    private getData() {
-        return this.fSchema.getValue();
     }
 
     protected initEvent() {

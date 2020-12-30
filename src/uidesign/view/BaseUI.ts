@@ -76,7 +76,9 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
      * 当视图被装配后的处理
      */
     public afterComponentAssemble(): void {
-
+        if (!this.$element) {
+            this.getViewUI();
+        }
         this.ready = true;
         this.fireReadyEvent();
     };
@@ -125,6 +127,14 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
 
     public shown() {
         this.$element.attr("display", "display");
+    }
+
+    /**
+     * 父容器的值发生了变化,可能会影响此控件的显示属性,需要变化,如选择框,可能需要根据父亲值的变化,重新生成选择项
+     * @param fullValue
+     */
+    public parentValueChanged(fullValue: object): void {
+
     }
 
     public isReady() {

@@ -11,4 +11,6 @@ export class PageDetailDto extends BaseDto {
     innerButton: number;
     viewType: number;
     loadOnshow: number;
+    //当前界面的初始化状态
+    initState: number;
 }

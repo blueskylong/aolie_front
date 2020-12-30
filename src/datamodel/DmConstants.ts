@@ -1,4 +1,6 @@
 export class DmConstants {
+    static DEFAULT_SCHEMA_ID = 2;//默认的方案ID
+    static DEFAULT_REFERENCE_ID = 0;//默认的引用方案
     /**
      * 关系类型
      */

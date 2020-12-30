@@ -15,6 +15,7 @@ import {Constants} from "../common/Constants";
 import {ColumnDto} from "../datamodel/dto/ColumnDto";
 import {Column} from "../datamodel/DmRuntime/Column";
 import {BeanFactory} from "../decorator/decorator";
+import {ButtonInfo, Toolbar, ToolbarInfo} from "../uidesign/view/JQueryComponent/Toolbar";
 
 
 export class Form extends BaseComponent<BlockViewDto> {
@@ -40,6 +41,13 @@ export class Form extends BaseComponent<BlockViewDto> {
     protected viewer: BlockViewer;
     //是否本地使用
     private isLocal = false;
+    private toolDefaultPos = [20, 1];
+
+    private toolbar: Toolbar<ToolbarInfo>;
+    /**
+     * 工具栏是不是有位置
+     */
+    private toolbarHasPosition = false;
 
 
     constructor(dto: BlockViewDto) {
@@ -129,6 +137,7 @@ export class Form extends BaseComponent<BlockViewDto> {
             if (this.properties.fieldToCamel == 1) {
                 node.data.column.getColumnDto().fieldName
                     = CommonUtils.toCamel(node.data.column.getColumnDto().fieldName);
+                node.data.isConvertToCamel = true;
             }
             this.createSubComponents(this.$formBody.get(0), node);
         }
@@ -137,7 +146,59 @@ export class Form extends BaseComponent<BlockViewDto> {
     }
 
     protected onUiDataReady() {
+        this.ready = true;
+        this.fireReadyEvent();
+    }
 
+    /**
+     * 当视图被装配后的处理
+     */
+    afterComponentAssemble(): void {
+    }
+
+    addButton(btnInfo: ButtonInfo | Array<ButtonInfo>) {
+        if (!this.toolbar) {
+            this.initToolBar();
+        }
+        if (btnInfo instanceof Array) {
+            for (let btn of btnInfo) {
+                this.toolbar.addButton(btn);
+            }
+        } else {
+            this.toolbar.addButton(btnInfo);
+        }
+
+    }
+
+    private initToolBar() {
+        this.toolbar = new Toolbar<ToolbarInfo>({float: true});
+        this.$element.append(this.toolbar.getViewUI());
+        this.toolbar.setPosition(this.toolDefaultPos[0], this.toolDefaultPos[1]);
+        this.toolbar.afterComponentAssemble();
+        this.toolbarHasPosition = true;
+        this.toolbar.setToolbarDragedListener((args) => {
+            if (Math.abs(args.pos[0] - this.toolDefaultPos[0]) < 200
+                && Math.abs(args.pos[1] - this.toolDefaultPos[1]) < 20) {
+                this.toolbarHasPosition = true;
+            } else {
+                this.toolbarHasPosition = false;
+            }
+            this.updateToolbarPosition()
+        });
+        this.toolbar.setDoubleClickHandler(() => {
+            this.toolbarHasPosition = true;
+            this.updateToolbarPosition();
+        });
+        this.updateToolbarPosition();
+    }
+
+    private updateToolbarPosition() {
+        if (this.toolbarHasPosition) {
+            this.$element.addClass("form-has-toolbar");
+            this.toolbar.setPosition(20, 1)
+        } else {
+            this.$element.removeClass("form-has-toolbar");
+        }
     }
 
     setDisplayComponent(viewer: BlockViewer) {
@@ -198,12 +259,15 @@ export class Form extends BaseComponent<BlockViewDto> {
         return 0;
     }
 
-    getValue(): StringMap<object> {
+    /**
+     * 这时注意,返回的是StringMap
+     */
+    getValue(): object {
         this.stopEdit();
         if (!this.values) {
             this.values = new StringMap<object>();
         }
-        return this.values;
+        return this.values.getValueAsObject();
     }
 
     setFieldValue(field, value) {
@@ -215,14 +279,14 @@ export class Form extends BaseComponent<BlockViewDto> {
     }
 
     getValueForObject<T>(clazz: { new(...args: Array<any>): T }): T {
-        return BeanFactory.populateBean(clazz, this.getValue().getValueAsObject());
+        return BeanFactory.populateBean(clazz, this.getValue());
     }
 
 
     setEditable(editable: boolean) {
         this.editable = editable;
         if (this.subComponents) {
-            this.subComponents.forEach((key,value,  map) => {
+            this.subComponents.forEach((key, value, map) => {
                 value.setEditable(editable);
             });
         }
@@ -235,7 +299,7 @@ export class Form extends BaseComponent<BlockViewDto> {
     setEnable(enable: boolean) {
         this.enabled = enable;
         if (this.subComponents) {
-            this.subComponents.forEach((key,value,  map) => {
+            this.subComponents.forEach((key, value, map) => {
                 value.setEnable(enable);
             });
         }
@@ -258,14 +322,34 @@ export class Form extends BaseComponent<BlockViewDto> {
         }
     }
 
+    /**
+     * 根据配置,生成默认数据
+     */
+    protected getDefaultValues() {
+        let lstComponent = this.viewer.getLstComponent();
+        let value = {};
+        if (!lstComponent) {
+            return value;
+        }
+        for (let component of lstComponent) {
+            let value = component.getColumn().getColumnDto().defaultValue;
+            if (typeof value != "undefined" && value != null) {
+                value[component.getColumn().getColumnDto().fieldName] = value;
+            }
+        }
+        return value;
+
+    }
+
     protected updateSubComponentValues() {
         let objValue;
-        this.subComponents.forEach((key,value,  map) => {
+        let fullValues = this.values.getValueAsObject();
+        this.subComponents.forEach((key, value, map) => {
             objValue = this.values.get(key);
             if (CommonUtils.isEmpty(objValue)) {
-                this.subComponents.get(key).setValue(null);
+                this.subComponents.get(key).setValue(null, fullValues);
             } else {
-                this.subComponents.get(key).setValue(objValue);
+                this.subComponents.get(key).setValue(objValue, fullValues);
             }
         });
 
@@ -286,8 +370,25 @@ export class Form extends BaseComponent<BlockViewDto> {
             }
             this.values.set(fieldName + "", value);
             this.fireValueChanged(fieldName as any, value);
+
+            this.calcFormula(fieldName as any);
+            //通知子控件
+            this.notifySubControlChanged();
         }
-        this.calcFormula(fieldName as any);
+
+    }
+
+    /**
+     * 通知子控件,值发生了变化
+     */
+    private notifySubControlChanged() {
+        if (!this.subComponents) {
+            return;
+        }
+        let value = this.values.getValueAsObject();
+        this.subComponents.forEach((key, com, map) => {
+            com.parentValueChanged(value);
+        });
     }
 
     private calcFormula(fieldWhoChange: string) {
@@ -297,7 +398,7 @@ export class Form extends BaseComponent<BlockViewDto> {
     destroy(): boolean {
         //先移除子控件
         if (this.subComponents) {
-            this.subComponents.forEach(( key,value, map) => {
+            this.subComponents.forEach((key, value, map) => {
                 value.destroy();
             });
         }
@@ -306,6 +407,9 @@ export class Form extends BaseComponent<BlockViewDto> {
         this.values = null;
         this.generator = null;
         this.lstCloseListener = null;
+        if (this.toolbar) {
+            this.toolbar.destroy();
+        }
 
         return super.destroy();
     }

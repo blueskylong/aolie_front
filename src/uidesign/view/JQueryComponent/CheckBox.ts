@@ -15,4 +15,22 @@ export class CheckBox<T extends Component> extends TextInput<T> {
         this.getEditor().prop("checked", value);
     }
 
+    setEditable(editable: boolean) {
+        super.setEditable(editable);
+        if (editable) {
+            this.getEditor().removeAttr("disabled");
+        } else {
+            this.getEditor().attr("disabled", "readonly");
+        }
+    }
+
+    setEnable(enable: boolean) {
+        super.setEnable(enable);
+        if (enable) {
+            this.getEditor().removeAttr("disabled");
+        } else {
+            this.getEditor().attr("disabled", "disabled");
+        }
+    }
+
 }

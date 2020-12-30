@@ -41,6 +41,7 @@ export default abstract class DmDesignBaseView<T> extends BaseUI<T> {
         }
         ]
     };
+
     public static JSPLUMB = jsPlumb.jsPlumb.getInstance(DmDesignBaseView.DEFAULT_PARAM as any);
     protected static TARGET_PARAM = {
         filter: '.column-title',

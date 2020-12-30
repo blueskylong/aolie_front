@@ -17,6 +17,9 @@ export abstract class JQBaseComponent<T extends Component> extends BaseComponent
      */
     protected editor: JQuery;
 
+    protected editable = true;
+    protected enabled = true;
+
     afterComponentAssemble(): void {
     }
 
@@ -37,6 +40,7 @@ export abstract class JQBaseComponent<T extends Component> extends BaseComponent
     }
 
     setEditable(editable: boolean) {
+        this.editable = editable;
         if (!this.editor) {
             return;
         }
@@ -48,6 +52,7 @@ export abstract class JQBaseComponent<T extends Component> extends BaseComponent
     }
 
     setEnable(enable: boolean) {
+        this.enabled = enable;
         if (!this.editor) {
             return;
         }
@@ -58,7 +63,7 @@ export abstract class JQBaseComponent<T extends Component> extends BaseComponent
         }
     }
 
-    setValue(value: any) {
+    setValue(value: any, extendData?) {
         if (!this.editor) {
             return;
         }
@@ -70,7 +75,6 @@ export abstract class JQBaseComponent<T extends Component> extends BaseComponent
         }
 
     }
-
 
 
 }

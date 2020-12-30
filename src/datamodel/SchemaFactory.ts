@@ -8,6 +8,7 @@ import {TableInfo} from "./DmRuntime/TableInfo";
 import {Logger} from "../common/Logger";
 import {TableColumnRelation} from "./DmRuntime/TableColumnRelation";
 import {Column} from "./DmRuntime/Column";
+import {DmConstants} from "./DmConstants";
 
 export class SchemaFactory {
     static schemaId = 2;
@@ -80,6 +81,7 @@ export class SchemaFactory {
         SchemaFactory.CACHE_OTHER.set(SchemaFactory.KEY_COL_TABLE, mapColIdToTable);
         SchemaFactory.CACHE_OTHER.set(SchemaFactory.KEY_COLID_COL, mapColIdToCol);
         SchemaFactory.CACHE_OTHER.set(SchemaFactory.KEY_TABLEID_TABLE, mapTableIdToTable);
+        schema.initExtendInfo();
     }
 
     /**
@@ -108,7 +110,12 @@ export class SchemaFactory {
             .CACHE_OTHER.get(SchemaFactory.KEY_TABLEID_TABLE)).get(tableid + "_" + version);
     }
 
-    static getTableRelation(tableId1, tableId2): TableColumnRelation {
+    /**
+     * 查询二张表的直接关系
+     * @param tableId1
+     * @param tableId2
+     */
+    static getTablesRelation(tableId1, tableId2): TableColumnRelation {
         let tableInfo = this.getTableByTableId(tableId1);
         if (!tableInfo) {
             Logger.error("没有查询到表信息");
@@ -130,7 +137,134 @@ export class SchemaFactory {
 
     }
 
+    /**
+     * 查询表与其它表的所有关系
+     * @param tableId
+     */
+    static getTableRelations(tableId: number): Array<TableColumnRelation> {
+        let tableInfo = this.getTableByTableId(tableId);
+        if (!tableInfo) {
+            Logger.error("没有查询到表信息");
+            return null;
+        }
+        let result = new Array<TableColumnRelation>();
+        let schemaId = tableInfo.getTableDto().schemaId;
+        let schema = SchemaFactory.getSchema(schemaId, tableInfo.getTableDto().versionCode);
+        let lstRelation = schema.getLstRelation();
+        if (!lstRelation) {
+            return null;
+        }
+        for (let relation of lstRelation) {
+            if (relation.getTableTo().getTableDto().tableId == tableId
+                || relation.getTableFrom().getTableDto().tableId == tableId) {
+                result.push(relation);
+            }
+        }
+        return result;
+    }
 
+
+    /**
+     * 判断二个表是不是有补祖孙关系,传送的关系是,祖为一对多,或一对一的传递到此表
+     * 查询方法,是从子开始向上查找,直到找到头
+     * @param childId
+     * @param ancestorId
+     */
+    public static isChildAndAncestor(childId, ancestorId): boolean {
+        let tableRelations = SchemaFactory.getTableRelations(childId);
+        if (!tableRelations || tableRelations.length == 0) {
+            return false;
+        }
+        let stack = new Array<number>();
+        for (let tableRelation of tableRelations) {
+            if (SchemaFactory.isMultiToOneRelation(childId, ancestorId, tableRelation)) {
+                return true;
+            }
+            //如果不是从表关系,则不处理
+            if (SchemaFactory.isTableSlaveRelation(childId, tableRelation)) {
+                continue;
+            }
+            ///收集待处理的关系
+            stack.push(tableRelation.getTableTo().getTableDto().tableId === childId ?
+                tableRelation.getTableFrom().getTableDto().tableId : tableRelation.getTableTo().getTableDto().tableId);
+        }
+        //记录所有出现过的关系,
+        let allAppeardRelation = new Array<number>();
+        allAppeardRelation.push(...stack);
+        let newChildId;
+        while (stack.length > 0) {
+            //取得最前面的表进行处理
+            newChildId = stack.pop();
+            //查询关系
+            tableRelations = SchemaFactory.getTableRelations(newChildId);
+            for (let tableRelation of tableRelations) {
+                if (SchemaFactory.isMultiToOneRelation(newChildId, ancestorId, tableRelation)) {
+                    return true;
+                }
+                //如果不是从表关系,则不处理
+                if (SchemaFactory.isTableSlaveRelation(newChildId, tableRelation)) {
+                    continue;
+                }
+                ///收集待处理的关系
+                let nextId = tableRelation.getTableTo().getTableDto().tableId === newChildId ?
+                    tableRelation.getTableFrom().getTableDto().tableId : tableRelation.getTableTo().getTableDto().tableId;
+                if (stack.indexOf(nextId) == -1) {//如果是新关系,则压栈.
+                    stack.push(nextId);
+                }
+            }
+
+        }
+        return false;
+
+    }
+
+    /**
+     * 判断是不是当前二张表的关系,并且是主从关系,一对一也符合这样的关系
+     * @param childId
+     * @param ancestorId
+     * @param tableRelation
+     */
+    private static isMultiToOneRelation(childId, ancestorId, tableRelation: TableColumnRelation) {
+        let tableIdFrom = tableRelation.getTableFrom().getTableDto().tableId;
+        let tableIdTo = tableRelation.getTableTo().getTableDto().tableId;
+        let relationType = tableRelation.getDto().relationType;
+        if (ancestorId == tableIdFrom
+            && childId == tableIdTo
+            && (relationType == DmConstants.RelationType.oneToMulti ||
+                relationType == DmConstants.RelationType.oneToOne)) {
+            return true;
+        }
+        if (ancestorId == tableIdTo
+            && ancestorId == tableIdFrom
+            && (relationType == DmConstants.RelationType.multiToOne ||
+                relationType == DmConstants.RelationType.oneToOne)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 判断指定的表是不是从表,一对一也符合这样的关系
+     * @param childId
+     * @param ancestorId
+     * @param tableRelation
+     */
+    private static isTableSlaveRelation(tableId, tableRelation: TableColumnRelation) {
+        let tableIdFrom = tableRelation.getTableFrom().getTableDto().tableId;
+        let tableIdTo = tableRelation.getTableTo().getTableDto().tableId;
+        let relationType = tableRelation.getDto().relationType;
+        if (tableId == tableIdFrom
+            && (relationType == DmConstants.RelationType.oneToMulti ||
+                relationType == DmConstants.RelationType.oneToOne)) {
+            return true;
+        }
+        if (tableId == tableIdTo
+            && (relationType == DmConstants.RelationType.multiToOne ||
+                relationType == DmConstants.RelationType.oneToOne)) {
+            return true;
+        }
+        return false;
+    }
 }
 
 

@@ -33,6 +33,7 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
         this.btnListeners = new Array<(ClickEvent) => void>();
         this.btns = new Array<HTMLElement | string>();
         this.$element.modal('hide');
+        this.destroy();
     }
 
     protected beforeShow(value?: any) {
@@ -96,6 +97,26 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
         return true;
     }
 
+    setOkButtonVisible(isShow) {
+        if (isShow) {
+            this.$element.find(Dialog.OK_BUTTON_SELECTOR).removeClass(Dialog.HIDDEN_CLASS);
+        } else {
+            this.$element.find(Dialog.OK_BUTTON_SELECTOR).addClass(Dialog.HIDDEN_CLASS);
+        }
+    }
+
+    setOkButtonText(text) {
+        this.$element.find(Dialog.OK_BUTTON_SELECTOR).text(text);
+    }
+
+    setCancelButtonVisible(isShow) {
+        if (isShow) {
+            this.$element.find(Dialog.CLOSE_BUTTON_SELECTOR).removeClass(Dialog.HIDDEN_CLASS);
+        } else {
+            this.$element.find(Dialog.CLOSE_BUTTON_SELECTOR).addClass(Dialog.HIDDEN_CLASS);
+        }
+    }
+
     public addButton(btn: HTMLElement | string, clickHandler: (event: ClickEvent) => void) {
         if (this.$element) {
             this.appendButton(btn, clickHandler, this.$element);
@@ -122,6 +143,19 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
         } else {
             return null;
         }
+    }
+
+    static showConfirm(message, onOk) {
+        let dlgInfo = {
+            title: "确认",
+
+            onOk: () => {
+                onOk();
+                return true
+            },
+            content: message
+        }
+        new Dialog(dlgInfo).show();
     }
 
 }

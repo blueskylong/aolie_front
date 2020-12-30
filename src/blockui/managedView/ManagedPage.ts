@@ -68,9 +68,7 @@ export class ManagedPage<T extends PageUIInfo> extends PageUI<T> {
             baseUi = instance;
         }
         //如果需要在创建时就显示数据,则这里需要调用一次,默认所有的组件都不直接取数
-        if (ManagedPage.isAutoManagedUI(baseUi) && pageDetail.loadOnshow == 1 && baseUi.loadData) {
-            baseUi.loadData();
-        }
+
         return baseUi;
     }
 
@@ -91,11 +89,31 @@ export class ManagedPage<T extends PageUIInfo> extends PageUI<T> {
         return null;
     }
 
+    isReady(): boolean {
+        if (!this.lstBaseUI && this.layout) {
+            return true;
+        }
+        if (this.lstBaseUI) {
+            for (let ui of this.lstBaseUI) {
+                if (!ui.isReady()) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+
     /**
      * 判断是不是自管理类型
      * @param obj
      */
     protected static isAutoManagedUI(obj: Object) {
-        return obj['getPageDetail'] && obj["getTableIds"] && obj["setManageEventListener"];
+        return obj['getPageDetail'] && obj["getTableIds"] && obj["setManageCenter"];
+    }
+
+    getUiDataNum(): number {
+        return Constants.UIDataNum.multi;
     }
 }

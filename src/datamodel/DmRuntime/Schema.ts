@@ -9,6 +9,9 @@ import {TableColumnRelation} from "./TableColumnRelation";
 import {Column} from "./Column";
 import {ConstraintDto} from "../dto/ConstraintDto";
 import TableDto from "../dto/TableDto";
+import {SchemaFactory} from "../SchemaFactory";
+import {DmConstants} from "../DmConstants";
+import {Alert} from "../../uidesign/view/JQueryComponent/Alert";
 
 export class Schema {
     private schemaDto: SchemaDto;
@@ -60,6 +63,7 @@ export class Schema {
     getSchemaDto(): SchemaDto {
         return this.schemaDto;
     }
+
 
     @PopulateBean(SchemaDto)
     setSchemaDto(value: SchemaDto) {
@@ -123,7 +127,7 @@ export class Schema {
     findColumn(colId: number): Column {
         if (this.lstTable && this.lstTable.length > 0) {
             for (let table of this.lstTable) {
-                let column = table.findColById(colId);
+                let column = table.getColById(colId);
                 if (column) {
                     return column;
                 }
@@ -139,7 +143,7 @@ export class Schema {
         //这里主是要约束要从DTO转成
         this.getLstConstraint().splice(0, this.getLstConstraint().length);
         if (this.lstConstraintDto) {
-            let index = 1
+            let index = 1;
             for (let dto of this.lstConstraintDto) {
                 dto.orderNum = index++;
                 let c = new Constraint();
@@ -149,4 +153,39 @@ export class Schema {
         }
 
     }
+
+    /**
+     * 很多信息需要在本地查询组装 ,如关系表中的表,并没有从服务器传过来
+     */
+    initExtendInfo() {
+        if (this.lstRelation) {
+            for (let relation of this.lstRelation) {
+                let dto = relation.getDto();
+                let tableFrom = SchemaFactory.getTableByTableId(SchemaFactory.getColumnById(dto.fieldFrom, dto.versionCode)
+                    .getColumnDto().tableId, dto.versionCode);
+                let tableTo = SchemaFactory.getTableByTableId(SchemaFactory.getColumnById(dto.fieldTo, dto.versionCode)
+                    .getColumnDto().tableId, dto.versionCode);
+                relation.setTableFrom(tableFrom);
+                relation.setTableTo(tableTo);
+            }
+        }
+
+
+    }
+
+    /**
+     * 保存前检查
+     */
+    check() {
+        if (this.getSchemaDto().schemaId == DmConstants.DEFAULT_REFERENCE_ID) {
+            for (let tableInfo of this.lstTable) {
+                if (!tableInfo.getLstReference() || tableInfo.getLstReference().length <= 0) {
+                    Alert.showMessage("表[" + tableInfo.getTableDto().tableName + "]没有引用信息");
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
 }

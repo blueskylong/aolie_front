@@ -1,6 +1,13 @@
 import BaseUI from "../BaseUI";
+import * as jsPlumb from "jsplumb";
+import ClickEvent = JQuery.ClickEvent;
+import {DragEventCallbackOptions} from "jsplumb";
 
 export class Toolbar<T extends ToolbarInfo> extends BaseUI<T> {
+    private lstButton = new Array<ToolbarButton<any>>();
+    private doubleClickHandler: Function;
+    private toolbarDragHandler: Function;
+
     protected createUI(): HTMLElement {
         return $(require("./templete/Toolbar.html")).get(0);
     }
@@ -15,23 +22,146 @@ export class Toolbar<T extends ToolbarInfo> extends BaseUI<T> {
                 this.addBtn(this.properties.btns[i], handler);
             }
         }
+        if (this.properties.float) {
+            this.$element.addClass("float-toolbar");
+            let opt = {};
+            opt['stop'] = (params: DragEventCallbackOptions) => {
+                if (this.toolbarDragHandler) {
+                    this.toolbarDragHandler(params);
+                }
+            };
+            jsPlumb.jsPlumb.getInstance().draggable(this.$element.get(0), opt);
+        }
+        super.afterComponentAssemble();
     }
 
-    public addBtn(title: string, handler?: (event) => void) {
-        let $btn = $("<button type=\"button\" class=\"btn btn-default\"></button>");
-        $btn.text(title);
-        this.$element.append($btn);
-        if (handler) {
-            $btn.on("click", (event) => {
-                handler(event);
+    setDoubleClickHandler(doubleClickHandler: Function) {
+        this.doubleClickHandler = doubleClickHandler;
+    }
+
+    setToolbarDragedListener(toolbarDragHandler: Function) {
+        this.toolbarDragHandler = toolbarDragHandler;
+    }
+
+    public addBtn(id, title: string, handler?: (event) => void) {
+        let btnInfo: ButtonInfo = {id: id, text: title, clickHandler: handler};
+        this.addButton(btnInfo);
+    }
+
+    public addButton(btnInfo: ButtonInfo) {
+        let button = new ToolbarButton(btnInfo);
+        this.lstButton.push(button);
+        this.$element.append(button.getViewUI());
+        button.afterComponentAssemble();
+
+    }
+
+    public addButtons(lstButton: Array<ButtonInfo>) {
+        if (lstButton) {
+            for (let btn of lstButton) {
+                this.addButton(btn);
+            }
+        }
+
+    }
+
+    destroy(): boolean {
+        for (let btn of this.lstButton) {
+            btn.destroy();
+        }
+        this.$element.find(".toolbar-handler").off("dblclick");
+        this.lstButton = null;
+        return super.destroy();
+    }
+    updateShow(){
+        if(this.lstButton){
+            for(let btn of this.lstButton){
+            }
+        }
+    }
+
+    protected initEvent() {
+        this.$element.find(".toolbar-handler").on("dblclick", (event) => {
+            if (this.doubleClickHandler) {
+                this.doubleClickHandler(event);
+            }
+        });
+    }
+
+
+    setPosition(left, top) {
+        this.$element.css("left", left);
+        this.$element.css("top", top);
+    }
+}
+
+export class ToolbarButton<T extends ButtonInfo> extends BaseUI<T> {
+    protected createUI(): HTMLElement {
+
+        let $dom = $(require("./templete/ToolbarButton.html"));
+        if (this.properties.text) {
+            $dom.find(".button-label").text(this.properties.text);
+        }
+        if (this.properties.iconClass) {
+            $dom.find(".button-icon").addClass(this.properties.iconClass);
+        }
+        if (this.properties.clickHandler) {
+            $dom.on("click", (event) => {
+                this.properties.clickHandler(event);
             });
         }
+        if (this.properties.hint) {
+            $dom.attr("title", this.properties.hint);
+        }
+        return $dom.get(0);
+    }
+
+    public updateShow(){
+        if(this.properties.isShow(this.properties)){
+
+        }
+    }
+
+    public setEnable(enabled: boolean) {
+        if (enabled) {
+            this.$element.removeClass("disabled");
+        } else {
+            this.$element.addClass("disabled");
+        }
+
+    }
+
+    public setVisible(visible: boolean) {
+        if (visible) {
+            this.$element.removeClass(ToolbarButton.HIDDEN_CLASS);
+        } else {
+            this.$element.addClass(ToolbarButton.HIDDEN_CLASS);
+        }
+    }
+
+    getId() {
+        return this.properties.id;
+    }
+
+    destroy(): boolean {
+        this.$element.off("click");
+        return super.destroy();
     }
 
 
 }
 
+export interface ButtonInfo {
+    id: string;
+    text?: string;
+    iconClass?: string;
+    hint?: string;
+    isShow?: (data) => boolean;
+    clickHandler?: (event: ClickEvent, data?, sourceComponent?) => void;
+}
+
 export interface ToolbarInfo {
     btns?: Array<string>,
     handler?: Array<(event) => void>,
+    float: boolean;
 }

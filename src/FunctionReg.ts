@@ -11,7 +11,7 @@ import "./funcdesign/PageDesign";
 import "./blockui/ManagedFunc";
 
 import "./test/TestFunc";
-import {MenuDto} from "./home/dto/MenuDto";
+import {MenuDto} from "./sysfunc/menu/dto/MenuDto";
 
 export class FunctionReg {
     static menus = {"1": "DmDesign", "2": "BlockDesign", "3": "PageDesign", "4": "ReferenceFunc", "99": "TestFunc"};

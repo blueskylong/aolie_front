@@ -25,6 +25,7 @@ import {Alert} from "../../uidesign/view/JQueryComponent/Alert";
 import {Toolbar, ToolbarInfo} from "../../uidesign/view/JQueryComponent/Toolbar";
 import {GeneralEventListener} from "../../blockui/event/GeneralEventListener";
 import {DmConstants} from "../../datamodel/DmConstants";
+import {Logger} from "../../common/Logger";
 
 
 export default class SchemaView extends DmDesignBaseView<SchemaDto> implements AttrChangeListener {
@@ -177,33 +178,41 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
     }
 
     saveSchema() {
-        this.schema.prepareData();
-        if (this.tables) {
-            for (let table of this.tables) {
-                table.prepareData();
+        CommonUtils.showMask();
+        try {
+            this.schema.prepareData();
+            if (this.tables) {
+                for (let table of this.tables) {
+                    table.prepareData();
+                }
             }
-        }
-        if (!this.check()) {
-            return;
-        }
+            if (!this.check()) {
+                CommonUtils.hideMask();
+                return;
+            }
 
-        this.schema.getSchemaDto().width = this.$canvas.width();
-        this.schema.getSchemaDto().height = this.$canvas.height();
-        this.schema.setLstRelation(this.getRelations());
-        DmDesignService.saveSchema(this.schema, (err) => {
-            if (err) {
-                alert(err);
-            } else {
-                if (this.afterSave) {
-                    this.afterSave();
+            this.schema.getSchemaDto().width = this.$canvas.width();
+            this.schema.getSchemaDto().height = this.$canvas.height();
+            this.schema.setLstRelation(this.getRelations());
+            DmDesignService.saveSchema(this.schema, (err) => {
+                if (err) {
+                    alert(err);
+                } else {
+                    if (this.afterSave) {
+                        this.afterSave();
+                    }
+                    Alert.showMessage({message: "保存成功"});
+                    if (this.refreshEvent) {
+                        this.refreshEvent.handleEvent("refresh", this.properties.schemaId, null);
+                    }
+                    // this.refresh();
                 }
-                Alert.showMessage({message: "保存成功"});
-                if (this.refreshEvent) {
-                    this.refreshEvent.handleEvent("refresh", this.properties.schemaId, null);
-                }
-                // this.refresh();
-            }
-        })
+                CommonUtils.hideMask();
+            })
+        } catch (e) {
+            CommonUtils.hideMask();
+            Logger.error(e.message);
+        }
     }
 
     getRelations() {
@@ -280,7 +289,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
         );
         this.$canvas.css("top", 30);
         this.$canvas.css("left", 10);
-        $(this.toolBar.getViewUI()).css("top", 30).css("left", 10);
+        this.toolBar.setPosition(10, 30);
 
         EventBus.addListener(EventBus.TABLE_REMOVE,
             {
@@ -300,24 +309,24 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
             this.adjustTitlePosition();
         });
 
-        this.toolBar.addBtn("保存", (e) => {
+        this.toolBar.addBtn("save", "保存", (e) => {
             this.saveSchema();
         });
-        this.toolBar.addBtn("刷新", (e) => {
+        this.toolBar.addBtn("refresh", "刷新", (e) => {
             this.refresh();
         });
-        this.toolBar.addBtn("恢复显示比例", (e) => {
+        this.toolBar.addBtn("restoreDisp", "恢复显示比例", (e) => {
             this.restore();
         });
 
-        this.toolBar.addBtn("收缩", (e) => {
+        this.toolBar.addBtn("collapse", "收缩", (e) => {
             this.shrinkAll();
         });
 
-        this.toolBar.addBtn("展开", (e) => {
+        this.toolBar.addBtn("open", "展开", (e) => {
             this.prompAll();
         });
-        this.toolBar.addBtn("服务器缓存刷新", (e) => {
+        this.toolBar.addBtn("clearServerCache", "服务器缓存刷新", (e) => {
             this.refreshServerCache();
         });
         this.adjustTitlePosition();
@@ -372,25 +381,31 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
             this.ready = true;
             return;
         }
+        CommonUtils.showMask();
         DmService.findSchemaInfo(this.properties.schemaId, this.properties.versionCode)
             .then((result) => {
-                let schema = BeanFactory.populateBean(Schema, result.data);
-                this.schema = schema;
-                this.properties = schema.getSchemaDto();
-                this.initTables(schema.getLstTable());
-                this.initRelation(schema.getLstRelation());
-                this.updateTableProfile();
-                if (this.properties.width) {
-                    this.$canvas.width(this.properties.width);
+                try {
+                    let schema = BeanFactory.populateBean(Schema, result.data);
+                    this.schema = schema;
+                    this.properties = schema.getSchemaDto();
+                    this.initTables(schema.getLstTable());
+                    this.initRelation(schema.getLstRelation());
+                    this.updateTableProfile();
+                    if (this.properties.width) {
+                        this.$canvas.width(this.properties.width);
+                    }
+                    if (this.properties.height) {
+                        this.$canvas.height(this.properties.height);
+                    }
+                    this.ready = true;
+                    if (this.dataReady) {
+                        this.dataReady();
+                    }
+                    this.setTitle(schema.getSchemaDto().schemaName);
+                } finally {
+                    CommonUtils.hideMask();
                 }
-                if (this.properties.height) {
-                    this.$canvas.height(this.properties.height);
-                }
-                this.ready = true;
-                if (this.dataReady) {
-                    this.dataReady();
-                }
-                this.setTitle(schema.getSchemaDto().schemaName);
+
             });
 
     }
@@ -497,7 +512,8 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
             this.relationDlg.show(SchemaView.DEFAULT_RELATION_TYPE);
             return true;
         });
-        this.getJsplumb().draggable(this.$element.find(".panel-tools").get(0));
+        this.toolBar.afterComponentAssemble();
+
     }
 
     private getColumnIdByElementID(elementId: string) {
@@ -571,6 +587,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
         this.schema = null;
         this.connectionRelations = null;
         this.curConnection = null;
+        this.toolBar.destroy();
         super.destroy();
         $.contextMenu("destroy");
         //jsplumb的所有设置和事件都要销毁,否则不可以重复使用
@@ -584,7 +601,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
 
     protected createUI(): HTMLElement {
         let $html = $(require("../template/SchemaView.html"));
-        this.toolBar = new Toolbar<ToolbarInfo>({});
+        this.toolBar = new Toolbar<ToolbarInfo>({float: true});
         $html.append(this.toolBar.getViewUI());
         this.$canvas = $html.find(".schema-view");
         this.$title = $html.find(".schema-title-container");
@@ -745,6 +762,9 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
             if (!this.beforeSave(this.schema)) {
                 return false;
             }
+        }
+        if (!this.schema.check()) {
+            return false;
         }
         return true;//TODO
     }

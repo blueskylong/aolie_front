@@ -59,20 +59,6 @@ export default class PageUI<T extends PageUIInfo> extends BaseComponent<any> {
             this.layout.addComponent(detail.pagePosition, baseUI);
         }
         this.ready = true;
-        CommonUtils.readyDo(() => {
-            if (!this.pageInfo.getPageDetail() || this.pageInfo.getPageDetail().length == 0) {
-                return true;
-            }
-            for (let baseUI of this.lstBaseUI) {
-                if (!baseUI.isReady()) {
-                    return false;
-                }
-            }
-            return true;
-        }, () => {
-            this.fireReadyEvent();
-        });
-
     }
 
     protected async createSubUI(pageDetail: PageDetailDto) {
@@ -105,10 +91,29 @@ export default class PageUI<T extends PageUIInfo> extends BaseComponent<any> {
     }
 
     afterComponentAssemble(): void {
+        //这个只能等到所有子界面存在后,才可以调用
         CommonUtils.readyDo(() => {
-            return this.isReady();
+            if (!this.pageInfo || this.pageInfo.getPageDetail().length != this.lstBaseUI.length) {
+                return false;
+            }
+            return true;
         }, () => {
             this.layout.afterComponentAssemble();
+
+        });
+        //这个只能等到所有子界面存完成后,才可以调用
+        CommonUtils.readyDo(() => {
+            if (!this.pageInfo.getPageDetail() || this.pageInfo.getPageDetail().length == 0) {
+                return true;
+            }
+            for (let baseUI of this.lstBaseUI) {
+                if (!baseUI.isReady()) {
+                    return false;
+                }
+            }
+            return true;
+        }, () => {
+            this.fireReadyEvent();
         });
 
     }

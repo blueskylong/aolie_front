@@ -54,18 +54,22 @@ export class ReferenceTree<T extends ReferenceTreeInfo> extends BaseComponent<T>
             return !!this.jsTree
         }, () => {
             this.jsTree.afterComponentAssemble();
+            super.afterComponentAssemble();
         });
     }
 
     private genTreeInfo(): JsTreeInfo {
-
         return {idField: "id", codeField: "code", textField: "name"};
-
     }
 
     reload() {
-        this.canLoadData = true;
-        this.jsTree.reload();
+        CommonUtils.readyDo(() => {
+            return this.isReady();
+        }, () => {
+            this.canLoadData = true;
+            this.jsTree.reload();
+        });
+
     }
 
     protected createUI(): HTMLElement {

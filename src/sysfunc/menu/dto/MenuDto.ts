@@ -1,7 +1,7 @@
 /**
  * 菜单信息
  */
-import {BaseDto} from "../../datamodel/dto/BaseDto";
+import {BaseDto} from "../../../datamodel/dto/BaseDto";
 
 export class MenuDto extends BaseDto {
     menuId: number;
@@ -11,6 +11,7 @@ export class MenuDto extends BaseDto {
     pageId: number;
     params: string;
     enabled: number;
-    defalutState: number;
-    funcName;
+    defaultState: number;
+    funcName: string;
+    memo: string;
 }

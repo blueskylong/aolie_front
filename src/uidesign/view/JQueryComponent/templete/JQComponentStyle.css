@@ -1,4 +1,8 @@
-
+/*
+DoderBlue	道奇蓝	#1E90FF	30,144,255
+DarkOrange	深橙色	#FF8C00	255,140,0
+OrangeRed	橙红色	#FF4500	255,69,0
+*/
 .comp-title {
     text-align: right;
 }
@@ -13,14 +17,23 @@
 
 .toolbar-handler {
     width: 10px;
-    background-color: #2793da;
+    min-height: 31px;
+    margin-right: 15px;
+    background-color: #1E90FF;
 }
 
-.panel-tools {
+.btn-toolbar .button-icon {
+    font-size: large;
+}
+.btn-toolbar .toolbar-button{
+    cursor: pointer;
+}
+
+.btn-toolbar {
     position: absolute;
-    top: 10px;
-    left: 10px;
+    padding-right: 15px;
     background-color: rgba(255, 255, 255, 0.9);
+    border: solid 1px darkgray;
     border-radius: 0px 15px 15px 0px;
     z-index: 3;
 }
@@ -35,9 +48,13 @@
     position: relative;
 }
 
+.dm-form.form-has-toolbar {
+    padding-top: 45px;
+}
+
 .dm-form .form-head {
     cursor: auto;
-    background-color: #b8d9f7;
+    background-color: #1E90FF;
     padding: 5px;
     margin-bottom: 6px;
     width: 100%;
@@ -71,7 +88,19 @@
     box-shadow: 0px 0px 5px 5px #ddd;
 }
 
-.card-list .btn-add:hover {
+.card-list .btn-save {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    font-size: 40px;
+    line-height: 45px;
+    border-radius: 10px;
+    border: 1px solid #9fd312;
+    margin: 5px;
+    color: #9fd312;
+}
+
+.card-list .btn-add:hover, .card-list .btn-save:hover {
     background-color: darkgray;
 }
 
@@ -99,11 +128,11 @@
 .tree-button-toolbar span {
     font-size: 1.3rem;
     margin: 3px 4px;
-    color: goldenrod;
+    color: #1E90FF;;
 }
 
 .tree-button-toolbar span:hover {
-    color: red;
+    color: darkorange;
 }
 
 .js-tree {
@@ -115,3 +144,31 @@
     display: none;
 }
 
+.btn-toolbar .toolbar-button:not(.disabled):hover {
+    background-color: darkorange;
+    color: white;
+    font-weight: bold;
+}
+
+.btn-toolbar .toolbar-button.disabled {
+    color: gray;
+}
+
+.btn-toolbar .toolbar-button {
+    padding: 5px 10px 5px;
+    text-align: center;
+    align-content: center;
+}
+
+.btn-toolbar label {
+    margin-bottom: 0px;
+}
+
+.float-toolbar {
+    position: absolute;
+    min-width: 90px;
+}
+
+.jstree-default .jstree-node .jstree-disabled.jstree-clicked {
+    background-color: darkorange;
+}

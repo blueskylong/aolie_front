@@ -24,30 +24,36 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
 
     private getDefaultValue: () => any;
 
-    protected editable = false;
-    protected enable = true;
+    private beforeAdd: (card: CardList<any>, value) => boolean;
+
+
     protected values = [];
     protected removeAble = false;
     protected isShowHead = false;
     protected curForm: Form = null;
     private lstSelectChangeListener: Array<GeneralEventListener>;
 
+    protected showSave = false;
+    protected sortable = false;
+
+    protected showAdd = false;
+
 
     protected createUI(): HTMLElement {
         this.initViewer();
         let $ele = $(require("../templete/CardList.html"));
         $ele.find(".btn-add").on("click", (event) => {
-            let value = {};
-            if (this.getDefaultValue) {
-                value = this.getDefaultValue();
-            }
-            this.values.push(value);
-            this.addNewCard(value);
+
+            this.addNewCard({});
             this.updateBtnPosition();
             this.updateHint();
         });
 
         return $ele.get(0);
+    }
+
+    setBeforeAdd(func: (card: CardList<any>) => boolean) {
+        this.beforeAdd = func;
     }
 
     protected fireSelectChangeEvent() {
@@ -60,11 +66,29 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
         }
     }
 
+
     static getInstance(blockId, version?) {
         let blockDto = new BlockViewDto();
         blockDto.blockViewId = blockId;
         blockDto.versionCode = version || GlobalParams.getLoginVersion();
         return new CardList(blockDto);
+    }
+
+    protected initSubControllers() {
+        this.setShowSave(this.showSave, true);
+        this.setRemoveable(this.removeAble, true);
+        this.setShowHead(this.isShowHead, true);
+        this.setSortable(this.sortable, true);
+        this.setShowAdd(this.showAdd, true);
+    }
+
+    /**
+     * 可以编辑,有表头,有增加,有删除
+     */
+    setFullEditable() {
+        this.setEditable(true);
+        this.setShowAdd(true);
+        this.setRemoveable(true);
     }
 
     async initViewer() {
@@ -102,20 +126,37 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
     }
 
 
-    showHead(isShowHead) {
-        if (this.isShowHead == isShowHead) {
+    setShowHead(isShowHead, force = false) {
+        if (this.isShowHead == isShowHead && !force) {
             return;
         }
         this.isShowHead = isShowHead;
         this.updateShow();
     }
 
-    setRemoveable(removeAble) {
+    setRemoveable(removeAble, force = false) {
+        if (this.removeAble == removeAble && !force) {
+            return;
+        }
         this.removeAble = removeAble;
         this.updateShow();
     }
 
+    setShowAdd(isShow: boolean, force = false) {
+        if (this.showAdd == isShow && !force) {
+            return;
+        }
+        this.showAdd = isShow;
+        if (this.showAdd) {
+            this.setEditable(true);
+            this.$element.find(".btn-add").removeClass(CardList.UN_VISIBLE_CLASS);
+        } else {
+            this.$element.find(".btn-add").addClass(CardList.UN_VISIBLE_CLASS);
+        }
+    }
+
     private updateShow() {
+
         if (this.removeAble && this.isShowHead) {
             if (this.lstForm) {
                 for (let form of this.lstForm) {
@@ -132,16 +173,15 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
                 form.showHead(false);
             }
         }
+
+
     }
 
-    setEditable(editable: boolean) {
-        this.editable = editable;
-        if (this.lstForm) {
-            for (let form of this.lstForm) {
-                form.setEditable(editable);
-            }
+    setSortable(sortable: boolean, force = false) {
+        if (this.sortable == sortable && !force) {
+            return;
         }
-        if (editable) {
+        if (this.sortable) {
             this.$element['dragsort']({
                 dragEnd: () => {
                     let lstForm = this.lstForm;
@@ -169,10 +209,34 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
                 }
             });
         } else {
-            this.$element["dragsort"]("destroy");
-            this.$element.find(".btn-add").addClass(CardList.UN_VISIBLE_CLASS)
+            this.$element['dragsort']("destroy");
         }
-        this.updateShow();
+
+    }
+
+    setEditable(editable: boolean, force = false) {
+        if (this.editable == editable && !force) {
+            return;
+        }
+        if (this.lstForm) {
+            for (let form of this.lstForm) {
+                form.setEditable(this.editable);
+            }
+        }
+
+    }
+
+    setShowSave(isShow: boolean, force = false) {
+        if (this.showSave == isShow && !force) {
+            return;
+        }
+        this.showSave = isShow;
+        if (this.showSave) {
+            this.$element.find(".btn-save").removeClass(CardList.UN_VISIBLE_CLASS);
+        } else {
+            this.$element.find(".btn-save").addClass(CardList.UN_VISIBLE_CLASS);
+        }
+
     }
 
     private updateBtnPosition() {
@@ -180,12 +244,16 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
     }
 
     setEnable(enable: boolean) {
-        this.enable = enable;
+        this.enabled = enable;
         if (this.lstForm) {
             for (let form of this.lstForm) {
                 form.setEditable(enable);
             }
         }
+    }
+
+    save() {
+
     }
 
     /**
@@ -272,10 +340,19 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
 
     private removeCard(form: Form) {
         form.destroy();
-        $(form.getViewUI()).remove();
     }
 
     addNewCard(value?: any) {
+        if (this.beforeAdd && !this.beforeAdd(this, value)) {
+            return;
+        }
+        //判断是新增加,还是恢复显示
+        if (this.values.indexOf(value) == -1) {
+            if (this.getDefaultValue) {
+                value = $.extend(this.getDefaultValue(), value || {},);
+            }
+            this.values.push(value);
+        }
         let form = new Form(this.properties);
         let that = this;
         form.addValueChangeListener({
@@ -285,6 +362,9 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
         });
 
         form.showHead(this.isShowHead);
+        if (this.removeAble) {
+            form.showClose(true);
+        }
         form.setBlockViewer(this.viewer);
         this.$element.append(form.getViewUI());
         $(form.getViewUI()).on("click", (event) => {
@@ -314,6 +394,8 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
                 this.curForm = null;
             }
         });
+        form.setEditable(this.editable);
+
         this.lstForm.push(form);
     }
 

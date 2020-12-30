@@ -6,20 +6,28 @@ import "./table.css";
 import {TableRenderProvider} from "./TableRenderProvider";
 import {GeneralEventListener} from "../event/GeneralEventListener";
 import {Constants} from "../../common/Constants";
+import {ButtonInfo, Toolbar} from "../../uidesign/view/JQueryComponent/Toolbar";
+import {Alert} from "../../uidesign/view/JQueryComponent/Alert";
+import {eventNames} from "cluster";
+import {BaseComponent} from "../../uidesign/view/BaseComponent";
 
 
-class Table extends BaseUI<TableRenderProvider> {
+export class Table extends BaseComponent<TableRenderProvider> {
     /**
      * 选择列的id
      */
     static CHECK_COL_ID = "cb";
+    static TOOLBAR_BUTTON_CLASS = "table-col-button";
     private isMaskChange = false;
     private lstSelectChangeListener: Array<GeneralEventListener> = new Array<GeneralEventListener>();
 
     private isEditable = true;
     //同blockId,即界面设置器中的Id,但如果是本地表格类型，则使用这个uuid
     private tableId: string = CommonUtils.genUUID();
-
+    private hasShow = false;//是否已被初始化过
+    private lstLoadCompleteListener: Array<GeneralEventListener> = new Array<GeneralEventListener>();
+    private colBtns: Array<ButtonInfo>;
+    private toolBtns: Array<ButtonInfo>;
 
     /**
      * 行ID的字段名
@@ -44,6 +52,18 @@ class Table extends BaseUI<TableRenderProvider> {
             this.$element.hideCol(Table.CHECK_COL_ID);
         } else {
             this.$element.showCol(Table.CHECK_COL_ID);
+        }
+    }
+
+    addLoadCompleteListener(listener: GeneralEventListener) {
+        this.lstLoadCompleteListener.push(listener);
+    }
+
+    protected fireLoadCompleteEvent() {
+        if (this.lstLoadCompleteListener.length > 0) {
+            for (let listener of this.lstLoadCompleteListener) {
+                listener.handleEvent("loadComplate", null, this);
+            }
         }
     }
 
@@ -373,7 +393,7 @@ class Table extends BaseUI<TableRenderProvider> {
      */
     resetValue(rowid: string, colname: string, value?: any) {
         this.isMaskChange = true;
-        this.setValue(rowid, colname, value);
+        this.setRowValue(rowid, colname, value);
         this.isMaskChange = false;
     }
 
@@ -383,7 +403,7 @@ class Table extends BaseUI<TableRenderProvider> {
      * @param colname
      * @param value
      */
-    setValue(rowid: string, colname: string, value: any) {
+    setRowValue(rowid: string, colname: string, value: any) {
         return this.$element.setCell(rowid, colname, value);
     }
 
@@ -473,7 +493,38 @@ class Table extends BaseUI<TableRenderProvider> {
         });
     }
 
+    setColOperatorButtons(btns: Array<ButtonInfo>) {
+        if (btns && btns.length > 0) {
+            this.colBtns = btns;
+            this.properties.setOperatorProvider((grid, row, state) => {
+                return Table.createColButtonString(btns, row);
+            });
+
+            this.$element.setColWidth(2, btns.length*30);
+
+        }
+    }
+
+    setToolbarButton(btns: Array<ButtonInfo>) {
+        if (btns && btns.length > 0) {
+            this.toolBtns = btns;
+            for (let btn of btns) {
+                this.$element.navButtonAdd('#' + this.getPagerId(), {
+                    caption: btn.text,
+                    buttonicon: btn.iconClass || "fa fa-plus",
+                    onClickButton: (event) => {
+                        btn.clickHandler(event as any);
+                    },
+                    iconsOverText: true
+                })
+                ;
+            }
+        }
+    }
+
+
     public async showTable() {
+        this.hasShow = true;
         let option = await this.properties.getOptions(this);
         let multiSelect = option.multiselect;
 
@@ -483,8 +534,8 @@ class Table extends BaseUI<TableRenderProvider> {
                 this.onSelectRow(rowid, state, eventObject);
             },
             loadComplete: () => {
-                this.ready = true;
-                this.fireReadyEvent();
+                this.fireLoadCompleteEvent();
+                this.updateButtonEvent();
             },
             onCellSelect: (rowid, iCol, cellcontent, event) => {
                 //当是编辑的列，加上editable-cell 样式，就可以编辑了
@@ -522,15 +573,41 @@ class Table extends BaseUI<TableRenderProvider> {
         if (!option.hideSearch) {
             this.showSearch(true);
         }
+        this.$element.setFrozenColumns({
+            mouseWheel: () => {
+                return 1;
+            }
+        });
+        this.hideOperatorCol();
         this.ready = true;
+        this.$element
+            .navGrid('#' + this.getPagerId(), {
+                edit: false,
+                add: false,
+                del: false,
+                refresh: false,
+                search: false
+            });
         this.fireReadyEvent();
 
+    }
+
+    hideOperatorCol() {
+        this.$fullElement.setGridParam().hideCol("name");
+    }
+
+    showOperatorCol() {
+        this.$fullElement.setGridParam().showCol("name");
     }
 
     /**
      * 这里不做任何事情
      */
     afterComponentAssemble(): void {
+        if (!this.hasShow) {
+            this.showTable();
+        }
+
 
     }
 
@@ -543,11 +620,61 @@ class Table extends BaseUI<TableRenderProvider> {
         this.$fullElement = null;
         return super.destroy();
         this.lstSelectChangeListener = null;
+        this.lstLoadCompleteListener = null;
+    }
+
+    protected static createColButtonString(btns: Array<ButtonInfo>, row) {
+        let $toolar = $("<div class='table-col-toolbar'></div>");
+        let $btn = null;
+        for (let btn of btns) {
+            $btn = $("<span class='" + Table.TOOLBAR_BUTTON_CLASS + " "
+                + (btn.iconClass ? btn.iconClass : "") + "'  title='" + (btn.hint || btn.text || '') + "'>"
+                // + (btn.text ? btn.text : "") 这里先不使用文字显示,
+                + "</span>");
+            if (btn.clickHandler) {
+                $btn.attr("id", btn.id);
+                $btn.attr("row-id", row.rowId);
+            }
+            $toolar.append($btn);
+        }
+        return $toolar.get(0).outerHTML;
+    }
+
+    //更新操作按钮的事件
+    protected updateButtonEvent() {
+        this.$fullElement.find("." + Table.TOOLBAR_BUTTON_CLASS)
+            .on("click", (event) => {
+                if (!this.colBtns) {
+                    return;
+                }
+                //取得按钮的ID ,确定调用指定的按钮事件
+                let btnId = $(event.target).attr("id");
+                let rowId = $(event.target).attr("row-id");
+                for (let btn of this.colBtns) {
+                    if (btn.id == btnId) {
+                        if (btn.clickHandler) {
+                            btn.clickHandler(event, this.getRowData(rowId));
+                        }
+                        return;
+                    }
+                }
+
+
+            })
+    }
+
+    getValue(): any {
+        return this.getData();
+    }
+
+    setValue(value: any) {
+        this.setData(value);
     }
 
 
-}
+    setEnable(enable: boolean) {
 
-export {
-    Table
+    }
+
+
 }

@@ -17,4 +17,5 @@ export class ColumnDto extends BaseDto {
     public maxValue: number;
     public minValue: number;
     public isKey: number;
+    public refFilter:string;
 }

@@ -192,6 +192,8 @@ export class ServerRenderProvider implements TableRenderProvider {
             }
             let blockDto = this.viewer.blockViewDto;
             let comNodes = TreeNodeFactory.genTreeNode(lstComponent, "componentDto", "lvlCode");
+            //最后增加一个操作列
+            this.lstColumn.push(this.createOperatorColModel());
             for (let node of comNodes) {
                 if (this.viewer.blockViewDto.fieldToCamel == 1) {
                     node.data.column.getColumnDto().fieldName
@@ -207,8 +209,7 @@ export class ServerRenderProvider implements TableRenderProvider {
                 }
 
             }
-            //最后增加一个操作列
-            this.lstColumn.push(this.createOperatorColModel());
+
 
         }
 
@@ -216,7 +217,8 @@ export class ServerRenderProvider implements TableRenderProvider {
 
     private createOperatorColModel(): ColumnModel {
         return {
-            name: '操作', search: false, width: 50, edittype: "button", formatter: (grid, rows, state) => {
+            name: '操作', search: false, width: 50, edittype: "button", frozen: true,
+            formatter: (grid, rows, state) => {
                 if (this.operatorProvider) {
                     return this.operatorProvider(grid, rows, state);
                 }
@@ -367,6 +369,7 @@ let DEFAULT_TABLE_CONFIG: FreeJqGrid.JqGridOptions = {
     rowNum: 20,
     styleUI: 'Bootstrap',
     pagerpos: "center",
+    autowidth: true,
     pgtext: '第 {0}页， 共{1}页',
     viewrecords: true,
     recordtext: '显示第 {0} 至 {1} 条记录，共 {2} 项',
@@ -375,7 +378,10 @@ let DEFAULT_TABLE_CONFIG: FreeJqGrid.JqGridOptions = {
     loadtext: '读取中...',
     treeGridModel: "adjacency",
     treedatatype: 'local',
+    // footerrow: true,
+    shrinkToFit: false,
     frozen: true,
+    // frozenColumns: true,
     pager: ".xx",//这里只是临时使用
     colModel: [],
     cellEdit: true,

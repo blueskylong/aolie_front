@@ -24,7 +24,7 @@ export class InputDlg extends Dialog<InputDlgInfo> {
     }
 
     getValue() {
-        return this.fName.getValue().get('name').toString();
+        return this.fName.getValue()['name'].toString();
     }
 
     protected beforeOK() {

@@ -3,6 +3,8 @@ import {ReferenceTree, ReferenceTreeInfo} from "../JsTree/ReferenceTree";
 import {Constants} from "../../common/Constants";
 import {GlobalParams} from "../../common/GlobalParams";
 import {PageDetailDto} from "../../funcdesign/dto/PageDetailDto";
+import {MenuButtonDto} from "../../sysfunc/menu/dto/MenuButtonDto";
+import {CommonUtils} from "../../common/CommonUtils";
 
 /**
  * 引用树,只会触发自己的选择事件.
@@ -15,7 +17,7 @@ export class ManagedRefTree<T extends ReferenceTreeInfo> extends ReferenceTree<T
         return;
     }
 
-    dataRemoved(source: any, tableId, mapKeyAndValue) {
+    dataChanged(source: any, tableId, mapKeyAndValue) {
         return;
     }
 
@@ -40,11 +42,11 @@ export class ManagedRefTree<T extends ReferenceTreeInfo> extends ReferenceTree<T
         return;
     }
 
-    setManageEventListener(listener: ManagedEventListener) {
+    setManageCenter(listener: ManagedEventListener) {
         this.listener = listener;
     }
 
-    stateChange(tableId, state: number) {
+    stateChange(source: any, tableId, state: number) {
     }
 
     static getManagedInstance(reference, pageDetail: PageDetailDto, version?) {
@@ -57,23 +59,35 @@ export class ManagedRefTree<T extends ReferenceTreeInfo> extends ReferenceTree<T
 
     afterComponentAssemble(): void {
         super.afterComponentAssemble();
-        this.getTree().addSelectListener({
-            handleEvent: (eventType: string, data: any, source: any, extObject?: any) => {
-                if (this.listener) {
-                    let data = this.getTree().getCurrentData();
-                    let id = null;
-                    if (data) {
-                        id = data.id;
+        CommonUtils.readyDo(() => {
+            return this.isReady();
+        }, () => {
+            this.getTree().addSelectListener({
+                handleEvent: (eventType: string, data: any, source: any, extObject?: any) => {
+                    if (this.listener) {
+                        let data = this.getTree().getCurrentData();
+                        let id = null;
+                        if (data) {
+                            id = data.id;
+                        }
+                        this.listener.referenceSelectChanged(this, this.properties.refId, id, (!data.children || data.children.length == 0));
                     }
-                    this.listener.referenceSelectChanged(this, this.properties.refId, id);
                 }
-            }
-        });
+            });
 
-        if (this.pageDetail && this.pageDetail.loadOnshow == 1) {
+        });
+        if (this.pageDetail.loadOnshow) {
             this.reload();
         }
 
+
+    }
+
+    setButtons(buttons: Array<MenuButtonDto>) {
+    }
+
+    getUiDataNum(): number {
+        return Constants.UIDataNum.multi;
     }
 
 

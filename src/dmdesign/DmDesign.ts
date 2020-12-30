@@ -14,18 +14,21 @@ import {Formula} from "../blockui/uiruntime/Formula";
 import {Constraint} from "../datamodel/DmRuntime/Constraint";
 import TableDto from "../datamodel/dto/TableDto";
 import {MenuFunc} from "../decorator/decorator";
-import {MenuFunction, MenuFunctionInfo} from "../blockui/MenuFunction";
+import {MenuFunction} from "../blockui/MenuFunction";
 import {CommonUtils} from "../common/CommonUtils";
 import {SchemaMainInfo} from "./view/SchemaMainInfo";
 import {BorderLayoutProperty} from "../blockui/layout/BorderLayout";
 import {ReferenceCard} from "./view/ReferenceCard";
 import {Schema} from "../datamodel/DmRuntime/Schema";
 import {ReferenceDto} from "../datamodel/dto/ReferenceDto";
-import {Constants} from "../common/Constants";
 import TableView from "./view/TableView";
+import {Alert} from "../uidesign/view/JQueryComponent/Alert";
+import {MenuInfo} from "../sysfunc/menu/dto/MenuInfo";
+import {MenuButtonDto} from "../sysfunc/menu/dto/MenuButtonDto";
+import {DmConstants} from "../datamodel/DmConstants";
 
 @MenuFunc()
-export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T> {
+export default class DmDesign<T extends MenuInfo> extends MenuFunction<T> {
     private ID_SCHEMA = "schema-component";
     private ID_TAP = "tap-component";
     private ID_ATTR = "attr-component";
@@ -59,7 +62,7 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
         this.addTabInfoUI(this.$element);
         this.addAttrUI(this.$element);
         this.addSchemaUI(this.$element);
-
+        super.afterComponentAssemble();
     };
 
     private getUI() {
@@ -76,7 +79,7 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
         });
         this.schemaView.setBeforeSave((schema: Schema) => {
             if (this.isReferenceSchema()) {
-                return this.fReference.check(schema.getLstTableDto())
+                this.fReference.stopEdit();
             }
             return true;
         });
@@ -127,13 +130,13 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
                 lstReferenceDto = new Array<ReferenceDto>();
                 tableView.getDtoInfo().setLstReference(lstReferenceDto);
             }
-            this.fReference.showTable(tableView.getDtoInfo().getTableDto().tableId, lstReferenceDto);
+            this.fReference.showCard(tableView.getDtoInfo().getTableDto().tableId, lstReferenceDto);
         }
     }
 
 
     private isReferenceSchema() {
-        return this.schemaDto && this.schemaDto.schemaId == Constants.DEFAULT_REFERENCE_ID;
+        return this.schemaDto && this.schemaDto.schemaId == DmConstants.DEFAULT_REFERENCE_ID;
     }
 
     private updateItemData() {
@@ -189,7 +192,7 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
         this.fTable = Form.getInstance(30);
         this.fTable.addValueChangeListener({
             handleEvent: (eventType: string, fieldName: object, value: object, form: Form) => {
-                this.schemaView.tableAttrChange(form.getValue().get("tableId") as any
+                this.schemaView.tableAttrChange(form.getValue()["tableId"] as any
                     , fieldName as any, value);
             }
         });
@@ -198,21 +201,40 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
         this.listFormula = CardList.getInstance(35);
         this.tapPanel.addTap("列公式", this.listFormula.getViewUI());
         this.listFormula.setEditable(true);
+        this.listFormula.setBeforeAdd(() => {
+            if (!this.schemaDto) {
+                Alert.showMessage("请选择方案后再增加!");
+                return false;
+            }
+            return true;
+        });
         this.listFormula.setDefaultValueProvider(() => {
+
             return Formula.genNewFormula(this.schemaDto.schemaId, this.schemaDto.versionCode, null);
         });
+        this.listFormula.setFullEditable();
 
         this.listConstraint = CardList.getInstance(40);
+
         this.tapPanel.addTap("约束", this.listConstraint.getViewUI());
         this.listConstraint.setEditable(true);
         this.listConstraint.setDefaultValueProvider(() => {
             return Constraint.genConstraintDto(this.schemaDto.schemaId, this.schemaDto.versionCode);
         });
+        this.listConstraint.setBeforeAdd(() => {
+            if (!this.schemaDto) {
+                Alert.showMessage("请选择方案后再增加!");
+                return false;
+            }
+            return true;
+        })
+        this.listConstraint.setFullEditable();
 
         this.fReference = new ReferenceCard(null);
 
         this.tapPanel.addTap("引用信息", this.fReference.getViewUI());
-        this.fReference.setEditable(true);
+        this.fReference.setFullEditable();
+
 
         let table = new TableDemo(new ServerRenderProvider(30));
 
@@ -242,7 +264,7 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
         let thas = this;
         this.fAttr.addValueChangeListener({
             handleEvent(eventType: string, fieldName: object, value: object, form: Form) {
-                thas.schemaView.columnAttrChanged(form.getValue().get("columnId") as any, fieldName as any, value);
+                thas.schemaView.columnAttrChanged(form.getValue()["columnId"] as any, fieldName as any, value);
             }
         });
     }
@@ -269,6 +291,10 @@ export default class DmDesign<T extends MenuFunctionInfo> extends MenuFunction<T
 
 
         return true;
+    }
+
+    getButton(): Array<MenuButtonDto> {
+        return this.properties.getLstBtns();
     }
 }
 

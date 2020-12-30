@@ -3,16 +3,23 @@ import BaseUI from "../uidesign/view/BaseUI";
 import "./plugs/custom.css";
 import {IMainFrame} from "../App/IMainFrame";
 import {ApplicationContext, BeanFactory} from "../decorator/decorator";
-import {MenuFunction, MenuFunctionInfo} from "../blockui/MenuFunction";
+import {MenuFunction} from "../blockui/MenuFunction";
 import {CommonUtils} from "../common/CommonUtils";
-import {MenuDto} from "./dto/MenuDto";
+
 import {Alert} from "../uidesign/view/JQueryComponent/Alert";
+import {MenuService} from "../sysfunc/menu/service/MenuService";
+import {MenuInfo} from "../sysfunc/menu/dto/MenuInfo";
+import {CacheUtils} from "../common/CacheUtils";
+import {GlobalParams} from "../common/GlobalParams";
+import {MenuDto} from "../sysfunc/menu/dto/MenuDto";
+import {SidebarMenu} from "./SidebarMenu";
+import {Logger} from "../common/Logger";
 
 export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFrame {
-    private CURRENT_URL = window.location.href.split('#')[0].split('?')[0];
+    static cacheType = "menu";
     private $root: JQuery = null;
     private $menuToggle: JQuery = null;
-    private $sidebarMenu: JQuery = null;
+    // private $sidebarMenu: JQuery = null;
     private $sidebarFooter: JQuery = null;
     private $leftCol: JQuery = null;
     private $body: JQuery = null;
@@ -20,13 +27,16 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
     private $footer: JQuery = null;
     private $toolbar: JQuery = null;
 
+    private menuBar: SidebarMenu<any> = null;
+
+
     private lastFunc: MenuFunction<any>;
 
     protected createUI(): HTMLElement {
         let $ele = $(require("./templates/MainFrame.html"));
         this.$root = $ele;
         this.$menuToggle = $ele.find('#menu_toggle');
-        this.$sidebarMenu = $ele.find('#sidebar-menu');
+        // this.$sidebarMenu = $ele.find('#sidebar-menu');
         this.$sidebarFooter = $ele.find('.sidebar-footer');
         this.$leftCol = $ele.find('.left_col');
         this.$body = $ele.find('.right_col');
@@ -37,8 +47,18 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
         return $ele.get(0);
     }
 
+    protected initSubControllers() {
+        this.showMenu();
+    }
+
     afterComponentAssemble(): void {
         this.setContentHeight();
+        CommonUtils.readyDo(() => {
+            return !!this.menuBar;
+        }, () => {
+            this.menuBar.afterComponentAssemble();
+        });
+
     }
 
     protected setContentHeight() {
@@ -54,92 +74,53 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
         this.$body.css('max-height', contentHeight);
     };
 
-    protected openUpMenu() {
-        this.$sidebarMenu.find('li').removeClass('active active-sm');
-        this.$sidebarMenu.find('li ul').slideUp();
+
+    private showMenu() {
+        MenuService.findUserMenu((data) => {
+
+            let lstMenuDto: Array<MenuDto> = [];
+            if (data) {
+                lstMenuDto = BeanFactory.populateBeans(MenuDto, data);
+            }
+            this.menuBar = new SidebarMenu(lstMenuDto);
+            this.$element.find("#sidebar-menu").append(this.menuBar.getViewUI());
+        });
+
     }
 
-
     protected initEvent() {
-        this.$sidebarMenu
-            .find('a').on('click', (ev) => {
-                let $li = $(ev.target).parent();
-                if ($li.is('.active')) {
-                    $li.removeClass('active active-sm');
 
-                } else {
-                    // prevent closing menu if we are on child menu
-                    if (!$li.parent().is('.child_menu')) {
-                        this.openUpMenu();
-                    } else {
-                        if (this.$root.is('nav-sm')) {
-                            if (!$li.parent().is('child_menu')) {
-                                this.openUpMenu();
-                            }
-                        }
-                    }
-
-                    $li.parent().children("li").removeClass("active");
-                    $li.addClass('active');
-
-                    $('ul:first', $li).slideDown(() => {
-
-                    });
-                }
-            }
-        );
 
         // toggle small or large menu
         this.$menuToggle.on('click', () => {
-                if (this.$root.hasClass('nav-md')) {
-                    this.$sidebarMenu.find('li.active ul').hide();
-                    this.$sidebarMenu.find('li.active').addClass('active-sm').removeClass('active');
-                } else {
-                    this.$sidebarMenu.find('li.active-sm ul').show();
-                    this.$sidebarMenu.find('li.active-sm').addClass('active').removeClass('active-sm');
-                }
                 this.$root.toggleClass('nav-md nav-sm');
-
+                this.menuBar.setShowSmall(this.$root.hasClass('nav-sm'));
             }
         );
 
-        // check active menu
-        this.$sidebarMenu.find(
-            'a[href="' + this.CURRENT_URL + '"]')
-            .parent('li')
-            .addClass('current-page');
-
-        this.$sidebarMenu.find('a').filter(
-            (index, item) => {
-                return item.href == this.CURRENT_URL;
-            }
-        ).parent('li').addClass('current-page').parents('ul')
-            .slideDown(() => {
-
-            }).parent().addClass('active');
 
         window
             .onresize = () => {
             this.setContentHeight();
         };
 
-        $('.collapse-link').on('click', function () {
-            let $boxPanel = $(this).closest('.x_panel'),
-                $icon = $(this).find('i'),
-                $boxContent = $boxPanel.find('.x_content');
-
-            // fix for some div with hardcoded fix class
-            if ($boxPanel.attr('style')) {
-                $boxContent.slideToggle(200, function () {
-                    $boxPanel.removeAttr('style');
-                });
-            } else {
-                $boxContent.slideToggle(200);
-                $boxPanel.css('height', 'auto');
-            }
-
-            $icon.toggleClass('fa-chevron-up fa-chevron-down');
-        });
+        // $('.collapse-link').on('click', function () {
+        //     let $boxPanel = $(this).closest('.x_panel'),
+        //         $icon = $(this).find('i'),
+        //         $boxContent = $boxPanel.find('.x_content');
+        //
+        //     // fix for some div with hardcoded fix class
+        //     if ($boxPanel.attr('style')) {
+        //         $boxContent.slideToggle(200, function () {
+        //             $boxPanel.removeAttr('style');
+        //         });
+        //     } else {
+        //         $boxContent.slideToggle(200);
+        //         $boxPanel.css('height', 'auto');
+        //     }
+        //
+        //     $icon.toggleClass('fa-chevron-up fa-chevron-down');
+        // });
 
         $('.close-link').on("click", () => {
             var $boxPanel = this.$element.closest('.x_panel');
@@ -161,71 +142,96 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
         });
     }
 
-    showFunc(funcInfo: string | MenuDto, params?: object) {
+    showFunc(menuId: number) {
+        if (this.menuBar) {
+            this.menuBar.locateMenu();
+        }
         CommonUtils.showMask();
-        let funcName = "";
-        let menuDto: MenuDto = null;
-        try {
-            if (typeof funcInfo == "string") {
-                funcName = funcInfo;
-                menuDto = new MenuDto();
-                menuDto.funcName = funcInfo;
-                menuDto.params = JSON.stringify(params);
-            } else {
-                funcName = funcInfo.funcName;
-                menuDto = funcInfo;
-                params = $.extend(JSON.parse(funcInfo.params || "{}"), params || {});
-            }
-            let func = ApplicationContext.getMenuFunc(funcName);
-            if (!func) {
-                Alert.showMessage("指定的功能不存在");
-                CommonUtils.hideMask();
-                return;
-            }
-            if (this.lastFunc) {
+
+        if (this.lastFunc) {
+            try {
+                if (!this.lastFunc.beforeClose()) {
+                    return false;
+                }
                 this.lastFunc.destroy();
-                this.$body.children().remove();
+            } catch (e) {
+                Logger.error(e.message);
+            }
+            this.$body.children().remove();
+        }
+        this
+            .lastFunc = null;
+
+        MenuService.findMenuInfo(menuId, (data) => {
+            let funcName = "";
+            let menuInfo: MenuInfo = CacheUtils.get(MainFrame.cacheType, CommonUtils.genKey(menuId, GlobalParams.loginVersion));
+            if (menuInfo) {
+                this.createAndShow(menuInfo);
+            } else {
+                //查询后创建
+                MenuService.findMenuInfo(menuId, (data) => {
+                    if (!data) {
+                        Alert.showMessage("查询菜单信息失败");
+                        return;
+                    }
+                    let menuInfo1 = BeanFactory.populateBean(MenuInfo, data);
+                    CacheUtils.put(MainFrame.cacheType, menuId, menuInfo1);
+                    this.createAndShow(menuInfo1);
+                });
+
             }
 
-            this
-                .lastFunc = null;
-            let baseUi = <MenuFunction<any>>BeanFactory.createBean(func, [{menuDto: menuDto}]);
-            this.lastFunc = baseUi;
-            this.$body.append(this.lastFunc.getViewUI());
-            this.lastFunc.afterComponentAssemble();
-            CommonUtils.readyDo(() => {
-                return this.lastFunc.isReady();
-            }, () => {
-                CommonUtils.hideMask();
-            });
-            this.initButtons();
-            return <MenuFunction<any>>this.lastFunc;
-        } catch (e) {
+        })
+        return true;
+
+    }
+
+
+    protected createAndShow(menuInfo: MenuInfo) {
+
+        let funcName = menuInfo.getMenuDto().funcName;
+
+        if (!funcName) {
+            Alert.showMessage("指定的功能不存在");
             CommonUtils.hideMask();
-            throw e;
+            return;
         }
+        let funcClazz = ApplicationContext.getMenuFunc(funcName);
+        let baseUi = <MenuFunction<any>>BeanFactory.createBean(funcClazz, [menuInfo]);
+        this.lastFunc = baseUi;
+        this.$body.append(this.lastFunc.getViewUI());
+        this.lastFunc.addReadyListener(() => {
+            this.initButtons();
+            CommonUtils.hideMask();
+        });
+        this.lastFunc.afterComponentAssemble();
+        return <MenuFunction<any>>this.lastFunc;
     }
 
     private initButtons() {
         this.$toolbar.children().remove();
-        if (this.lastFunc && this.lastFunc.getButton()) {
-            for (let btn of this.lastFunc.getButton()) {
-                //先处理分隔条件
-                if (btn.title === "|") {
-                    let span = $("<span class='button-split btn'></span>");
-                    this.$toolbar.append(span);
-                    continue;
+        if (this.lastFunc) {
+            let buttons = this.lastFunc.getButton();
+            if (buttons && buttons.length > 0) {
+                for (let btn of buttons) {
+                    //先处理分隔条件
+                    if (btn.title === "|") {
+                        let span = $("<span class='button-split btn'></span>");
+                        this.$toolbar.append(span);
+                        continue;
+                    }
+                    let $btn = $("<button class=\"btn btn-warning\" action-code='" + btn.funcName + "'>" +
+                        (btn.iconClass ? "<span class='" + btn.iconClass + "'></span>" : "")
+                        + (btn.title ? btn.title : "") + "</button>");
+                    $btn.on("click", (event) => {
+                        this.lastFunc.handleButtonClick(btn);
+                    });
+                    this.$toolbar.append($btn);
                 }
-                let $btn = $("<button class=\"btn btn-warning\" action-code='" + btn.action + "'>" +
-                    (btn.icon ? "<span class='" + btn.icon + "'></span>" : "")
-                    + (btn.title ? btn.title : "") + "</button>");
-                $btn.on("click", (event) => {
-                    this.lastFunc.handleButtonClick($(event.target).attr("action-code"));
-                });
-                this.$toolbar.append($btn);
             }
         }
     }
+
 
     /**
      * 根据功能状态更新按钮的状态

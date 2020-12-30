@@ -14,6 +14,8 @@ export class Component {
      */
     column: Column;
 
+    isConvertToCamel = false;
+
     constructor() {
     }
 

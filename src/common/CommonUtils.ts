@@ -2,11 +2,17 @@
  * 工具类
  */
 import {AxiosResponse} from "axios";
+import {Logger} from "./Logger";
+import {Alert} from "../uidesign/view/JQueryComponent/Alert";
+import {BeanFactory} from "../decorator/decorator";
+import {HandleResult} from "./HandleResult";
 
 export class CommonUtils {
     static ID_SER = -1;
 
     static INT_SER = 1;
+
+    static READY_TRY_TIMES = 10;
 
     static genKey(id: number, version: string) {
         return id + "_" + version;
@@ -67,12 +73,14 @@ export class CommonUtils {
     }
 
     static readyDo(isReady: () => boolean, callback: () => void) {
-        let times = 20;
+        let times = CommonUtils.READY_TRY_TIMES;
         let i = setInterval(() => {
             if (times < 0) {
                 clearInterval(i);
+                Alert.showMessage("初始化超时!")
                 return;
             }
+            times--;
             if (isReady()) {
                 clearInterval(i);
                 callback();
@@ -119,7 +127,7 @@ export class CommonUtils {
             CommonUtils.handleResult(result, callBack);
         }).catch((e) => {
             CommonUtils.hideMask();
-            alert("出现异常,操作失败");
+            Alert.showMessage("访问服务器出现异常,操作失败!");
             CommonUtils.log(e.status, e.statusText, e.data);
         });
     }
@@ -130,12 +138,38 @@ export class CommonUtils {
         }
         if (result.status == 200) {
             if (callBack) {
-                callBack(result.data);
+                try {
+                    let data = result.data;
+                    if (CommonUtils.isHandleResult(result.data)) {
+                        let handleResult = BeanFactory.populateBean(HandleResult, data);
+                        if (!handleResult.getSuccess()) {
+                            Logger.error(handleResult.err);
+                        }
+                        callBack(handleResult);
+                        return;
+                    }
+                    callBack(result.data);
+                } catch (e) {
+                    Logger.error(e.message);
+                    console.error(e.stack);
+                }
             }
             return;
         }
         CommonUtils.log(result.status, result.statusText, result.data);
 
+    }
+
+    static isHandleResult(obj) {
+        if (!obj) {
+            return false;
+        }
+        return (obj.hasOwnProperty("changeNum") &&
+            obj.hasOwnProperty("err") &&
+            obj.hasOwnProperty("page") &&
+            obj.hasOwnProperty("lstData") &&
+            obj.hasOwnProperty("success")
+        )
     }
 
     static log(code, name, message): void {

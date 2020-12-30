@@ -8,14 +8,11 @@ import {AutoManagedUI, ManagedEventListener} from "./AutoManagedUI";
 import {StringMap} from "../../common/StringMap";
 import {Column} from "../../datamodel/DmRuntime/Column";
 import {Form} from "../Form";
-import {SchemaFactory} from "../../datamodel/SchemaFactory";
-import {DmConstants} from "../../datamodel/DmConstants";
 import {Constants} from "../../common/Constants";
-import {Alert} from "../../uidesign/view/JQueryComponent/Alert";
-import BaseUI from "../../uidesign/view/BaseUI";
 import {ManagedUITools} from "./ManagedUITools";
 import {GlobalParams} from "../../common/GlobalParams";
 import {PageDetailDto} from "../../funcdesign/dto/PageDetailDto";
+import {MenuButtonDto} from "../../sysfunc/menu/dto/MenuButtonDto";
 
 
 export class ManagedCard<T extends BlockViewDto> extends CardList<T> implements AutoManagedUI {
@@ -25,7 +22,6 @@ export class ManagedCard<T extends BlockViewDto> extends CardList<T> implements 
     protected managedEventListener: ManagedEventListener;
     protected pageDetail: PageDetailDto;
     protected extFilter = {};
-    protected extFilterTemp = {};
 
     attrChanged(source: any, tableId, mapKeyAndValue, field, value) {
         if (source == this) {
@@ -47,7 +43,7 @@ export class ManagedCard<T extends BlockViewDto> extends CardList<T> implements 
             return null;
         }
         for (let form of this.lstForm) {
-            let values = form.getValue().getValueAsObject();
+            let values = form.getValue();
             if (this.isInRow(values, mapKeyAndValue)) {
                 return form;
             }
@@ -67,7 +63,7 @@ export class ManagedCard<T extends BlockViewDto> extends CardList<T> implements 
         return result;
     }
 
-    dataRemoved(source: any, tableId, mapKeyAndValue) {
+    dataChanged(source: any, tableId, mapKeyAndValue) {
         if (source == this) {
             return;
         }
@@ -139,11 +135,12 @@ export class ManagedCard<T extends BlockViewDto> extends CardList<T> implements 
 
     }
 
-    stateChange(tableId, state: number) {
+    stateChange(source: any, tableId, state: number) {
         if (this.dsIds.indexOf(tableId) != -1) {
             //这是需要进一步判断,哪些控件可以编辑
             this.setEditable(Constants.UIState.view != state);
         }
+        return false;
     }
 
     afterComponentAssemble(): void {
@@ -164,12 +161,19 @@ export class ManagedCard<T extends BlockViewDto> extends CardList<T> implements 
     }
 
 
-    setManageEventListener(listener: ManagedEventListener) {
+    setManageCenter(listener: ManagedEventListener) {
         this.managedEventListener = listener;
     }
 
     protected initSubControllers() {
         super.initSubControllers();
+    }
+
+    setButtons(buttons: Array<MenuButtonDto>) {
+    }
+
+    getUiDataNum(): number {
+        return Constants.UIDataNum.multi;
     }
 
 

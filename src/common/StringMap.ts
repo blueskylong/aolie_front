@@ -51,7 +51,7 @@ export class StringMap<V> {
     }
 
     getValueAsObject() {
-        return this.obj;
+        return $.extend({}, this.obj);
     }
 
     set(key: string, value: V): StringMap<V> {
@@ -67,15 +67,21 @@ export class StringMap<V> {
         return i;
     }
 
-    isEqual(map: StringMap<any>) {
+    equals(map: StringMap<any> | object) {
         if (!map) {
             return false;
         }
-        if (map.getSize() != this.getSize()) {
+        let dest: StringMap<any>;
+        if (!(map instanceof StringMap)) {
+            dest = new StringMap(map);
+        } else {
+            dest = map;
+        }
+        if (dest.getSize() != this.getSize()) {
             return false;
         }
         let result = true;
-        map.forEach((key, value, map) => {
+        dest.forEach((key, value, map) => {
             if (!this.has(key) || this.get(key) != value) {
                 result = false;
                 return false;

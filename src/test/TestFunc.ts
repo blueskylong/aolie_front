@@ -1,13 +1,14 @@
 import {MenuFunc} from "../decorator/decorator";
-import {MenuFunction, MenuFunctionInfo} from "../blockui/MenuFunction";
+import {MenuFunction} from "../blockui/MenuFunction";
 import {BorderLayout, BorderLayoutProperty} from "../blockui/layout/BorderLayout";
 import {Component} from "../blockui/uiruntime/Component";
 import {Form} from "../blockui/Form";
 import {Constants} from "../common/Constants";
 import "./testFunc.css";
+import {MenuInfo} from "../sysfunc/menu/dto/MenuInfo";
 
 @MenuFunc()
-export default class TestFunc<T extends MenuFunctionInfo> extends MenuFunction<T> {
+export default class TestFunc<T extends MenuInfo> extends MenuFunction<T> {
     private borderLayout: BorderLayout<BorderLayoutProperty>;
 
     protected createUI(): HTMLElement {

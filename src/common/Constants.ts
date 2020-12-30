@@ -87,8 +87,60 @@ export class Constants {
          * 值变化事件
          */
         VALUE_CHANGE_EVENT: "VALUE_CHANGED"
-    }
+    };
 
+    /**
+     * 前后端协商的固定字段
+     */
+    static ConstFieldName = {
+        /**
+         * 保存时用于存放变化过的主键数据
+         */
+        CHANGE_KEYS_FEILD: "keys",
+    };
+    /**
+     * 表或按钮操作类型
+     */
+    static TableOperatorType = {
+        add: 1,//增加
+        delete: 2,//删除
+        edit: 3,//修改
+        view: 4,//查看(刷新)
+        saveSingle: 5,//保存
+        saveMulti: 6,
+        saveLevel: 7,//保存级次
+        cancel: 19,//取消
+        custom1: 101,//自定义
+        custom2: 111,//自定义
+        custom3: 121,//自定义
+        custom4: 131,//自定义
+    };
+
+    /**
+     * 表数据集状态变化
+     */
+    static TableState = {
+        add: 1,
+        edit: 2,
+        view: 3
+    };
+
+    /**
+     * 表数据变化类型
+     */
+    static TableDataChangedType = {
+        added: 1,
+        edited: 2,
+        deleted: 3
+    };
+
+    /**
+     * 界面可容纳的数据量类型
+     */
+    static UIDataNum = {
+        one: 1,
+        multi: 2
+    }
 
 }
 

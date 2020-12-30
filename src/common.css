@@ -25,6 +25,12 @@ html {
     border: 1px solid #ced4da;
 }
 
+.bootstrap-select[class*="col-"] .dropdown-toggle[disabled] {
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+    opacity: 1;
+}
+
 .form-control input[type="radio"], input[type="checkbox"] {
     height: calc(1.4em);
 }
@@ -93,6 +99,7 @@ html {
     height: 100%;
     width: 100%;
 }
+
 
 @keyframes k-loadingA {
     0% {

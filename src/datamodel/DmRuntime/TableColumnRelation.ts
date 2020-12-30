@@ -28,7 +28,7 @@ export class TableColumnRelation {
     getTableFrom(): TableInfo {
         return this.tableFrom;
     }
-    @PopulateBean(TableInfo)
+
     setTableFrom(value: TableInfo) {
         this.tableFrom = value;
     }
@@ -36,7 +36,7 @@ export class TableColumnRelation {
     getTableTo(): TableInfo {
         return this.tableTo;
     }
-    @PopulateBean(TableInfo)
+
     setTableTo(value: TableInfo) {
         this.tableTo = value;
     }

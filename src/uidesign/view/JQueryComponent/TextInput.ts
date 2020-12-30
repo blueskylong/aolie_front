@@ -74,6 +74,9 @@ export class TextInput<T extends Component> extends JQBaseComponent<T> {
                 $title.addClass("col-md-" + this.properties.componentDto.titleSpan);
             }
         }
+        if (this.properties.componentDto.memo) {
+            $dom.attr("title", this.properties.componentDto.memo);
+        }
 
     }
 

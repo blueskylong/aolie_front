@@ -7260,7 +7260,7 @@
                         txt = $.vakata.html.escape(txt);
                     }
                     if (obj && obj.id && obj.id !== $.jstree.root && (e.which === 1 || e.type === "touchstart" || e.type === "dragstart") &&
-                        (this.settings.dnd.is_draggable === true || ($.isFunction(this.settings.dnd.is_draggable) && this.settings.dnd.is_draggable.call(this, (mlt > 1 ? this.get_top_selected(true) : [obj]), e)))
+                        (this.settings.dnd.is_draggable === true || ($.isFunction(this.settings.dnd.is_draggable) && this.settings.dnd.is_draggable( (mlt > 1 ? this.get_top_selected(true) : [obj]), e)))
                     ) {
                         drg = {
                             'jstree': true,
