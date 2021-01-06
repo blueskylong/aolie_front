@@ -155,4 +155,16 @@ export class UiService {
         ), callback);
     }
 
+    /**
+     * 查找表多行
+     * @param dsId
+     * @param rowId
+     * @param callback
+     */
+
+    static findTableRows(dsId, filter, callback: (result) => void) {
+        CommonUtils.handleResponse(NetRequest.axios.post("/data/findTableRows/" + dsId, filter
+        ), callback);
+    }
+
 }

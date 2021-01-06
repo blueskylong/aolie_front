@@ -13,4 +13,6 @@ export class PageDetailDto extends BaseDto {
     loadOnshow: number;
     //当前界面的初始化状态
     initState: number;
+    customUi:string;
+    customParam:string;
 }

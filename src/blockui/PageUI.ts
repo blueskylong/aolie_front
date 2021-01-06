@@ -16,6 +16,7 @@ import {Form} from "./Form";
 import {ReferenceTree} from "./JsTree/ReferenceTree";
 import {CommonUtils} from "../common/CommonUtils";
 import BaseUI from "../uidesign/view/BaseUI";
+import {ManagedCustomPanel} from "./managedView/ManagedCustomPanel";
 
 export default class PageUI<T extends PageUIInfo> extends BaseComponent<any> {
 
@@ -78,6 +79,8 @@ export default class PageUI<T extends PageUIInfo> extends BaseComponent<any> {
             } else if (showType == Constants.DispType.tree) {
                 let treeInstance = TreeUI.getTreeInstance(viewer.blockViewDto.blockViewId);
                 baseUi = treeInstance;
+            } else if (showType == Constants.DispType.custom) {
+                baseUi = new ManagedCustomPanel(pageDetail);
             } else {
                 baseUi = Form.getInstance(viewer.blockViewDto.blockViewId);
             }

@@ -22,6 +22,11 @@ export class Toolbar<T extends ToolbarInfo> extends BaseUI<T> {
                 this.addBtn(this.properties.btns[i], handler);
             }
         }
+
+        super.afterComponentAssemble();
+    }
+
+    protected initSubControllers() {
         if (this.properties.float) {
             this.$element.addClass("float-toolbar");
             let opt = {};
@@ -31,8 +36,9 @@ export class Toolbar<T extends ToolbarInfo> extends BaseUI<T> {
                 }
             };
             jsPlumb.jsPlumb.getInstance().draggable(this.$element.get(0), opt);
+        } else {
+            this.$element.css("position", "inherit");
         }
-        super.afterComponentAssemble();
     }
 
     setDoubleClickHandler(doubleClickHandler: Function) {
@@ -73,9 +79,10 @@ export class Toolbar<T extends ToolbarInfo> extends BaseUI<T> {
         this.lstButton = null;
         return super.destroy();
     }
-    updateShow(){
-        if(this.lstButton){
-            for(let btn of this.lstButton){
+
+    updateShow() {
+        if (this.lstButton) {
+            for (let btn of this.lstButton) {
             }
         }
     }
@@ -116,8 +123,8 @@ export class ToolbarButton<T extends ButtonInfo> extends BaseUI<T> {
         return $dom.get(0);
     }
 
-    public updateShow(){
-        if(this.properties.isShow(this.properties)){
+    public updateShow() {
+        if (this.properties.isShow(this.properties)) {
 
         }
     }

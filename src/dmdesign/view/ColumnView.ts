@@ -10,7 +10,7 @@ import EventBus from "./EventBus";
 
 export default class ColumnView extends DmDesignBaseView<Column> implements AttrChangeListener {
 
-    private static isAddedContextMenu = false;
+    public static isAddedContextMenu = false;
     private static ATTR_KEY = "K";
     private static ATTR_HAS_REF = "R";
     private static ATTR_HAS_FORMULA = "F";
@@ -23,12 +23,14 @@ export default class ColumnView extends DmDesignBaseView<Column> implements Attr
 
 
     afterComponentAssemble(): void {
+
         CommonUtils.readyDo(() => {
             return !!this.element;
         }, () => {
             ColumnView.JSPLUMB.makeSource(this.element, ColumnView.SOURCE_PARAM);
             ColumnView.JSPLUMB.makeTarget(this.element, ColumnView.TARGET_PARAM);
             if (!ColumnView.isAddedContextMenu) {
+                console.log("----------------------> add column context");
                 $.contextMenu({
                     selector: '.column-body',
                     callback: (key, options) => {

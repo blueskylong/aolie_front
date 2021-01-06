@@ -13,6 +13,14 @@ import {ManagedUITools} from "./ManagedUITools";
 import {GlobalParams} from "../../common/GlobalParams";
 import {PageDetailDto} from "../../funcdesign/dto/PageDetailDto";
 import {MenuButtonDto} from "../../sysfunc/menu/dto/MenuButtonDto";
+import {Alert} from "../../uidesign/view/JQueryComponent/Alert";
+import {UiService} from "../service/UiService";
+import {HandleResult} from "../../common/HandleResult";
+import {SchemaFactory} from "../../datamodel/SchemaFactory";
+import {CodeLevelProvider} from "../../common/CodeLevelProvider";
+import {DmConstants} from "../../datamodel/DmConstants";
+import {Dialog} from "../Dialog";
+import {CommonUtils} from "../../common/CommonUtils";
 
 
 export class ManagedCard<T extends BlockViewDto> extends CardList<T> implements AutoManagedUI {
@@ -22,6 +30,11 @@ export class ManagedCard<T extends BlockViewDto> extends CardList<T> implements 
     protected managedEventListener: ManagedEventListener;
     protected pageDetail: PageDetailDto;
     protected extFilter = {};
+    private keyField = null;
+    /**
+     * 待删除的数据
+     */
+    protected deleteIds = new Array<any>();
 
     attrChanged(source: any, tableId, mapKeyAndValue, field, value) {
         if (source == this) {
@@ -33,6 +46,16 @@ export class ManagedCard<T extends BlockViewDto> extends CardList<T> implements 
         if (form) {
             form.setFieldValue(field, value);
         }
+    }
+
+    destroy(): boolean {
+        this.dsIds = null;
+        this.refCols = null;
+        this.managedEventListener = null;
+        this.pageDetail = null;
+        this.extFilter = null;
+        this.deleteIds = null;
+        return super.destroy();
     }
 
     private locateForm(tableId, mapKeyAndValue): Form {
@@ -50,6 +73,20 @@ export class ManagedCard<T extends BlockViewDto> extends CardList<T> implements 
         }
 
         return null;
+    }
+
+    deleteRow(index: number) {
+        if (index < 0 || index > this.lstForm.length) {
+            throw new Error("删除的序号不正确:" + index);
+        }
+        let row = this.values[index];
+        let id = row[this.getKeyField()];
+        if (parseInt(id) > -1) {
+            let obj = {};
+            obj[this.getKeyField()] = id;
+            this.deleteIds.push(obj);
+        }
+        super.deleteRow(index);
     }
 
     private isInRow(row, map: StringMap<any>) {
@@ -75,6 +112,7 @@ export class ManagedCard<T extends BlockViewDto> extends CardList<T> implements 
             }
         }
     }
+
 
     /**
      * 这里只处理从属性的变化,也就是只响应主表的选择变化
@@ -158,6 +196,11 @@ export class ManagedCard<T extends BlockViewDto> extends CardList<T> implements 
         if (this.pageDetail && this.pageDetail.loadOnshow == 1) {
             this.loadData();
         }
+        this.setDefaultValueProvider(() => {
+            let tableInfo = SchemaFactory.getTableByTableId(this.dsIds[0]);
+            return tableInfo.getDefaultValue();
+
+        });
     }
 
 
@@ -169,11 +212,113 @@ export class ManagedCard<T extends BlockViewDto> extends CardList<T> implements 
         super.initSubControllers();
     }
 
+    /**
+     * 接收菜单按钮,当前只接收增加,保存和修改操作的按钮
+     * @param buttons
+     */
     setButtons(buttons: Array<MenuButtonDto>) {
+        //只处理当数据源的情况
+        if (!this.dsIds && this.dsIds.length != 1) {
+            return;
+        }
+        let btns = ManagedUITools.findRelationButtons(buttons, this.dsIds[0]);
+        if (!btns || btns.length < 1) {
+            return;
+        }
+        for (let btn of btns) {
+            let isUse = btn.isUsed;
+            btn.isUsed = true;
+            this.setSortable(true);
+            if (btn.tableOpertype === Constants.TableOperatorType.edit) {
+                this.setEditable(true);
+
+            } else if (btn.tableOpertype === Constants.TableOperatorType.add) {
+                this.setShowAdd(true);
+            } else if (btn.tableOpertype === Constants.TableOperatorType.saveMulti) {
+                this.setShowSave(true);
+            } else if (btn.tableOpertype === Constants.TableOperatorType.delete) {
+                this.setShowHead(true);
+            } else {
+                btn.isUsed = isUse;
+                this.setSortable(false);
+            }
+
+        }
+
+
+    }
+
+    /**
+     * 取得可以处理的类型
+     */
+    protected getCanHandleButtonType() {
+        return [Constants.TableOperatorType.edit,
+            Constants.TableOperatorType.saveMulti,
+            Constants.TableOperatorType.add,
+            Constants.TableOperatorType.cancel];
+    }
+
+    setValue(values: Array<any>) {
+        this.deleteIds = [];
+        super.setValue(values);
+    }
+
+    loadData(filter?) {
+        this.deleteIds = [];
+        super.loadData(filter);
     }
 
     getUiDataNum(): number {
         return Constants.UIDataNum.multi;
+    }
+
+    save() {
+        if (!this.check()) {
+            return;
+        }
+        let data = this.getValue();
+        if (!data) {
+            data = [];
+        } else {
+            this.setOrder(data);
+        }
+        if (this.deleteIds) {
+            data.push(...this.deleteIds);
+        }
+
+        UiService.saveRows(data, this.dsIds[0], (result: HandleResult) => {
+            if (result.success) {
+                this.deleteIds = [];
+                Alert.showMessage("保存成功!");
+                this.loadData();
+            } else {
+                Alert.showMessage("保存失败!" + result.err);
+            }
+        })
+    }
+
+    protected setOrder(data: Array<any>) {
+        let tableInfo = SchemaFactory.getTableByTableId(this.dsIds[0]);
+        if (tableInfo.hasColName(DmConstants.ConstField.xh)) {
+            let index = 1;
+            for (let row of data) {
+                row[DmConstants.ConstField.xh] = index++
+            }
+        } else if (tableInfo.hasColName(DmConstants.ConstField.lvlCode)) {
+            let codePro = new CodeLevelProvider();
+            for (let row of data) {
+                row[DmConstants.ConstField.lvlCode] = codePro.getNext();
+            }
+        }
+    }
+
+    private getKeyField() {
+        if (this.keyField) {
+            return this.keyField;
+        }
+        let tableInfo = SchemaFactory.getTableByTableId(this.dsIds[0]);
+        this.keyField = tableInfo.getKeyField();
+        return this.keyField;
     }
 
 

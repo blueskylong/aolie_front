@@ -95,6 +95,9 @@ export default class DmDesign<T extends MenuInfo> extends MenuFunction<T> {
             (e) => {
                 this.schemaView.resize(e);
             });
+        this.schemaView.addReadyListener(() => {
+            this.ready = true;
+        });
         this.schemaView.afterComponentAssemble();
         this.schemaView.setItemSelectListener((type, dto) => {
             //这里要先把最后的变化生效
@@ -115,12 +118,6 @@ export default class DmDesign<T extends MenuInfo> extends MenuFunction<T> {
             }
 
         });
-        CommonUtils.readyDo(() => {
-            return this.schemaView.isReady();
-        }, () => {
-            this.ready = true;
-        })
-
     }
 
     private updateReference(tableView: TableView) {

@@ -111,6 +111,13 @@ export abstract class BaseComponent<T> extends BaseUI<T> {
         return true;
     }
 
+    /**
+     * 检查自身数据是否合格
+     */
+    public check(): boolean {
+        return true;
+    }
+
     protected componentButtonClicked?(event: ClickEvent, menuBtnDto: MenuButtonDto, data);
 
 }

@@ -4,12 +4,13 @@ import {BlockViewer} from "../uiruntime/BlockViewer";
 import {UiService} from "../service/UiService";
 import {Form} from "../Form";
 import {CommonUtils} from "../../common/CommonUtils";
-import {Toolbar, ToolbarInfo} from "../../uidesign/view/JQueryComponent/Toolbar";
 import {GlobalParams} from "../../common/GlobalParams";
-import {ServerRenderProvider} from "../table/TableRenderProvider";
 import {NetRequest} from "../../common/NetRequest";
 import {GeneralEventListener} from "../event/GeneralEventListener";
 import {Constants} from "../../common/Constants";
+import {HandleResult} from "../../common/HandleResult";
+import {Alert} from "../../uidesign/view/JQueryComponent/Alert";
+import * as jsPlumb from "jsplumb";
 
 /**
  * 此控件,会在原始的指针值上维护数据,可以直接使用传入的值 ,也可以使用getValue取得新组织的数据.
@@ -40,16 +41,12 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
 
 
     protected createUI(): HTMLElement {
-        this.initViewer();
         let $ele = $(require("../templete/CardList.html"));
-        $ele.find(".btn-add").on("click", (event) => {
-
-            this.addNewCard({});
-            this.updateBtnPosition();
-            this.updateHint();
-        });
-
         return $ele.get(0);
+    }
+
+    protected async init() {
+        await this.initViewer();
     }
 
     setBeforeAdd(func: (card: CardList<any>) => boolean) {
@@ -80,6 +77,17 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
         this.setShowHead(this.isShowHead, true);
         this.setSortable(this.sortable, true);
         this.setShowAdd(this.showAdd, true);
+    }
+
+    protected initEvent() {
+        this.$element.find(".btn-add").on("click", (event) => {
+            this.addNewCard({});
+            this.updateBtnPosition();
+            this.updateHint();
+        });
+        this.$element.find(".btn-save").on("click", (event) => {
+            this.save();
+        });
     }
 
     /**
@@ -115,14 +123,18 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
                 return !!this.viewer;
             },
             () => {
-                NetRequest.axios.post(CardList.serverDataUrl + "/" + this.viewer.getBlockViewDto().blockViewId
-                    , filter ? {"extFilter": filter} : {}).then((data => {
-                    this.setValue(data.data);
-                })).catch((e) => {
-
-                });
-            })
-
+                let blockId = this.viewer.getBlockViewDto().blockViewId;
+                CommonUtils.handleResponse(NetRequest.axios.post(CardList.serverDataUrl + "/" + blockId
+                    , filter ? $.extend({"extFilter": filter}, {blockId: blockId})
+                        : {blockId: blockId}),
+                    (result: HandleResult) => {
+                        if (result.success) {
+                            this.setValue(<Array<any>>result.data);
+                        } else {
+                            Alert.showMessage(result.err);
+                        }
+                    });
+            });
     }
 
 
@@ -181,6 +193,7 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
         if (this.sortable == sortable && !force) {
             return;
         }
+        this.sortable = sortable;
         if (this.sortable) {
             this.$element['dragsort']({
                 dragEnd: () => {
@@ -236,7 +249,6 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
         } else {
             this.$element.find(".btn-save").addClass(CardList.UN_VISIBLE_CLASS);
         }
-
     }
 
     private updateBtnPosition() {
@@ -282,10 +294,7 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
     }
 
     setValue(values: Array<any>) {
-        this.values = values;
-        if (!this.values) {
-            this.values = [];
-        }
+        this.values = values || [];
 
         CommonUtils.readyDo(() => {
             return !!this.viewer;
@@ -388,19 +397,33 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
         form.addClass(CardList.CARD_CLASS);
         form.setEditable(this.editable);
         form.addCloseListener((form) => {
-            this.deleteRow(this.lstForm.indexOf(form));
-            if (this.curForm == form) {
-                this.fireSelectChangeEvent();
-                this.curForm = null;
+            if (this.beforeDelete(form.getValue())) {
+                this.doDelete(form.getValue(), () => {
+                    this.deleteRow(this.lstForm.indexOf(form));
+                    if (this.curForm == form) {
+                        this.fireSelectChangeEvent();
+                        this.curForm = null;
+                    }
+                })
+
             }
+
         });
         form.setEditable(this.editable);
 
         this.lstForm.push(form);
     }
 
+    protected beforeDelete(row): boolean {
+        return true;
+    }
+
+    protected doDelete(row, callBack) {
+        callBack();
+    }
+
     private cardValueChanged(form: Form, fieldName: string, value: object) {
-        if (!this.values) {
+        if (!this.values || this.values.length == 0) {
             return;
         }
         let index = this.lstForm.indexOf(form);
@@ -409,6 +432,17 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
         }
         this.values[index][fieldName] = value;
 
+    }
+
+    public check() {
+        if (this.lstForm) {
+            for (let form of this.lstForm) {
+                if (!form.check()) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
 

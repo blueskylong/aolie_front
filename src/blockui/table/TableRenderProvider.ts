@@ -74,7 +74,7 @@ export interface TableRenderProvider {
 export class ServerRenderProvider implements TableRenderProvider {
 
     static ServerDataUrl = CommonUtils.getServerUrl("/data/findBlockData");
-
+    static $label = $("<label></label>");
     /**
      * 是否可以编辑
      */
@@ -123,6 +123,10 @@ export class ServerRenderProvider implements TableRenderProvider {
      * @param value
      */
     public getCellEditor(rowid, colIndex, value, extParams?: any) {
+        if (!this.isEditable) {
+            ServerRenderProvider.$label.html(value);
+            return ServerRenderProvider.$label.get(0);
+        }
         let ele = $("<input type='text' ></input>");
         ele.val(value);
         ele.attr("id", extParams.id);
@@ -194,7 +198,7 @@ export class ServerRenderProvider implements TableRenderProvider {
             }
             let blockDto = this.viewer.blockViewDto;
             let comNodes = TreeNodeFactory.genTreeNode(lstComponent, "componentDto", "lvlCode");
-            //最后增加一个操作列
+            //增加一个操作列
             this.lstColumn.push(this.createOperatorColModel());
             for (let node of comNodes) {
                 if (this.viewer.blockViewDto.fieldToCamel == 1) {
@@ -217,9 +221,16 @@ export class ServerRenderProvider implements TableRenderProvider {
 
     }
 
+
+
     private createOperatorColModel(): ColumnModel {
         return {
-            name: '操作', search: false, width: 50, edittype: "button", frozen: true,
+            name: Table.OPERATE_COL_ID,
+            search: false,
+            width: 50,
+            label: "操作",
+            edittype: "button",
+            frozen: true,
             formatter: (grid, rows, state) => {
                 if (this.operatorProvider) {
                     return this.operatorProvider(grid, rows, state);
@@ -397,13 +408,13 @@ let DEFAULT_TABLE_CONFIG: FreeJqGrid.JqGridOptions = {
     colModel: [],
     cellEdit: true,
     jsonReader: {
-        root: "lstData",    // json中代表实际模型数据的入口
+        root: "data",    // json中代表实际模型数据的入口
         page: "page.currentPage",    // json中代表当前页码的数据
         total: "page.totalPage",    // json中代表总页数
         records: "page.totalRecord", // json中代表数据行总数的数据
         repeatitems: true, // 如果设为false，则jqGrid在解析json时，会根据name来搜索对应的数据元素（即可以json中元素可以不按顺序）；而所使用的name是来自于colModel中的name设定。
         cell: "cell",
-        id: "id",
+        id: "__id__",
         userdata: "userdata",
         subgrid: {
             root: "lstData",

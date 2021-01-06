@@ -99,7 +99,9 @@ html {
     height: 100%;
     width: 100%;
 }
-
+.ui-jqgrid.ui-jqgrid-bootstrap .frozen-bdiv.ui-jqgrid-bdiv .ui-jqgrid-btable {
+    background-color: inherit;
+}
 
 @keyframes k-loadingA {
     0% {

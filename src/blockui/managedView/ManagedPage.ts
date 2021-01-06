@@ -12,6 +12,8 @@ import {ServerRenderProvider} from "../table/TableRenderProvider";
 import {ManagedTreeUI} from "./ManagedTreeUI";
 import BaseUI from "../../uidesign/view/BaseUI";
 import {ManagedRefTree} from "./ManagedRefTree";
+import {ManagedCard} from "./ManagedCard";
+import {ManagedCustomPanel} from "./ManagedCustomPanel";
 
 /**
  * 此表单只响应列表或树选中情况下的显示
@@ -58,6 +60,11 @@ export class ManagedPage<T extends PageUIInfo> extends PageUI<T> {
             } else if (showType == Constants.DispType.tree) {
                 let treeInstance = ManagedTreeUI.getManagedInstance(viewer.blockViewDto.blockViewId, pageDetail);
                 baseUi = treeInstance;
+            } else if (showType == Constants.DispType.card) {
+                let card = ManagedCard.getManagedInstance(viewer.blockViewDto.blockViewId, pageDetail);
+                baseUi = card;
+            } else if (showType == Constants.DispType.custom) {
+                baseUi = new ManagedCustomPanel(pageDetail);
             } else {
                 baseUi = ManagedForm.getManagedInstance(viewer.blockViewDto.blockViewId, pageDetail);
             }

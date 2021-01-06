@@ -36,6 +36,7 @@ export class DesignTable extends Table {
             }
         });
         this.lstComponent = this.properties.getBlockInfo().getLstComponent();
+        this.showUnVisibleCol();
         return result;
     }
 

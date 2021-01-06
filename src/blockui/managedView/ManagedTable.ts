@@ -3,7 +3,7 @@
  * 表单只响应本级数据源的变化
  */
 import {Table} from "../table/Table";
-import {AutoManagedUI, IManageCenter, ManagedEventListener} from "./AutoManagedUI";
+import {AutoManagedUI, IManageCenter} from "./AutoManagedUI";
 import {StringMap} from "../../common/StringMap";
 import {Column} from "../../datamodel/DmRuntime/Column";
 import {Constants} from "../../common/Constants";
@@ -11,11 +11,6 @@ import {ManagedUITools} from "./ManagedUITools";
 import {TableRenderProvider} from "../table/TableRenderProvider";
 import {PageDetailDto} from "../../funcdesign/dto/PageDetailDto";
 import {MenuButtonDto} from "../../sysfunc/menu/dto/MenuButtonDto";
-import ClickEvent = JQuery.ClickEvent;
-import {Alert} from "../../uidesign/view/JQueryComponent/Alert";
-import {ButtonInfo} from "../../uidesign/view/JQueryComponent/Toolbar";
-import {ManagedCard} from "./ManagedCard";
-import {ManagedUiCenter} from "./ManagedUiCenter";
 import {CommonUtils} from "../../common/CommonUtils";
 import {ManagedDialogInfo, ManagedDlg} from "./ManagedDlg";
 import {Dialog} from "../Dialog";
@@ -23,11 +18,11 @@ import {UiService} from "../service/UiService";
 import {SchemaFactory} from "../../datamodel/SchemaFactory";
 import {HandleResult} from "../../common/HandleResult";
 import {GeneralEventListener} from "../event/GeneralEventListener";
+import ClickEvent = JQuery.ClickEvent;
+import {Alert} from "../../uidesign/view/JQueryComponent/Alert";
 
 
 export class ManagedTable extends Table implements AutoManagedUI {
-
-
     protected dsIds = new Array<any>();
     protected refCols = new StringMap<Array<Column>>();
     protected manageCenter: IManageCenter;
@@ -112,7 +107,6 @@ export class ManagedTable extends Table implements AutoManagedUI {
 
     afterComponentAssemble(): void {
         super.afterComponentAssemble();
-
         if (this.pageDetail.loadOnshow) {
             CommonUtils.readyDo(() => {
                 return this.isReady();
@@ -144,10 +138,14 @@ export class ManagedTable extends Table implements AutoManagedUI {
         this.reloadData();
 
     }
+    reloadData() {
+        super.reloadData();
+        this.manageCenter.dsSelectChanged(this,this.dsIds[0],null,null);
+    }
 
     reload(filters?) {
         this.extFilterTemp = filters;
-        super.reloadData();
+        this.reloadData();
     }
 
     getTableIds(): Array<number> {
@@ -180,7 +178,7 @@ export class ManagedTable extends Table implements AutoManagedUI {
             getExtFilter: (source: object, oldFilter: object) => {
                 return this.extFilter;
             }
-        })
+        });
     }
 
     addDblClickLister(listener: GeneralEventListener) {
@@ -283,10 +281,15 @@ export class ManagedTable extends Table implements AutoManagedUI {
     }
 
     private doView(canEdit: boolean, data) {
+        let key = this.getKeyValue(data);
+        if (key === null || typeof key === "undefined") {
+            Alert.showMessage("没有找到主键值");
+            return;
+        }
         let dlgInfo: ManagedDialogInfo =
             {
                 dsId: this.dsIds[0],
-                initValue: this.getKeyValue(data),
+                initValue: key,
                 title: canEdit ? "修改" : "查看",
                 operType: canEdit ? Constants.TableOperatorType.edit : Constants.TableOperatorType.view,
                 callback: () => {

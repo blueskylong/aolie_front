@@ -11,21 +11,12 @@ import "./funcdesign/PageDesign";
 import "./blockui/ManagedFunc";
 
 import "./test/TestFunc";
-import {MenuDto} from "./sysfunc/menu/dto/MenuDto";
+
+///以下是视图注册
+import "./sysfunc/user/UserToResource"
+
 
 export class FunctionReg {
-    static menus = {"1": "DmDesign", "2": "BlockDesign", "3": "PageDesign", "4": "ReferenceFunc", "99": "TestFunc"};
-
-    static getFuncName(url: string) {
-        if (url == "5") {
-            let menuDto = new MenuDto();
-            menuDto.menuId = 5;
-            menuDto.funcName = "ManagedFunc";
-            menuDto.pageId = 4951156849084928;
-            return menuDto;
-        }
-        return this.menus[url] as string;
-    }
 }
 
 new FunctionReg();

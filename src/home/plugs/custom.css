@@ -107,7 +107,7 @@
     display: none !important;
 }
 
-.nav-sm .nav.side-menu li.first-level-menu>a>i {
+.nav-sm .nav.side-menu li.first-level-menu > a > i {
     font-size: 25px !important;
     text-align: center;
     width: 100% !important;
@@ -818,6 +818,13 @@ footer {
     .footer_fixed .nav-sm footer {
         margin-left: 0;
     }
+}
+
+.current-menu-title {
+    float: left;
+    margin-top: 17px;
+    font-size: 1.2em;
+    font-weight: bold;
 }
 
 .tile-stats.sparkline {

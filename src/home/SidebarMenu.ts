@@ -78,6 +78,17 @@ export class SidebarMenu<T extends Array<MenuDto>> extends BaseUI<T> {
         return menu;
     }
 
+    public getMenuInfo(menuId:number):MenuDto{
+        if(this.properties){
+            for(let menuDto of this.properties){
+                if(menuDto.menuId == menuId){
+                    return menuDto;
+                }
+            }
+        }
+        return null;
+    }
+
     private getActiveClass() {
         let activeClass = "active";
         if (this.isSmall) {

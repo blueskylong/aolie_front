@@ -226,6 +226,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
     }
 
     afterComponentAssemble(): void {
+        console.log("----------------------> add schema context");
         $.contextMenu({
             selector: '.schema-view',
             callback: (key, options, event) => {
@@ -590,6 +591,8 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
         this.toolBar.destroy();
         super.destroy();
         $.contextMenu("destroy");
+        ColumnView.isAddedContextMenu = false;
+        TableView.isAddedContextMenu = false;
         //jsplumb的所有设置和事件都要销毁,否则不可以重复使用
         this.getJsplumb().deleteEveryConnection();
         this.getJsplumb().deleteEveryEndpoint();

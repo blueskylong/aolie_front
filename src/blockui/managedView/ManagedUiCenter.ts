@@ -142,6 +142,9 @@ export class ManagedUiCenter implements IManageCenter {
     }
 
     private anyInArray(ids: Array<number>, idRange: Array<number>) {
+        if (!ids) {
+            return false;
+        }
         for (let id of ids) {
             if (this.inArray(id, idRange)) {
                 return true;
@@ -176,6 +179,9 @@ export class ManagedUiCenter implements IManageCenter {
         let result = new Array<AutoManagedUI>();
         for (let ui of this.lstManagedUI) {
             let tableIds = ui.getTableIds();
+            if (!tableIds) {
+                continue;
+            }
             if (tableIds.indexOf(tableId) != -1) {
                 result.push(ui);
                 continue;

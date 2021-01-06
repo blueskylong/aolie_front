@@ -9,7 +9,7 @@ export class HandleResult {
     /**
      * 返回的数据
      */
-    lstData: Array<object>;
+    data: object;
     /**
      * 错误提供信息
      */

@@ -172,3 +172,7 @@ OrangeRed	橙红色	#FF4500	255,69,0
 .jstree-default .jstree-node .jstree-disabled.jstree-clicked {
     background-color: darkorange;
 }
+
+.js-tree{
+    padding:5px;
+}

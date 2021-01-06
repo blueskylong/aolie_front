@@ -531,7 +531,9 @@ div.tablediv > .table-bordered {
 .ui-jqgrid .ui-jqgrid-btable .ui-sgcollapsed span {
     display: block;
 }
-
+.ui-jqgrid.ui-jqgrid-bootstrap .frozen-bdiv.ui-jqgrid-bdiv .ui-jqgrid-btable{
+    background-color: inherit;
+}
 .ui-jqgrid .ui-subgrid {
     margin: 0;
     padding: 0;

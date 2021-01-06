@@ -10,10 +10,10 @@ import EventBus from "../../dmdesign/view/EventBus";
 import {GeneralEventListener} from "../../blockui/event/GeneralEventListener";
 import {PageDetailDto} from "../dto/PageDetailDto";
 import {UiService} from "../../blockui/service/UiService";
-import {PageInfoDto} from "../dto/PageInfoDto";
 import {TreeUI} from "../../blockui/JsTree/TreeUI";
 import {ReferenceTree} from "../../blockui/JsTree/ReferenceTree";
 import PageUI from "../../blockui/PageUI";
+import {ManagedCustomPanel} from "../../blockui/managedView/ManagedCustomPanel";
 
 export class DesignBox extends BaseUI<DesignBoxInfo> {
     private pageDetailDto: PageDetailDto;
@@ -149,6 +149,11 @@ export class DesignBox extends BaseUI<DesignBoxInfo> {
                 this.baseUi = treeInstance;
                 this.$element.append(this.baseUi.getViewUI());
                 this.baseUi.afterComponentAssemble();
+            } else if (showType == Constants.DispType.custom) {//这里特殊处理,2为固定的
+                //自定义组件
+                this.baseUi = new ManagedCustomPanel(this.pageDetailDto);
+                this.$element.append(this.baseUi.getViewUI());
+                this.baseUi.afterComponentAssemble();
             } else {
                 this.baseUi = Form.getInstance(blockViewId);
                 this.$element.append(this.baseUi.getViewUI());
@@ -200,7 +205,6 @@ export class DesignBox extends BaseUI<DesignBoxInfo> {
         $(document).off("dnd_stop.vakata.jstree", this.dropHandler);
         return super.destroy();
     }
-
 
 }
 

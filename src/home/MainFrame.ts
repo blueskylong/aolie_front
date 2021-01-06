@@ -104,24 +104,6 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
             this.setContentHeight();
         };
 
-        // $('.collapse-link').on('click', function () {
-        //     let $boxPanel = $(this).closest('.x_panel'),
-        //         $icon = $(this).find('i'),
-        //         $boxContent = $boxPanel.find('.x_content');
-        //
-        //     // fix for some div with hardcoded fix class
-        //     if ($boxPanel.attr('style')) {
-        //         $boxContent.slideToggle(200, function () {
-        //             $boxPanel.removeAttr('style');
-        //         });
-        //     } else {
-        //         $boxContent.slideToggle(200);
-        //         $boxPanel.css('height', 'auto');
-        //     }
-        //
-        //     $icon.toggleClass('fa-chevron-up fa-chevron-down');
-        // });
-
         $('.close-link').on("click", () => {
             var $boxPanel = this.$element.closest('.x_panel');
             $boxPanel.remove();
@@ -196,6 +178,7 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
             CommonUtils.hideMask();
             return;
         }
+        this.$element.find(".current-menu-title").text(menuInfo.getMenuDto().menuName);
         let funcClazz = ApplicationContext.getMenuFunc(funcName);
         let baseUi = <MenuFunction<any>>BeanFactory.createBean(funcClazz, [menuInfo]);
         this.lastFunc = baseUi;

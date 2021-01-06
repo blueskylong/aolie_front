@@ -13,8 +13,8 @@ export class ReferenceTree<T extends ReferenceTreeInfo> extends BaseComponent<T>
     private refDto: ReferenceDto;
     private canLoadData = false;
 
-    static getTreeInstance(reference, version?) {
-        let refInfo = {refId: reference, version: version || GlobalParams.getLoginVersion()};
+    static getTreeInstance(reference, version?, isMulti?) {
+        let refInfo = {refId: reference, version: version || GlobalParams.getLoginVersion(), isMulti: isMulti};
         let tree = new ReferenceTree(refInfo);
         return tree;
     }
@@ -59,7 +59,7 @@ export class ReferenceTree<T extends ReferenceTreeInfo> extends BaseComponent<T>
     }
 
     private genTreeInfo(): JsTreeInfo {
-        return {idField: "id", codeField: "code", textField: "name"};
+        return {idField: "id", codeField: "code", textField: "name", multiSelect: this.properties.isMulti};
     }
 
     reload() {
@@ -102,4 +102,5 @@ export class ReferenceTree<T extends ReferenceTreeInfo> extends BaseComponent<T>
 export interface ReferenceTreeInfo {
     refId: number;
     version?: string;
+    isMulti?: boolean;
 }

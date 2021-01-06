@@ -83,9 +83,11 @@ export class Form extends BaseComponent<BlockViewDto> {
     }
 
     updateTitle() {
+
         if (!this.$element) {
             return;
         }
+        this.$element.find(".form-title").text(this.properties.title);
         if (this.isShowTitle) {
             this.$element.find(".form-head").removeClass(Form.HIDDEN_CLASS);
         } else {
@@ -141,8 +143,23 @@ export class Form extends BaseComponent<BlockViewDto> {
             }
             this.createSubComponents(this.$formBody.get(0), node);
         }
+        this.updateSize();
         this.updateTitle();
         this.onUiDataReady();
+    }
+
+    private updateSize() {
+        if (this.properties.colSpan) {
+            if (this.properties.colSpan <= 12) {
+                //使用bootstrap布局
+                this.$element.addClass("col-md-" + this.properties.colSpan);
+            } else {
+                this.$element.css("width", this.properties.colSpan);
+            }
+            if (this.properties.rowSpan) {
+                this.$element.css("height", this.properties.rowSpan);
+            }
+        }
     }
 
     protected onUiDataReady() {
@@ -213,21 +230,7 @@ export class Form extends BaseComponent<BlockViewDto> {
     protected createUI(): HTMLElement {
         let $ele = $(require("./templete/Form.html"));
         $ele.attr("blockId", this.blockViewId);
-        if (this.properties.colSpan) {
-            if (this.properties.colSpan <= 12) {
-                //使用bootstrap布局
-                $ele.addClass("col-md-" + this.properties.colSpan);
-            } else {
-                $ele.width(this.properties.colSpan);
-            }
-            if (this.properties.rowSpan) {
-                $ele.height(this.properties.rowSpan);
-            }
-        }
-        $ele.find(".form-title").text(this.properties.title);
-        if (this.properties.showHead) {
-            $ele.find(".form-head").removeClass(Form.HIDDEN_CLASS);
-        }
+
         $ele.find(".close-button").on("click", (event) => {
             if (this.lstCloseListener) {
                 for (let listener of this.lstCloseListener) {
@@ -451,4 +454,6 @@ export class Form extends BaseComponent<BlockViewDto> {
 
         return comp;
     }
+
+
 }

@@ -31,7 +31,7 @@ export default class TableView extends DmDesignBaseView<TableInfo> implements At
     /**
      * 增加右键菜单的开关,所有的表只需要一套菜单即可
      */
-    private static isAddedContextMenu = false;
+    public static isAddedContextMenu = false;
 
 
     getId() {

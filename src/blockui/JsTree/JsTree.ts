@@ -69,9 +69,14 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
     }
 
     public setShowCheck(canCheck) {
-        if (this.properties.multiSelect) {
-            canCheck ? this.jsTree.show_checkboxes() : this.jsTree.hide_checkboxes();
+        if (this.properties.multiSelect != canCheck) {
+            this.properties.multiSelect = canCheck;
+            this.updateCheckBoxShow();
         }
+    }
+
+    private updateCheckBoxShow() {
+        this.properties.multiSelect ? this.jsTree.show_checkboxes() : this.jsTree.hide_checkboxes();
     }
 
     changeCurrentNodeText(str) {
@@ -105,19 +110,32 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         this.jsTree.select_node(node);
     }
 
-    selectNodeById(id, silence = false) {
+    selectNodeById(id: number | string | Array<string>, silence = false) {
         CommonUtils.readyDo(() => {
             return this.isReady()
         }, () => {
             let data = this.jsTree.get_json(null, {flat: true});
             if (data) {
                 this.jsTree.deselect_all();
+                if (!(id instanceof Array)) {
+                    id = [id + ""];
+                }
+                let count = id.length;
+                //这里需要转ID成字符串
+                for (let i = 0; i < count; i++) {
+                    id[i] = id[i] + "";
+                }
                 for (let row of data) {
                     let node = this.jsTree.get_node(row.id);
-                    if (node.data && id == node.data[this.properties.idField]) {
+                    if (node.data && id.indexOf(node.data[this.properties.idField]) != -1) {
                         this.jsTree.select_node(node);
-                        return;
+                        count--;
+                        if (count == 0) {
+                            return;
+                        }
+
                     }
+
                 }
             }
         })
@@ -466,10 +484,15 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
 
                 } else {
                     node.id = code;
-                    lvlProvider.setCurCode(code);
+                    try {
+                        lvlProvider.setCurCode(code);
 
-                    node.parent = lvlProvider.getPreLvlString() ? lvlProvider.getPreLvlString() : rootId;
-                    if (!map.has(node.parent)) {
+                        node.parent = lvlProvider.getPreLvlString() ? lvlProvider.getPreLvlString() : rootId;
+                        if (!map.has(node.parent)) {
+                            node.parent = rootId;
+                        }
+                    } catch (e) {
+                        console.log(e);
                         node.parent = rootId;
                     }
                 }
@@ -501,7 +524,7 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         return this.jsTree.is_leaf(node);
     }
 
-    getSelectData(full = true, onlyLeaf = false) {
+    getSelectData(full = true, onlyLeaf = false, realId = false) {
         if (this.properties.multiSelect) {
             if (onlyLeaf) {
                 let lstData = this.jsTree.get_selected(true);
@@ -511,7 +534,7 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
                 let result = [];
                 for (let data of lstData) {
                     if (!data.children || data.children.length == 0) {
-                        result.push(data.id);
+                        result.push(full ? data : (realId ? data.data[this.properties.idField] : data.id));
                     }
                 }
                 return result;
@@ -522,6 +545,7 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
             return this.getCurrentData();
         }
     }
+
 
     isSelectRoot() {
         let node = this.getCurrentNode();

@@ -20,7 +20,8 @@ export class Constants {
         table: 2,
         tree: 3,
         card: 4,
-        refTree: 5
+        refTree: 5,
+        custom:9//自定义面板
     };
 
     static ComponentType = {
@@ -113,6 +114,7 @@ export class Constants {
         saveSingle: 5,//保存
         saveMulti: 6,
         saveLevel: 7,//保存级次
+        editMulti: 8,//修改多行
         cancel: 19,//取消
         custom1: 101,//自定义
         custom2: 111,//自定义

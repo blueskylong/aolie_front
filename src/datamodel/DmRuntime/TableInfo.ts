@@ -6,6 +6,7 @@ import {PopulateBean} from "../../decorator/decorator";
 import {ReferenceDto} from "../dto/ReferenceDto";
 import {SchemaFactory} from "../SchemaFactory";
 import {DmConstants} from "../DmConstants";
+import {CommonUtils} from "../../common/CommonUtils";
 
 export class TableInfo {
     private tableDto: TableDto;
@@ -82,6 +83,42 @@ export class TableInfo {
         }
         return null;
     }
+
+    /**
+     * 取得所有列的默认值
+     */
+    getDefaultValue(): object {
+        let obj = {};
+        if (!this.lstColumn) {
+            return obj;
+        }
+
+        for (let col of this.lstColumn) {
+            if (col.getColumnDto().isKey) {
+                obj[col.getColumnDto().fieldName] = CommonUtils.genId();
+            } else if (col.getColumnDto().defaultValue != null
+                && (typeof col.getColumnDto().defaultValue !== "undefined")) {
+                obj[col.getColumnDto().fieldName] = col.getColumnDto().defaultValue;
+            }
+        }
+        return obj;
+    }
+
+    hasColName(colName: string) {
+        if (!colName) {
+            return false;
+        }
+        if (!this.lstColumn) {
+            return false;
+        }
+        for (let col of this.lstColumn) {
+            if (col.getColumnDto().fieldName === colName) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     /**
      * 查询外键的字段,本表是从,外表是主

@@ -102,6 +102,12 @@ export class Select<T extends Component> extends TextInput<T> {
             return;
         }
         let extendFilterValues = this.getExtendFilterValues(values);
+        //如果返回null,则按约定清除数据
+        if (extendFilterValues == null) {
+            this.initOptions([]);
+            this.filterValues = new StringMap<object>();
+            return;
+        }
         if (this.filterValues.equals(extendFilterValues)) {
             //如果和上次一样,则不处理
             return;
@@ -173,7 +179,7 @@ export class Select<T extends Component> extends TextInput<T> {
 
     protected createEditor(id: string) {
         // @ts-ignore
-        return $("<select class='com-editor form-control selectpicker'  id='" + id +
+        return $("<select class='com-editor form-control selectpicker'  data-size='5' id='" + id +
             "'><option></option></select>");
     }
 

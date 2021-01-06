@@ -14,6 +14,7 @@ export class Table extends BaseComponent<TableRenderProvider> {
      * 选择列的id
      */
     static CHECK_COL_ID = "cb";
+    static OPERATE_COL_ID = "__operator__";
     static TOOLBAR_BUTTON_CLASS = "table-col-button";
     private isMaskChange = false;
     protected static EVENT_UI_READY = "UI_READY_EVENT";
@@ -24,6 +25,7 @@ export class Table extends BaseComponent<TableRenderProvider> {
     private hasShow = false;//是否已被初始化过
     private colBtns: Array<ButtonInfo>;
     private toolBtns: Array<ButtonInfo>;
+    private lastRowId = null;
 
 
     /**
@@ -49,7 +51,7 @@ export class Table extends BaseComponent<TableRenderProvider> {
     }
 
     setMultiSelect(isMulti) {
-        this.$element.setGridParam({multiselect: isMulti}, true);
+        // this.$element.setGridParam({multiselect: isMulti}, true);
         if (!isMulti) {
             this.$element.hideCol(Table.CHECK_COL_ID, {notSkipFrozen: true});
         } else {
@@ -90,7 +92,8 @@ export class Table extends BaseComponent<TableRenderProvider> {
     public setEditable(editable) {
         this.isEditable = editable;
         this.properties.setEditable(editable);
-        this.$element.setGridParam("cellEdit", editable).trigger("reloadGrid");
+        this.$element.get(0)['p']["cellEdit"] = editable;
+        this.$element.trigger("reloadGrid");
     }
 
     addColumn() {
@@ -468,6 +471,9 @@ export class Table extends BaseComponent<TableRenderProvider> {
     }
 
     protected initEvent() {
+        if (!this.$element) {
+            return;
+        }
         $(window).on("resize." + this.hashCode, (event) => {
             if (this.isAutoFitWidth) {
                 this.$element.setGridWidth(this.$fullElement.parent().width() - 3);
@@ -478,9 +484,13 @@ export class Table extends BaseComponent<TableRenderProvider> {
 
 
     onSelectRow(rowid: string, state: boolean, eventObject: JQuery.Event) {
+        if (this.lastRowId == rowid) {
+            return;
+        }
+        this.lastRowId = rowid;
         this.$element.find("tr").removeClass("selected");
         this.$element.find("#" + rowid).addClass("selected");
-        this.fireEvent(Constants.GeneralEventType.SELECT_CHANGE_EVENT, this.getCurrentRow(), this);
+        this.fireEvent(Constants.GeneralEventType.SELECT_CHANGE_EVENT, this.getJqTable().getRowData(rowid), this);
     }
 
 
@@ -530,25 +540,20 @@ export class Table extends BaseComponent<TableRenderProvider> {
 
         let param: FreeJqGrid.JqGridOptions = {colModel: []};
         param = $.extend(true, {
-            onSelectRow: (rowid: string, state: boolean, eventObject: JQuery.Event) => {
-                this.onSelectRow(rowid, state, eventObject);
+                onSelectRow: (rowid: string, state: boolean, eventObject: JQuery.Event) => {
+                    this.onSelectRow(rowid, state, eventObject);
+                },
+                loadComplete: () => {
+                    this.fireEvent(Table.EVENT_UI_READY, null, this);
+                    this.hideUnVisibleCol();
+                    this.updateButtonEvent();
+                },
+                //增加配置到属性中,目前在判断是不是单元格可编辑的地方使用到
+                renderProvider: this.properties
             },
-            loadComplete: () => {
-                this.fireEvent(Table.EVENT_UI_READY, null, this);
-                this.updateButtonEvent();
-            },
-            onCellSelect: (rowid, iCol, cellcontent, event) => {
-                //当是编辑的列，加上editable-cell 样式，就可以编辑了
-                if (this.isEditable) {
-                    if (this.properties.isCellEditable(rowid, iCol, cellcontent)) {
-                        this.$element.jqGrid('setCell', rowid, iCol, '', 'edit-cell');
-                        return;
-                    }
-                }
-                this.$element.jqGrid('setCell', rowid, iCol, '', 'not-editable-cell');
-            }
-
-        }, option);
+            option
+        )
+        ;
 
         param = $.extend(true, param, this.properties);
         if (param.pager) {
@@ -561,9 +566,10 @@ export class Table extends BaseComponent<TableRenderProvider> {
         let createEl = $.jgrid.createEl;
         let table = this.$element;
         $.jgrid.createEl = (elementType: string, options: any, value: string, autoWidth?: boolean, ajaxso?: any) => {
-            //   return createEl.call(table[0], elementType, options, value, autoWidth, ajaxso);
+            // return createEl.call(table[0], elementType, options, value, autoWidth, ajaxso);
             return this.properties.getCellEditor(options.rowId, options.iCol, value, options);
         };
+
         if (this.properties.getColumnGroup()) {
             this.$element.setGroupHeaders(this.properties.getColumnGroup());
         }
@@ -588,6 +594,8 @@ export class Table extends BaseComponent<TableRenderProvider> {
                 refresh: false,
                 search: false
             });
+        this.$element.setGridHeight("100%");
+        this.setEditable(false);
         this.setMultiSelect(false);
         this.onUiReady();
         this.fireReadyEvent();
@@ -595,11 +603,11 @@ export class Table extends BaseComponent<TableRenderProvider> {
     }
 
     hideOperatorCol() {
-        this.$element.hideCol("name");
+        this.$element.hideCol(Table.OPERATE_COL_ID);
     }
 
     showOperatorCol() {
-        this.$element.showCol("name");
+        this.$element.showCol(Table.OPERATE_COL_ID);
     }
 
     /**
@@ -678,4 +686,40 @@ export class Table extends BaseComponent<TableRenderProvider> {
     }
 
 
+    /**
+     * 不显示隐藏
+     */
+    hideUnVisibleCol() {
+        if (this.properties.getBlockInfo()) {
+            for (let com of this.properties.getBlockInfo().getLstComponent()) {
+                if (com.componentDto.dispType === Constants.ComponentType.hidden) {
+                    this.$element.hideCol(com.column.getColumnDto().fieldName, {notSkipFrozen: true});
+                }
+            }
+        }
+    }
+
+    /**
+     * 显示隐藏
+     */
+    showUnVisibleCol() {
+        if (this.properties.getBlockInfo()) {
+            for (let com of this.properties.getBlockInfo().getLstComponent()) {
+                if (com.componentDto.dispType === Constants.ComponentType.hidden) {
+                    this.$element.showCol(com.column.getColumnDto().fieldName, {notSkipFrozen: true});
+                }
+            }
+        }
+    }
+
 }
+
+(function ($) {
+    let editCell = $.fn.jqGrid['editCell'];
+    $.fn.jqGrid['editCell'] = function (iRow: number, iCol: number, ed?: boolean) {
+        if (!this.get(0).p.renderProvider.isCellEditable(iRow, iCol)) {
+            return;
+        }
+        return editCell.call(this, iRow, iCol, ed);
+    };
+})(jQuery);

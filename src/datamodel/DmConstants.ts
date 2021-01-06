@@ -22,4 +22,9 @@ export class DmConstants {
          */
         multiToMulti: 4,
     }
+    static ConstField = {
+        versionCode: "version_code",
+        xh: "xh",
+        lvlCode: "lvl_code"
+    }
 }

@@ -168,6 +168,15 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
     public isReady() {
         return this.ready;
     }
+
+    public setWidth(width: number) {
+        this.$element.width(width);
+        this.$element.css("display","inline-block")
+    }
+
+    public setHeight(height: number) {
+        this.$element.height(height);
+    }
 }
 
 

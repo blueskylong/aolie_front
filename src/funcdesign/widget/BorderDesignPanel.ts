@@ -9,6 +9,7 @@ import {PageInfo} from "../dto/PageInfo";
 import {PageDetailDto} from "../dto/PageDetailDto";
 
 export class BorderDesignPanel extends BorderLayout<BorderLayoutProperty> {
+    //每一个块的容器
     private lstComp: Array<DesignBox> = new Array<DesignBox>();
 
     private listener: GeneralEventListener;
@@ -60,6 +61,10 @@ export class BorderDesignPanel extends BorderLayout<BorderLayoutProperty> {
         super.initSubControllers();
     }
 
+    /**
+     * 取得控件的容器
+     * @param position
+     */
     private getCompByPosition(position) {
         for (let comp of this.lstComp) {
             if (comp.getName() === position) {

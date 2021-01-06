@@ -258,7 +258,7 @@ export class ManagedForm extends Form implements AutoManagedUI {
                             //增加保存
                             let obj = {};
                             obj[ManagedUITools.getOneKeyColumnField(this.dsIds[0])]
-                                = result.lstData[0][Constants.ConstFieldName.CHANGE_KEYS_FEILD][0][1];
+                                = result.data[0][Constants.ConstFieldName.CHANGE_KEYS_FEILD][0][1];
                             this.manageCenter.dataChanged(this, this.dsIds[0]
                                 , obj, Constants.TableDataChangedType.added);
                         }
@@ -288,7 +288,7 @@ export class ManagedForm extends Form implements AutoManagedUI {
     /**
      * 自身检查
      */
-    protected check() {
+    public check() {
         if (this.state === Constants.UIState.view) {
             Alert.showMessage("当前在查看状态,没有需要保存的数据");
             return false;
@@ -352,7 +352,7 @@ export class ManagedForm extends Form implements AutoManagedUI {
                 return;
             }
             UiService.findTableRow(this.dsIds[0], id, (data) => {
-                this.setValue(data.lstData[0]);
+                this.setValue(data.data[0]);
             })
 
         }
@@ -375,7 +375,7 @@ export class ManagedForm extends Form implements AutoManagedUI {
             this.setValue(data);
         } else if (id) {
             UiService.findTableRow(this.dsIds[0], id, (data: HandleResult) => {
-                this.setValue(data.lstData[0]);
+                this.setValue(data.data[0]);
             })
         }
         return true;

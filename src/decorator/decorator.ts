@@ -8,6 +8,7 @@ export class ApplicationContext {
     private static Services = {};
     private static lstServices: Array<Object> = new Array<Object>();
     private static menuFuncs = {};
+    private static customUis = {};
 
     public static regService(service: any, name?: string) {
         if (!name) {
@@ -37,11 +38,22 @@ export class ApplicationContext {
         return ApplicationContext.menuFuncs[name];
     }
 
+    public static getCustomUi(name: string) {
+        return ApplicationContext.customUis[name];
+    }
+
     public static regMenuFunc(name: string, constructor: { new(...args: Array<any>): any }) {
         if (this.menuFuncs[name]) {
             console.log("************** warning![" + name + "] already exists,Replace the old one!***************")
         }
         this.menuFuncs[name] = constructor;
+    }
+
+    public static regCustomUi(name: string, constructor: { new(...args: Array<any>): any }) {
+        if (this.customUis[name]) {
+            console.log("************** warning![" + name + "] already exists,Replace the old one!***************")
+        }
+        this.customUis[name] = constructor;
     }
 
     /**
@@ -165,6 +177,15 @@ export function Service(name: string) {
 }
 
 export function MenuFunc(name?: string) {
+    return (_constructor: Function) => {
+        let funcName = name ? name : _constructor.name;
+        //注册
+        ApplicationContext.regMenuFunc(funcName, _constructor as any);
+        return;
+    }
+}
+
+export function CustomUi(name?: string) {
     return (_constructor: Function) => {
         let funcName = name ? name : _constructor.name;
         //注册
