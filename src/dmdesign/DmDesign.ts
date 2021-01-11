@@ -6,7 +6,6 @@ import TapPanel from "./view/TapPanel";
 import SchemaDto from "../datamodel/dto/SchemaDto";
 import {Form} from "../blockui/Form";
 import {BlockViewDto} from "../uidesign/dto/BlockViewDto";
-import {TableDemo} from "./view/TableDemo";
 import {ServerRenderProvider} from "../blockui/table/TableRenderProvider";
 import {CardList} from "../blockui/cardlist/CardList";
 import {Column} from "../datamodel/DmRuntime/Column";
@@ -53,17 +52,16 @@ export default class DmDesign<T extends MenuInfo> extends MenuFunction<T> {
         return $ele.get(0);
     }
 
-    /**
-     * 当视图被装配后的处理
-     */
-    public afterComponentAssemble(): void {
+    protected initSubControllers() {
         this.$element.find(".split-pane")['splitPane']();
-
         this.addTabInfoUI(this.$element);
         this.addAttrUI(this.$element);
         this.addSchemaUI(this.$element);
-        super.afterComponentAssemble();
-    };
+        this.ready = true;
+        this.fireReadyEvent();
+    }
+
+
 
     private getUI() {
         return $(require("./template/DmDesign.html"));
@@ -98,7 +96,6 @@ export default class DmDesign<T extends MenuInfo> extends MenuFunction<T> {
         this.schemaView.addReadyListener(() => {
             this.ready = true;
         });
-        this.schemaView.afterComponentAssemble();
         this.schemaView.setItemSelectListener((type, dto) => {
             //这里要先把最后的变化生效
             if (dto instanceof TableDto) {//如果选择的是表
@@ -183,7 +180,7 @@ export default class DmDesign<T extends MenuInfo> extends MenuFunction<T> {
             }
         });
         this.tapPanel.addTap("方案信息", this.schemaInfo.getViewUI());
-        this.schemaInfo.afterComponentAssemble();
+
 
 
         this.fTable = Form.getInstance(30);
@@ -231,13 +228,6 @@ export default class DmDesign<T extends MenuInfo> extends MenuFunction<T> {
 
         this.tapPanel.addTap("引用信息", this.fReference.getViewUI());
         this.fReference.setFullEditable();
-
-
-        let table = new TableDemo(new ServerRenderProvider(30));
-
-        this.tapPanel.addTap("表格", table.getViewUI());
-        table.showTable();
-        table.doTest();
         this.tapPanel.setActiveTap(0);
     }
 
@@ -257,7 +247,7 @@ export default class DmDesign<T extends MenuInfo> extends MenuFunction<T> {
     private addAttrUI($parent: JQuery) {
         this.fAttr = Form.getInstance(20);
         $parent.find("#" + this.ID_ATTR).append(this.fAttr.getViewUI());
-        this.fAttr.afterComponentAssemble();
+
         let thas = this;
         this.fAttr.addValueChangeListener({
             handleEvent(eventType: string, fieldName: object, value: object, form: Form) {

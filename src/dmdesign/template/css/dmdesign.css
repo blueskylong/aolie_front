@@ -335,3 +335,6 @@ button.btn:hover {
     text-align: center;
     font-weight: bold;
 }
+.schema-container .btn-toolbar.panel-tools{
+    min-width: 450px;
+}

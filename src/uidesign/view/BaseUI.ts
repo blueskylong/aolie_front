@@ -8,6 +8,7 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
     protected template: string;
     protected lstReadyListener: Array<(source: any) => void>;
     protected mapListener: StringMap<Array<GeneralEventListener>> = new StringMap<Array<GeneralEventListener>>();
+
     /**
      * dom
      */
@@ -16,13 +17,16 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
     protected $element: JQuery;
 
     protected ready = false;
-    protected destroied = false;
+    protected destroyed = false;
 
     protected hashCode: number = -1;
+    private initTime = null;
+
 
     constructor(properties: T) {
         this.properties = properties;
         this.hashCode = $.hashCode();
+        this.initTime = new Date().getTime();
     }
 
     protected addListener(type, listener: GeneralEventListener) {
@@ -49,6 +53,10 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
     }
 
     addReadyListener(handler: (source: any) => void) {
+        if (this.isReady()) {//如果已经结束 了,则直接调用
+            handler(this);
+            return;
+        }
         if (!this.lstReadyListener) {
             this.lstReadyListener = new Array<() => void>();
         }
@@ -60,6 +68,8 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
             for (let listener of this.lstReadyListener) {
                 listener(this);
             }
+            //这里清空,因为只会调用 一次
+            this.lstReadyListener = [];
         }
     }
 
@@ -77,12 +87,14 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
         if (!this.element) {
             this.element = this.createUI();
             this.$element = $(this.element);
-            this.$element.on("remove", (e) => {
-            });
             this.initSubControllers();
             this.initEvent();
+            DomAssembleNotifier.getInstance().addWaitingUI(this);
         }
+
         this.$element.attr("component-class", this.constructor.name);
+        this.$element.attr("hashcode", this.hashCode);
+
         return this.element;
     }
 
@@ -103,12 +115,20 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
      * 当视图被装配后的处理
      */
     public afterComponentAssemble(): void {
-        if (!this.$element) {
-            this.getViewUI();
-        }
-        this.ready = true;
-        this.fireReadyEvent();
     };
+
+    /**
+     * 创建一个空面板.
+     * @param className
+     */
+    public static createFullPanel(className?: string) {
+        let $ele = $("<div class = 'full-display'></div>");
+        if (className) {
+            $ele.addClass(className);
+        }
+        return $ele;
+    }
+
 
     /**
      * 设置某一属性
@@ -141,12 +161,12 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
         }
         this.lstReadyListener = null;
         this.mapListener.clear();
-        this.destroied = true;
+        this.destroyed = true;
         return true;
     }
 
     isDestroied() {
-        return this.destroied;
+        return this.destroyed;
     }
 
     public hide() {
@@ -171,11 +191,114 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
 
     public setWidth(width: number) {
         this.$element.width(width);
-        this.$element.css("display","inline-block")
+        this.$element.css("display", "inline-block")
     }
 
     public setHeight(height: number) {
         this.$element.height(height);
+    }
+
+    public getHashCode() {
+        return this.hashCode;
+    }
+
+    public getInitTime() {
+        return this.initTime;
+    }
+}
+
+/**
+ * UI被装配置时的通知,主要调用afterComponentAssemble
+ */
+class DomAssembleNotifier {
+
+    /**
+     * 最长失效时间 单位秒
+     */
+    private static MAX_WAIT_SECONDS = 5;
+    private static notifier: DomAssembleNotifier;
+    public static mapElement = new StringMap<BaseUI<any>>();
+    private static task = null;
+
+    public static getInstance() {
+        if (!DomAssembleNotifier.notifier) {
+            DomAssembleNotifier.notifier = new DomAssembleNotifier();
+        }
+        return DomAssembleNotifier.notifier;
+    }
+
+    constructor() {
+        document.addEventListener('DOMNodeInserted', function (e) {
+            DomAssembleNotifier.notifyUI(e.target as any);
+        }, false);
+    }
+
+    public addWaitingUI(ui: BaseUI<any>) {
+        if (DomAssembleNotifier.mapElement.has(ui.getHashCode() + "")) {
+            return;
+        } else {
+            console.log("----->addUI:" + ui.getHashCode());
+            if (DomAssembleNotifier.task == null) {
+                DomAssembleNotifier.task = setInterval(() => {
+                    DomAssembleNotifier.clearOutOfDateWaiter();
+                }, DomAssembleNotifier.MAX_WAIT_SECONDS * 1000)
+            }
+            DomAssembleNotifier.mapElement.set(ui.getHashCode() + "", ui);
+
+        }
+    }
+
+    private static notifyUI(ele: HTMLElement, isHandleSub = false) {
+        if (this.mapElement.getSize() < 1) {
+            return;
+        }
+        let $ele = $(ele);
+        if ($ele.attr("hashcode")) {
+            let hashCode = ele.getAttribute("hashcode");
+            if (this.mapElement.has(hashCode)) {
+                let ui = this.mapElement.get(hashCode);
+                ui.afterComponentAssemble();
+                console.log("----->notify:" + hashCode);
+                //只通知一次
+                this.mapElement.delete(hashCode);
+                //如果不是处理下级的,则要检查下级并通知
+                if (!isHandleSub) {
+                    let lstSub = $(ui.getViewUI()).find("[hashcode]");
+                    console.log("----->notify-sub:" + hashCode);
+                    if (lstSub.length > 0) {//也要通知子控件
+                        lstSub.each((index, element) => {
+                            //因为下级已被平铺出来,这里就不需要递归了
+                            this.notifyUI(element, true);
+                        })
+                    }
+                }
+
+
+            }
+        }
+    }
+
+    private static clearOutOfDateWaiter() {
+        console.log("----->remain:" + this.mapElement.getSize());
+        if (this.mapElement.getSize() < 1) {
+            clearInterval(this.task);
+            this.task = null;
+            return;
+        }
+        let toDeleteKey = [];
+
+        let now = new Date().getTime();
+        this.mapElement.forEach((key, ui, map) => {
+            if ((now - ui.getInitTime()) / 1000 > DomAssembleNotifier.MAX_WAIT_SECONDS) {
+                toDeleteKey.push(key);
+            }
+        });
+        if (toDeleteKey.length > 0) {
+            for (let key of toDeleteKey) {
+                this.mapElement.delete(key);
+            }
+        }
+
     }
 }
 

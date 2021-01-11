@@ -43,6 +43,7 @@ export class ManagedPage<T extends PageUIInfo> extends PageUI<T> {
         return pageUI;
     }
 
+
     protected async createSubUI(pageDetail: PageDetailDto) {
         let baseUi = null;
         if (pageDetail.viewType == Constants.PageViewType.blockView) {
@@ -58,15 +59,15 @@ export class ManagedPage<T extends PageUIInfo> extends PageUI<T> {
             if (showType == Constants.DispType.table) {
                 baseUi = ManagedTable.getManagedInstance(new ServerRenderProvider(blockViewId), pageDetail);
             } else if (showType == Constants.DispType.tree) {
-                let treeInstance = ManagedTreeUI.getManagedInstance(viewer.blockViewDto.blockViewId, pageDetail);
+                let treeInstance = ManagedTreeUI.getManagedInstance(pageDetail);
                 baseUi = treeInstance;
             } else if (showType == Constants.DispType.card) {
-                let card = ManagedCard.getManagedInstance(viewer.blockViewDto.blockViewId, pageDetail);
+                let card = ManagedCard.getManagedInstance(pageDetail);
                 baseUi = card;
             } else if (showType == Constants.DispType.custom) {
                 baseUi = new ManagedCustomPanel(pageDetail);
             } else {
-                baseUi = ManagedForm.getManagedInstance(viewer.blockViewDto.blockViewId, pageDetail);
+                baseUi = ManagedForm.getManagedInstance(pageDetail);
             }
         } else if (pageDetail.viewType == Constants.PageViewType.reference) {//引用只可以用树
             baseUi = ManagedRefTree.getManagedInstance(pageDetail.viewId, pageDetail, pageDetail.versionCode);
@@ -75,7 +76,14 @@ export class ManagedPage<T extends PageUIInfo> extends PageUI<T> {
             baseUi = instance;
         }
         //如果需要在创建时就显示数据,则这里需要调用一次,默认所有的组件都不直接取数
-
+        baseUi.addReadyListener(() => {
+            console.log("-----------------------ready")
+            this.readyCount++;
+            if (this.readyCount == this.pageInfo.getPageDetail().length) {
+                this.ready = true;
+                this.fireReadyEvent();
+            }
+        });
         return baseUi;
     }
 
@@ -94,21 +102,6 @@ export class ManagedPage<T extends PageUIInfo> extends PageUI<T> {
             }
         }
         return null;
-    }
-
-    isReady(): boolean {
-        if (!this.lstBaseUI && this.layout) {
-            return true;
-        }
-        if (this.lstBaseUI) {
-            for (let ui of this.lstBaseUI) {
-                if (!ui.isReady()) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        return false;
     }
 
 

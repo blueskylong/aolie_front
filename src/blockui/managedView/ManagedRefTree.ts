@@ -56,12 +56,9 @@ export class ManagedRefTree<T extends ReferenceTreeInfo> extends ReferenceTree<T
         return tree;
     }
 
-
-    afterComponentAssemble(): void {
-        super.afterComponentAssemble();
-        CommonUtils.readyDo(() => {
-            return this.isReady();
-        }, () => {
+    protected initEvent() {
+        super.initEvent();
+        this.addReadyListener(() => {
             this.getTree().addSelectListener({
                 handleEvent: (eventType: string, data: any, source: any, extObject?: any) => {
                     if (this.listener) {
@@ -76,13 +73,12 @@ export class ManagedRefTree<T extends ReferenceTreeInfo> extends ReferenceTree<T
                 }
             });
 
+            if (this.pageDetail.loadOnshow) {
+                this.reload();
+            }
         });
-        if (this.pageDetail.loadOnshow) {
-            this.reload();
-        }
-
-
     }
+
 
     setButtons(buttons: Array<MenuButtonDto>) {
     }

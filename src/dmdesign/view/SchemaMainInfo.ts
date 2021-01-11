@@ -22,6 +22,11 @@ export class SchemaMainInfo extends BorderLayout<BorderLayoutProperty> {
 
 
     getViewUI(): HTMLElement {
+
+        return super.getViewUI();
+    }
+
+    protected initSubControllers() {
         this.schemaTree = new JsTree<JsTreeInfo>({
             textField: "schemaName",
             rootName: "方案信息",
@@ -60,7 +65,7 @@ export class SchemaMainInfo extends BorderLayout<BorderLayoutProperty> {
                 this.fireValueChangeListener(data, source);
             }
         });
-        return super.getViewUI();
+        this.show();
     }
 
     private doDelete(data) {

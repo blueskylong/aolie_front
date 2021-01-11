@@ -1,7 +1,6 @@
 import {ComponentDto} from "../uidesign/dto/ComponentDto";
-import {UserDto} from "../sysfunc/user/UserDto";
-import {RoleDto} from "../sysfunc/user/RoleDto";
 import {LoginUser} from "../sysfunc/user/LoginUser";
+import {RoleDto} from "../sysfunc/right/RoleDto";
 
 export class MockServer {
 

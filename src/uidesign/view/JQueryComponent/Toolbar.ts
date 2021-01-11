@@ -58,7 +58,7 @@ export class Toolbar<T extends ToolbarInfo> extends BaseUI<T> {
         let button = new ToolbarButton(btnInfo);
         this.lstButton.push(button);
         this.$element.append(button.getViewUI());
-        button.afterComponentAssemble();
+  //      button.afterComponentAssemble();
 
     }
 

@@ -58,13 +58,13 @@ export default class TestFunc<T extends MenuInfo> extends MenuFunction<T> {
         form.setDisplayComponent(Form.genSimpleLocalViewer(lstComp));
         this.borderLayout.addComponent(BorderLayout.east, form);
 
-
+        this.borderLayout.show();
         super.initSubControllers();
     }
 
     afterComponentAssemble(): void {
-        this.borderLayout.afterComponentAssemble();
-        super.afterComponentAssemble();
+        this.ready = true;
+        this.fireReadyEvent();
     }
 
 }

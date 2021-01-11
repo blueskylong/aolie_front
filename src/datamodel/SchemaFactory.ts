@@ -111,6 +111,20 @@ export class SchemaFactory {
     }
 
     /**
+     * 根据表(视图)ID查询表(视图)信息
+     * @param tableid
+     */
+    static getTableByTableName(tableName, schemaId, version?: string): TableInfo {
+        version = version ? version : GlobalParams.getLoginVersion();
+        let schema = this.getSchema(schemaId, version);
+        if (!schema) {
+            return null;
+        }
+        return schema.findTableByName(tableName);
+
+    }
+
+    /**
      * 查询二张表的直接关系
      * @param tableId1
      * @param tableId2

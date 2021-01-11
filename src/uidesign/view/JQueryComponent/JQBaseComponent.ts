@@ -20,9 +20,6 @@ export abstract class JQBaseComponent<T extends Component> extends BaseComponent
     protected editable = true;
     protected enabled = true;
 
-    afterComponentAssemble(): void {
-    }
-
     getValue(): any {
         if (!this.editor) {
             return null;

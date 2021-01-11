@@ -7,8 +7,10 @@ import {GeneralEventListener} from "../event/GeneralEventListener";
 import {StringMap} from "../../common/StringMap";
 import {CodeLevelProvider} from "../../common/CodeLevelProvider";
 import {ButtonInfo} from "../../uidesign/view/JQueryComponent/Toolbar";
+import {HandleResult} from "../../common/HandleResult";
 
 export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
+    static VIRTURE_ROOT_ID = "xxxxxxxxxxx";
     static request_get = "get";
     static request_post = "post";
 
@@ -31,7 +33,7 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
     private silence = false;
     private selectedListener: Array<GeneralEventListener> = new Array<GeneralEventListener>();
     private dropListener: Array<GeneralEventListener> = new Array<GeneralEventListener>();
-    protected enabled = true;
+
     protected dragable = false;
 
     protected createUI(): HTMLElement {
@@ -97,16 +99,19 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         if (this.properties.onReady) {
             this.properties.onReady();
         }
+        this.setEditable(this.editable);
     }
 
-    afterComponentAssemble(): void {
+
+    protected initSubControllers() {
         this.createTree();
         this.bindEvent();
-        super.afterComponentAssemble();
     }
 
     selectNode(node: any) {
-        this.jsTree.deselect_all();
+        if (!this.properties.multiSelect) {
+            this.jsTree.deselect_all();
+        }
         this.jsTree.select_node(node);
     }
 
@@ -115,8 +120,9 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
             return this.isReady()
         }, () => {
             let data = this.jsTree.get_json(null, {flat: true});
+            this.jsTree.deselect_all();
             if (data) {
-                this.jsTree.deselect_all();
+
                 if (!(id instanceof Array)) {
                     id = [id + ""];
                 }
@@ -192,7 +198,12 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
                     NetRequest.axios[this.properties.requestMethod || JsTree.request_get](url, this.makeFilter())
                         .then((result) => {
                             if (result.status == 200) {
-                                callback(this.makeTreeData(result.data));
+                                if (CommonUtils.isHandleResult(result.data)) {
+                                    callback(this.makeTreeData(result.data.data))
+                                } else {
+                                    callback(this.makeTreeData(result.data));
+                                }
+
                                 return;
                             }
                             alert("Tree encounter error!")
@@ -300,9 +311,14 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
                 this.$element.children("li").addClass("droppable");
             }
             this.ready = true;
+            this.fireReadyEvent();
+            if (this.properties.loadOnReady) {
+                this.reload();
+            }
             if (this.properties.url) {
                 this.onReady();
             }
+
         });
         this.$jsTree.on("refresh.jstree", (event) => {
             this.jsTree.open_all();
@@ -394,12 +410,13 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
     }
 
     setEditable(editable: boolean) {
+        super.setEditable(editable);
         this.setEnable(editable);
     }
 
     setEnable(enable: boolean) {
-        this.enabled = enable;
-
+        super.setEnable(enable);
+        super.setEditable(enable);
         let data = this.jsTree.get_json(null, {flat: true});
         if (!enable) {
             this.btns.addClass("hidden");
@@ -450,7 +467,7 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         if (this.properties.rootName) {
             let nodeRoot = new Node();
             if (!this.properties.rootId) {
-                this.properties.rootId = CommonUtils.genUUID();
+                this.properties.rootId = JsTree.VIRTURE_ROOT_ID;
             }
             rootId = this.properties.rootId;
             nodeRoot.id = rootId;
@@ -524,26 +541,131 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         return this.jsTree.is_leaf(node);
     }
 
-    getSelectData(full = true, onlyLeaf = false, realId = false) {
-        if (this.properties.multiSelect) {
-            if (onlyLeaf) {
-                let lstData = this.jsTree.get_selected(true);
-                if (!lstData) {
-                    return null;
+    /**
+     * 取得选择的业务ID  适用多选
+     * @param onlyLeaf
+     */
+    getSelectedRealId(onlyLeaf = false) {
+        let data = this.getJsTree().get_selected(true);
+        if (data && data.length > 0) {
+            let result = [];
+            for (let row of data) {
+                if (row.data) {
+                    result.push(row.data[this.properties.idField]);
                 }
-                let result = [];
-                for (let data of lstData) {
-                    if (!data.children || data.children.length == 0) {
-                        result.push(full ? data : (realId ? data.data[this.properties.idField] : data.id));
-                    }
-                }
-                return result;
-            } else {
-                return this.jsTree.get_selected(full);
+
             }
-        } else {
-            return this.getCurrentData();
+            return result;
         }
+        return null;
+    }
+
+    /**
+     * 取得选择的节点ID,一般是lvl_code 适用多选
+     * @param onlyLeaf
+     */
+    getSelectedId(onlyLeaf = false) {
+        if (onlyLeaf) {
+            return this.getJsTree().get_bottom_selected(false);
+        }
+        return this.getJsTree().get_selected(false);
+    }
+
+    getSelectFullData(onlyLeaf = false) {
+        let selectData;
+        if (onlyLeaf) {
+            selectData = this.jsTree.get_bottom_selected(true);
+        } else {
+            selectData = this.jsTree.get_selected(true);
+        }
+        if (!selectData || selectData.length < 1) {
+            return selectData;
+        }
+        //如果手工增加了根节点,则要去掉
+        if (this.properties.rootName) {
+            for (let i = 0; i < selectData.length; i++) {
+                let node = selectData[i];
+                if (node.id === JsTree.VIRTURE_ROOT_ID) {
+                    selectData.splice(i, 1);
+                    break;
+                }
+            }
+        }
+        return selectData;
+
+    }
+
+    getAllSelectFullData() {
+        let data = this.getSelectFullData(false);
+        if (!data || data.length < 1) {
+            return data;
+        }
+        let partSelectData = this.getJsTree().get_undetermined(true);
+        if (partSelectData && partSelectData.length > 0) {
+            data.push(...partSelectData);
+        }
+        //如果手工增加了根节点,则要去掉
+        if (this.properties.rootName) {
+            for (let i = 0; i < data.length; i++) {
+                let node = data[i];
+                if (node.id === JsTree.VIRTURE_ROOT_ID) {
+                    data.splice(i, 1);
+                    break;
+                }
+            }
+        }
+        return data;
+    }
+
+    // getSelectData(full = true, onlyLeaf = false, realId = false) {
+    //     if (this.properties.multiSelect) {
+    //         if (full && onlyLeaf) {
+    //             return this.jsTree.get_bottom_selected(true);
+    //         }
+    //
+    //         if (full) {
+    //             return this.jsTree.get_selected(true);
+    //         }
+    //         if (onlyLeaf) {
+    //             if (!realId) {
+    //                 return this.getJsTree().get_bottom_selected(false);
+    //             } else {
+    //                 //需要真实ID
+    //                 let data = this.getJsTree().get_bottom_selected(true);
+    //                 if (data && data.length > 0) {
+    //                     let result = [];
+    //                     for (let row of data) {
+    //                         result.push(row[this.properties.idField]);
+    //                     }
+    //                     return result;
+    //                 }
+    //                 return null;
+    //             }
+    //
+    //         } else {
+    //             //带上级
+    //             if (!realId) {
+    //                 return this.getJsTree().get_selected(false);
+    //             } else {
+    //                 //需要真实ID
+    //                 let data = this.getJsTree().get_selected(true);
+    //                 if (data && data.length > 0) {
+    //                     let result = [];
+    //                     for (let row of data) {
+    //                         result.push(row[this.properties.idField]);
+    //                     }
+    //                     return result;
+    //                 }
+    //                 return null;
+    //             }
+    //         }
+    //     } else {
+    //         return this.getCurrentData();
+    //     }
+    // }
+
+    private getRealIds(fullDatas) {
+
     }
 
 
@@ -555,7 +677,6 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
     isRoot(node: any) {
         return node && !node.data;
     }
-
 
     reload() {
         this.ready = false;
@@ -573,7 +694,7 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         let rootId = JsTree.ROOT_KEY;
         if (this.properties.rootName) {
             let nodeRoot = new Node();
-            rootId = CommonUtils.genUUID();
+            rootId = JsTree.VIRTURE_ROOT_ID;
             nodeRoot.id = rootId;
             nodeRoot.parent = JsTree.ROOT_KEY;
             nodeRoot.text = this.properties.rootName;
@@ -615,6 +736,7 @@ export interface JsTreeInfo {
     idField?: string;
     requestMethod?: string;
     showSearch?: boolean;
+    loadOnReady?: boolean;
     url?: string | Function,
     parentField?: string;
     lvl?: Array<number>;

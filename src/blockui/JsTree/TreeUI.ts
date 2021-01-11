@@ -63,6 +63,8 @@ export class TreeUI<T extends BlockViewDto> extends BaseComponent<T> {
         this.$element.append(this.jsTree.getViewUI());
         this.jsTree.addReadyListener(() => {
             this.onUiDataReady();
+            this.ready = true;
+            this.fireReadyEvent();
         })
 
 
@@ -70,15 +72,6 @@ export class TreeUI<T extends BlockViewDto> extends BaseComponent<T> {
 
     protected onUiDataReady() {
 
-    }
-
-    afterComponentAssemble(): void {
-        CommonUtils.readyDo(() => {
-            return !!this.jsTree;
-        }, () => {
-            this.jsTree.afterComponentAssemble();
-            super.afterComponentAssemble();
-        });
     }
 
     private genTreeInfo(lstComponent: Array<Component>): JsTreeInfo {

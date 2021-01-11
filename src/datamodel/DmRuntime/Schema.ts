@@ -173,6 +173,18 @@ export class Schema {
 
     }
 
+    findTableByName(tableName: string): TableInfo {
+        if (!this.lstTable || this.lstTable.length == 0) {
+            return null;
+        }
+        for (let table of this.lstTable) {
+            if (tableName === table.getTableDto().tableName) {
+                return table;
+            }
+        }
+        return null;
+    }
+
     /**
      * 保存前检查
      */

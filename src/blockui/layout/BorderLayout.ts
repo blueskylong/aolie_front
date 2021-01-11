@@ -25,7 +25,10 @@ export class BorderLayout<T extends BorderLayoutProperty> extends BaseUI<T> {
         }
     }
 
-    afterComponentAssemble(): void {
+    /**
+     * 正式组装视图
+     */
+    show() {
         if (!this.centerUi) {
             throw new Error("没有指定主容器中的控件");
         }
@@ -38,7 +41,6 @@ export class BorderLayout<T extends BorderLayoutProperty> extends BaseUI<T> {
             container.append(comp);
             comp.find(".north-panel").append(this.northUi.getViewUI());
             container = comp.find(".not-north-panel");
-            this.northUi.afterComponentAssemble();
         }
         if (this.southUi) {
             let comp = this.createHorizontalSplit("middle-panel",
@@ -47,7 +49,6 @@ export class BorderLayout<T extends BorderLayoutProperty> extends BaseUI<T> {
             container.append(comp);
             comp.find(".south-panel").append(this.southUi.getViewUI());
             container = comp.find(".middle-panel");
-            this.southUi.afterComponentAssemble();
         }
         if (this.westUi) {
             let comp = this.createVerticalSplit("west-panel",
@@ -56,21 +57,22 @@ export class BorderLayout<T extends BorderLayoutProperty> extends BaseUI<T> {
             container.append(comp);
             comp.find(".west-panel").append(this.westUi.getViewUI());
             container = comp.find(".center-east-panel");
-            this.westUi.afterComponentAssemble();
         }
         if (this.eastUi) {
             let comp = this.createVerticalSplit("center-panel",
                 "east-panel", container, this.properties.centerWidth, this.properties.eastWidth);
             container.append(comp);
             comp.find(".east-panel").append(this.eastUi.getViewUI());
-            this.eastUi.afterComponentAssemble();
             container = comp.find(".center-panel");
         }
         container.append(this.centerUi.getViewUI());
-        this.centerUi.afterComponentAssemble();
 
         this.$element.find(".split-pane")['splitPane']();
-        super.afterComponentAssemble();
+    }
+
+    afterComponentAssemble(): void {
+        this.ready = true;
+        this.fireReadyEvent();
     }
 
 

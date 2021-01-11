@@ -46,16 +46,11 @@ export class ReferenceTree<T extends ReferenceTreeInfo> extends BaseComponent<T>
         };
         this.jsTree = new JsTree<any>(jsTreeInfo);
         this.$element.append(this.jsTree.getViewUI());
+        this.jsTree.addReadyListener(() => {
+            this.ready = true;
+            this.fireReadyEvent();
+        })
 
-    }
-
-    afterComponentAssemble(): void {
-        CommonUtils.readyDo(() => {
-            return !!this.jsTree
-        }, () => {
-            this.jsTree.afterComponentAssemble();
-            super.afterComponentAssemble();
-        });
     }
 
     private genTreeInfo(): JsTreeInfo {
@@ -73,7 +68,8 @@ export class ReferenceTree<T extends ReferenceTreeInfo> extends BaseComponent<T>
     }
 
     protected createUI(): HTMLElement {
-        return $("<div class='full-display'></div>").get(0);
+        return ReferenceTree.createFullPanel("reference-tree")
+            .get(0);
     }
 
     getValue(): any {

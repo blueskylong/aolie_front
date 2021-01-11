@@ -25,6 +25,9 @@ export class UserToResource<T extends PageDetailDto> extends BaseComponent<T> im
     private toolBar: Toolbar<any>;
     private manageCenter: IManageCenter;
     private userId: number;
+    private state: number;
+    private readyCount = 0;
+    private treeCount = 0;
 
     /**
      * 资源ID
@@ -51,6 +54,8 @@ export class UserToResource<T extends PageDetailDto> extends BaseComponent<T> im
         } else {
             this.userId = null;
         }
+        this.state = Constants.UIState.view;
+        this.setEditable(false);
     }
 
     private initSelection(userId) {
@@ -98,28 +103,57 @@ export class UserToResource<T extends PageDetailDto> extends BaseComponent<T> im
     protected componentButtonClicked(event: JQuery.ClickEvent<any, any, any, any>, menuBtnDto: MenuButtonDto, data) {
         if (menuBtnDto.tableOpertype == Constants.TableOperatorType.saveSingle
             || menuBtnDto.tableOpertype == Constants.TableOperatorType.saveMulti) {
-            if (!this.userId) {
-                Alert.showMessage("没有需要保存的变动");
-                return;
-            }
-            let result = {};
-
-            this.mapTree.forEach((key, tree, map) => {
-                let selectIds = tree.getTree().getSelectData(false, true, true);
-                if (selectIds && selectIds.length > 0) {
-                    result[key] = selectIds;
-                }
-            });
-
-
-            UserService.saveUserRight(this.userId, result, (result2) => {
-                if (result2.success) {
-                    Alert.showMessage("保存成功!");
-                } else {
-                    Alert.showMessage(result2.err);
-                }
-            })
+            this.doSave();
+        } else if (menuBtnDto.tableOpertype == Constants.TableOperatorType.edit) {
+            this.doEdit()
+        } else if (menuBtnDto.tableOpertype == Constants.TableOperatorType.cancel) {
+            this.doCancel();
         }
+    }
+
+    private doCancel() {
+        if (this.state === Constants.UIState.view) {
+            return;
+        }
+        this.state = Constants.UIState.view;
+        this.setEditable(false);
+        if (this.userId) {
+            this.signTrees(this.userId);
+        }
+    }
+
+    private doEdit() {
+        if (this.state === Constants.UIState.edit) {
+            return;
+        }
+        if (!this.userId) {
+            Alert.showMessage("请选择用户后修改");
+            return;
+        }
+        this.state = Constants.UIState.edit;
+        this.setEditable(true);
+    }
+
+    private doSave() {
+        if (!this.userId) {
+            Alert.showMessage("没有需要保存的变动");
+            return;
+        }
+        let result = {};
+
+        this.mapTree.forEach((key, tree, map) => {
+            let selectIds = tree.getTree().getSelectedRealId(true);
+            if (selectIds && selectIds.length > 0) {
+                result[key] = selectIds;
+            }
+        });
+        UserService.saveUserRight(this.userId, result, (result2) => {
+            if (result2.success) {
+                Alert.showMessage("保存成功!");
+            } else {
+                Alert.showMessage(result2.err);
+            }
+        });
     }
 
     setManageCenter(manageCenter: IManageCenter) {
@@ -131,6 +165,14 @@ export class UserToResource<T extends PageDetailDto> extends BaseComponent<T> im
 
     protected createUI(): HTMLElement {
         return $("<div class='user-resource' style='width: 100%;height: 100%'></div>").get(0);
+    }
+
+    setEditable(editable: boolean) {
+        if (this.lstTree) {
+            for (let tree of this.lstTree) {
+                tree.setEnable(editable);
+            }
+        }
     }
 
     protected initSubControllers() {
@@ -145,15 +187,25 @@ export class UserToResource<T extends PageDetailDto> extends BaseComponent<T> im
     private initTree(lstData: Array<any>) {
         this.lstResource = lstData;
         if (!lstData) {
+            this.ready = true;
+            this.fireReadyEvent();
             return;
         }
+        this.treeCount = lstData.length;
         for (let row of lstData) {
             let refTree = ReferenceTree.getTreeInstance(row.resource_id, GlobalParams.loginVersion, true);
             this.$element.append(refTree.getViewUI());
-            refTree.afterComponentAssemble();
             refTree.reload();
             refTree.setWidth(300);
             refTree.setHeight(500);
+            refTree.addReadyListener(() => {
+                refTree.setEnable(this.properties.initState != Constants.UIState.view);
+                this.readyCount++;
+                if (this.readyCount === this.treeCount) {
+                    this.ready = true;
+                    this.fireReadyEvent();
+                }
+            });
             this.lstTree.push(refTree);
             this.mapTree.set(row['rs_id'], refTree);
         }

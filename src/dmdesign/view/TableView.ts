@@ -223,7 +223,7 @@ export default class TableView extends DmDesignBaseView<TableInfo> implements At
     notifySubComplete() {
         if (this.lstColumn && this.lstColumn.length > 0) {
             for (let columnView of this.lstColumn) {
-                columnView.afterComponentAssemble();
+ //               columnView.afterComponentAssemble();
             }
         }
     }

@@ -138,9 +138,13 @@ export class ManagedTable extends Table implements AutoManagedUI {
         this.reloadData();
 
     }
+
     reloadData() {
         super.reloadData();
-        this.manageCenter.dsSelectChanged(this,this.dsIds[0],null,null);
+        if (this.manageCenter) {
+            this.manageCenter.dsSelectChanged(this, this.dsIds[0], null, null);
+        }
+
     }
 
     reload(filters?) {
@@ -172,7 +176,7 @@ export class ManagedTable extends Table implements AutoManagedUI {
         this.manageCenter = listener;
     }
 
-    protected initSubControllers() {
+    protected async initSubControllers() {
         super.initSubControllers();
         this.properties.setExtFilterProvider({
             getExtFilter: (source: object, oldFilter: object) => {

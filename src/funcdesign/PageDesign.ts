@@ -131,19 +131,16 @@ export default class PageDesign<T extends MenuInfo> extends MenuFunction<T> {
 
     afterComponentAssemble(): void {
         this.$element.find(".split-pane")['splitPane']();
-        super.afterComponentAssemble();
         this.$element.find(".page-tree").append(this.pageTree.getViewUI());
-        this.pageTree.afterComponentAssemble();
         this.$element.find(".block-tree").append(this.blockTree.getViewUI());
-        this.blockTree.afterComponentAssemble();
-
         this.$element.find(".center-panel").append(this.splitCenter.getViewUI());
         this.splitCenter.addComponent(BorderLayout.center, this.designPanel);
         this.splitCenter.addComponent(BorderLayout.south, this.fPage);
         this.splitCenter.addComponent(BorderLayout.east, this.fAttr);
-        this.splitCenter.afterComponentAssemble();
-
+        this.splitCenter.show();
         this.bindEvent();
+        this.ready = true;
+        this.fireReadyEvent();
     }
 
     private addPage(pageName, parentId?) {

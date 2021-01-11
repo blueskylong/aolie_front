@@ -16,7 +16,6 @@ import {CodeLevelProvider} from "../../common/CodeLevelProvider";
 import {JsTree, JsTreeInfo} from "../../blockui/JsTree/JsTree";
 import {SchemaFactory} from "../../datamodel/SchemaFactory";
 import {TreeNode, TreeNodeFactory} from "../../common/TreeNode";
-import {Panel} from "../view/JQueryComponent/Panel";
 import {BlockViewDto} from "../dto/BlockViewDto";
 import {DesignTable} from "./DesignTable";
 
@@ -40,6 +39,7 @@ export class DesignPanel<T> extends BaseUI<T> {
     private dTable: DesignTable;
     private dropHandler: (event, data) => void;
 
+    private lvlProvider: CodeLevelProvider = CodeLevelProvider.getDefaultCodePro();
 
     protected createUI(): HTMLElement {
         let $ele = $(require("../templates/DesignPanel.html"));
@@ -88,7 +88,7 @@ export class DesignPanel<T> extends BaseUI<T> {
     afterComponentAssemble(): void {
         this.$compBody = this.$element.find(".form-body");
         this.$element.find(".split-pane")['splitPane']();
-        this.compTree.afterComponentAssemble();
+ //       this.compTree.afterComponentAssemble();
         this.dropHandler = (event, data) => {
             if (!this.blockViewer) {
                 return;
@@ -218,6 +218,13 @@ export class DesignPanel<T> extends BaseUI<T> {
 
     private createByColumn(colDto: ColumnDto) {
         let component = this.createComponentInfo(colDto);
+        let code;
+        if (!this.lstComponentDto || this.lstComponentDto.length < 1) {
+            this.lvlProvider.setCurCode('');
+        } else {
+            this.lvlProvider.setCurCode(this.lstComponentDto[this.lstComponentDto.length - 1].lvlCode);
+        }
+        component.getComponentDto().lvlCode = this.lvlProvider.getNext();
         this.addComponent(component);
         return component;
     }
@@ -237,7 +244,7 @@ export class DesignPanel<T> extends BaseUI<T> {
             this.lstDesignComponent.push(newCom);
 
             this.$compBody.append(newCom.getViewUI());
-            newCom.afterComponentAssemble();
+//            newCom.afterComponentAssemble();
         } else {
             this.blockViewer.lstComponent.push(component);
         }
@@ -499,7 +506,6 @@ export class DesignPanel<T> extends BaseUI<T> {
             }
         })
         this.$compBody.append(this.dTable.getViewUI());
-        this.dTable.showTable();
         this.lstComponentDto = [];
         if (this.blockViewer.getLstComponent()) {
             for (let comp of this.blockViewer.getLstComponent()) {

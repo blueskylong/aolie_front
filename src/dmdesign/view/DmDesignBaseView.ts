@@ -109,29 +109,22 @@ export default abstract class DmDesignBaseView<T> extends BaseUI<T> {
 
     }
 
-    /**
-     * 取得视图的组件
-     */
-    public getViewUI(): HTMLElement {
-        if (!this.element) {
-            this.element = this.createUI();
-            this.$element = $(this.element);
-            if (this.needHandleSelectEvent()) {
-                this.$element.on("mousedown", (e) => {
-                    if (this.$element.hasClass("active")) {
-                        return;
-                    }
-                    EventBus.fireEvent(EventBus.SELECT_CHANGE_EVENT, e, this);
-                    if (this.needPreventDefaultClick()) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                    }
-                });
-                EventBus.addListener(EventBus.SELECT_CHANGE_EVENT, this);
-            }
+    protected initEvent() {
+        if (this.needHandleSelectEvent()) {
+            this.$element.on("mousedown", (e) => {
+                if (this.$element.hasClass("active")) {
+                    return;
+                }
+                EventBus.fireEvent(EventBus.SELECT_CHANGE_EVENT, e, this);
+                if (this.needPreventDefaultClick()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            });
+            EventBus.addListener(EventBus.SELECT_CHANGE_EVENT, this);
         }
-        return this.element;
     }
+
 
     protected needPreventDefaultClick() {
         return false;

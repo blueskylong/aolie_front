@@ -22,7 +22,7 @@ export class DesignTable extends Table {
     }
 
     async showTable(): Promise<void> {
-        let result = await super.showTable();
+
         this.getJqTable().on("jqGridResizeStop", ((eventObject, width, index) => {
             let columnArray = this.$element.jqGrid("getGridParam", "colModel");
             if (this.selectChangeListener) {
@@ -37,7 +37,7 @@ export class DesignTable extends Table {
         });
         this.lstComponent = this.properties.getBlockInfo().getLstComponent();
         this.showUnVisibleCol();
-        return result;
+
     }
 
     destroy(): boolean {

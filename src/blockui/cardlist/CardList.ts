@@ -104,10 +104,6 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
         this.properties = this.viewer.blockViewDto as any;
     }
 
-    afterComponentAssemble(): void {
-        super.afterComponentAssemble();
-    }
-
     getValue(): any {
         let result = new Array();
         if (this.lstForm) {
@@ -137,6 +133,10 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
             });
     }
 
+    afterComponentAssemble(): void {
+        this.ready = true;
+        this.fireReadyEvent();
+    }
 
     setShowHead(isShowHead, force = false) {
         if (this.isShowHead == isShowHead && !force) {
@@ -385,7 +385,6 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
             this.$element.find(".dm-form").removeClass("active");
             $(this.curForm.getViewUI()).addClass("active");
         });
-        form.afterComponentAssemble();
         if (!this.lstForm) {
             this.lstForm = new Array();
         }

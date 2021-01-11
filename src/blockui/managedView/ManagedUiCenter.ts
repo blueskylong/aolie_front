@@ -58,12 +58,12 @@ export class ManagedUiCenter implements IManageCenter {
         }
         //需要做二次分发,第一次给单数据类型分发,第二次给集合类型分发,一般情况下,像保存,修改这些按钮优先分配到单数据类型的界面中
         for (let ui of this.lstManagedUI) {
-            if (ui.getUiDataNum() === Constants.UIDataNum.one) {
+            if (ui.getUiDataNum() <= Constants.UIDataNum.one) {
                 ui.setButtons(btns);
             }
         }
         for (let ui of this.lstManagedUI) {
-            if (ui.getUiDataNum() === Constants.UIDataNum.multi) {
+            if (ui.getUiDataNum() >= Constants.UIDataNum.multi) {
                 ui.setButtons(btns);
             }
         }

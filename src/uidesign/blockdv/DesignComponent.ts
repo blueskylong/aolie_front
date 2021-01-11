@@ -168,7 +168,7 @@ export class DesignComponent<T extends Component> extends BaseComponent<T> {
         this.component = this.generator.generateComponent(this.properties.componentDto.dispType, this.properties,
             null);
         $(this.component.getViewUI()).insertBefore(this.$element.children()[0]);
-        this.component.afterComponentAssemble();
+//        this.component.afterComponentAssemble();
         if (this.lstSubComp && this.isContainer()) {
             for (let designCom of this.lstSubComp) {
                 (<Panel<any>>this.getRealComp()).addSubControl(designCom);

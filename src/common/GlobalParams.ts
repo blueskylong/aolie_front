@@ -1,9 +1,6 @@
-import {CommonUtils} from "./CommonUtils";
 import {StringMap} from "./StringMap";
 import {LoginUser} from "../sysfunc/user/LoginUser";
-import {RoleDto} from "../sysfunc/user/RoleDto";
 import {MockServer} from "./MockServer";
-import {CacheUtils} from "./CacheUtils";
 
 export class GlobalParams {
 

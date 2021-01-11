@@ -30,7 +30,6 @@ export class ManagedTreeUI<T extends BlockViewDto> extends TreeUI<T> implements 
 
     private oneKeyField = null;
 
-    private detailUI: AutoManagedUI;
 
     attrChanged(source: any, tableId, mapKeyAndValue, field, value) {
         if (source == this) {
@@ -141,18 +140,19 @@ export class ManagedTreeUI<T extends BlockViewDto> extends TreeUI<T> implements 
         return this.pageDetail;
     }
 
-    static getManagedInstance(blockId, pageDetail: PageDetailDto, version?) {
+    static getManagedInstance(pageDetail: PageDetailDto, version?) {
         let blockDto = new BlockViewDto();
-        blockDto.blockViewId = blockId;
+        blockDto.blockViewId = pageDetail.viewId;
         blockDto.versionCode = version || GlobalParams.getLoginVersion();
         let tree = new ManagedTreeUI(blockDto);
         tree.pageDetail = pageDetail;
-        tree.blockViewId = blockId;
+        tree.blockViewId = pageDetail.viewId;
         tree.versionCode = version;
         tree.addReadyListener(() => {
             if (tree.pageDetail && tree.pageDetail.loadOnshow == 1) {
                 tree.reload();
             }
+            tree.setEditable(tree.getPageDetail().initState != Constants.UIState.view);
         });
         return tree;
     }

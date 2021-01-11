@@ -5,6 +5,7 @@ import {PageDetailDto} from "../../funcdesign/dto/PageDetailDto";
 import {MenuButtonDto} from "../../sysfunc/menu/dto/MenuButtonDto";
 import {ApplicationContext, BeanFactory} from "../../decorator/decorator";
 import {MenuFunction} from "../MenuFunction";
+import {Constants} from "../../common/Constants";
 
 export class ManagedCustomPanel<T extends PageDetailDto> extends BaseUI<T> implements AutoManagedUI {
     private customControl: AutoManagedUI;
@@ -76,9 +77,6 @@ export class ManagedCustomPanel<T extends PageDetailDto> extends BaseUI<T> imple
         });
     }
 
-    afterComponentAssemble(): void {
-        this.customControl.afterComponentAssemble();
-    }
 
 
 }

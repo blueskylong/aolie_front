@@ -32,11 +32,11 @@ export class SelectDsDlg extends Dialog<DialogInfo> {
     }
 
     protected beforeShow(value?: any) {
-        this.tree.afterComponentAssemble();
+ //       this.tree.afterComponentAssemble();
     }
 
     getValue() {
-        return this.tree.getSelectData(false, true);
+        return this.tree.getSelectedId(true);
     }
 
     protected beforeOK() {

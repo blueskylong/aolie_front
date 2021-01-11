@@ -38,9 +38,9 @@ export class ManagedForm extends Form implements AutoManagedUI {
         }
     }
 
-    static getManagedInstance(blockId, pageDetail: PageDetailDto, version?) {
+    static getManagedInstance(pageDetail: PageDetailDto, version?) {
         let blockDto = new BlockViewDto();
-        blockDto.blockViewId = blockId;
+        blockDto.blockViewId = pageDetail.viewId;
         blockDto.versionCode = version || GlobalParams.getLoginVersion();
         let form = new ManagedForm(blockDto);
         form.pageDetail = pageDetail;

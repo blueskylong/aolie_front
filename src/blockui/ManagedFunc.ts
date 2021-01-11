@@ -47,7 +47,8 @@ export class ManagedFunc<T extends MenuInfo> extends MenuFunction<T> {
         this.$element.append(this.page.getViewUI());
         this.page.addReadyListener((source) => {
             this.managedUiCenter.registerManagedUI(this.page.getSubManagedUI());
-            super.afterComponentAssemble();
+            this.ready = true;
+            this.fireReadyEvent();
         });
         this.isValid = true;
 
@@ -71,21 +72,6 @@ export class ManagedFunc<T extends MenuInfo> extends MenuFunction<T> {
             }
         }
         return result;
-    }
-
-    afterComponentAssemble(): void {
-        CommonUtils.readyDo(() => {
-                return this.isValid;
-            }, () => {
-                this.page.afterComponentAssemble();
-                //这里要等待页面初始化好后,才可以更改完成状态
-                // CommonUtils.readyDo(() => {
-            //     return this.page.isReady()
-            // }, () => {
-            //
-            // });
-            }
-        );
     }
 
     destroy(): boolean {

@@ -56,7 +56,7 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
         CommonUtils.readyDo(() => {
             return !!this.menuBar;
         }, () => {
-            this.menuBar.afterComponentAssemble();
+            //           this.menuBar.afterComponentAssemble();
         });
 
     }
@@ -163,7 +163,7 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
 
             }
 
-        })
+        });
         return true;
 
     }
@@ -182,12 +182,12 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
         let funcClazz = ApplicationContext.getMenuFunc(funcName);
         let baseUi = <MenuFunction<any>>BeanFactory.createBean(funcClazz, [menuInfo]);
         this.lastFunc = baseUi;
-        this.$body.append(this.lastFunc.getViewUI());
+
         this.lastFunc.addReadyListener(() => {
             this.initButtons();
             CommonUtils.hideMask();
         });
-        this.lastFunc.afterComponentAssemble();
+        this.$body.append(this.lastFunc.getViewUI());
         return <MenuFunction<any>>this.lastFunc;
     }
 

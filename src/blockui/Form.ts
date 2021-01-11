@@ -167,11 +167,6 @@ export class Form extends BaseComponent<BlockViewDto> {
         this.fireReadyEvent();
     }
 
-    /**
-     * 当视图被装配后的处理
-     */
-    afterComponentAssemble(): void {
-    }
 
     addButton(btnInfo: ButtonInfo | Array<ButtonInfo>) {
         if (!this.toolbar) {
@@ -191,7 +186,7 @@ export class Form extends BaseComponent<BlockViewDto> {
         this.toolbar = new Toolbar<ToolbarInfo>({float: true});
         this.$element.append(this.toolbar.getViewUI());
         this.toolbar.setPosition(this.toolDefaultPos[0], this.toolDefaultPos[1]);
-        this.toolbar.afterComponentAssemble();
+
         this.toolbarHasPosition = true;
         this.toolbar.setToolbarDragedListener((args) => {
             if (Math.abs(args.pos[0] - this.toolDefaultPos[0]) < 200
@@ -248,7 +243,6 @@ export class Form extends BaseComponent<BlockViewDto> {
     private createSubComponents(parent: HTMLElement, node: TreeNode<Component>) {
         let component = this.generator.generateComponent(node.data.componentDto.dispType, node.data, parent, this);
         $(parent).append(component.getViewUI());
-        component.afterComponentAssemble();
         this.subComponents.set(node.data.column.getColumnDto().fieldName, component);
         if (node.children && node.children.length > 0) {
             for (let subNode of node.children) {

@@ -142,22 +142,21 @@ export class DesignBox extends BaseUI<DesignBoxInfo> {
             if (showType == Constants.DispType.table) {
                 this.baseUi = new Table(new ServerRenderProvider(blockViewId));
                 this.$element.append(this.baseUi.getViewUI());
-                (<Table>this.baseUi).showTable();
             } else if (showType == Constants.DispType.tree) {
                 //TODO 生成树
                 let treeInstance = TreeUI.getTreeInstance(blockViewId);
                 this.baseUi = treeInstance;
                 this.$element.append(this.baseUi.getViewUI());
-                this.baseUi.afterComponentAssemble();
+
             } else if (showType == Constants.DispType.custom) {//这里特殊处理,2为固定的
                 //自定义组件
                 this.baseUi = new ManagedCustomPanel(this.pageDetailDto);
                 this.$element.append(this.baseUi.getViewUI());
-                this.baseUi.afterComponentAssemble();
+
             } else {
                 this.baseUi = Form.getInstance(blockViewId);
                 this.$element.append(this.baseUi.getViewUI());
-                this.baseUi.afterComponentAssemble();
+
             }
         } else if (this.pageDetailDto.viewType == Constants.PageViewType.reference) {//引用只可以用树
             let treeInstance = ReferenceTree.getTreeInstance(this.pageDetailDto.viewId, this.pageDetailDto.versionCode);
@@ -173,7 +172,7 @@ export class DesignBox extends BaseUI<DesignBoxInfo> {
         } else {//嵌套其它页面
             this.baseUi = PageUI.getInstance(blockViewId, null);
             this.$element.append(this.baseUi.getViewUI());
-            this.baseUi.afterComponentAssemble();
+
         }
 
     }

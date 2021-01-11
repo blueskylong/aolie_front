@@ -58,6 +58,7 @@ export class BorderDesignPanel extends BorderLayout<BorderLayoutProperty> {
 
             });
         }
+        this.show();
         super.initSubControllers();
     }
 

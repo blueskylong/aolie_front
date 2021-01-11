@@ -152,7 +152,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
                         tableInfo.setLstColumn(cols);
                         let tableView = new TableView(tableInfo);
                         this.addTable(this.$canvas.get(0), tableView);
-                        tableView.afterComponentAssemble();
+                        //                       tableView.afterComponentAssemble();
                         tableView.adjustProfile();
                     }
 
@@ -225,8 +225,31 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
         return result;
     }
 
-    afterComponentAssemble(): void {
-        console.log("----------------------> add schema context");
+    private initOther() {
+        this.toolBar.setPosition(10, 30);
+        this.toolBar.addBtn("save", "保存", (e) => {
+            this.saveSchema();
+        });
+        this.toolBar.addBtn("refresh", "刷新", (e) => {
+            this.refresh();
+        });
+        this.toolBar.addBtn("restoreDisp", "恢复显示比例", (e) => {
+            this.restore();
+        });
+
+        this.toolBar.addBtn("collapse", "收缩", (e) => {
+            this.shrinkAll();
+        });
+
+        this.toolBar.addBtn("open", "展开", (e) => {
+            this.prompAll();
+        });
+        this.toolBar.addBtn("clearServerCache", "服务器缓存刷新", (e) => {
+            this.refreshServerCache();
+        });
+    }
+
+    protected initEvent() {
         $.contextMenu({
             selector: '.schema-view',
             callback: (key, options, event) => {
@@ -288,9 +311,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
                 }
             }
         );
-        this.$canvas.css("top", 30);
-        this.$canvas.css("left", 10);
-        this.toolBar.setPosition(10, 30);
+
 
         EventBus.addListener(EventBus.TABLE_REMOVE,
             {
@@ -303,32 +324,14 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
                 }
             }
         );
+
+    }
+
+    afterComponentAssemble(): void {
+        this.$canvas.css("top", 30);
+        this.$canvas.css("left", 10);
         this.$element.parent().on("scroll", (event) => {
             this.adjustTitlePosition();
-        });
-        this.$element.parent().resize((event) => {
-            this.adjustTitlePosition();
-        });
-
-        this.toolBar.addBtn("save", "保存", (e) => {
-            this.saveSchema();
-        });
-        this.toolBar.addBtn("refresh", "刷新", (e) => {
-            this.refresh();
-        });
-        this.toolBar.addBtn("restoreDisp", "恢复显示比例", (e) => {
-            this.restore();
-        });
-
-        this.toolBar.addBtn("collapse", "收缩", (e) => {
-            this.shrinkAll();
-        });
-
-        this.toolBar.addBtn("open", "展开", (e) => {
-            this.prompAll();
-        });
-        this.toolBar.addBtn("clearServerCache", "服务器缓存刷新", (e) => {
-            this.refreshServerCache();
         });
         this.adjustTitlePosition();
     }
@@ -338,6 +341,11 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
         this.$title.css("top", $target.scrollTop() + "px");
         let left = $target.width() / 2 - this.$title.width() / 2 + $target.scrollLeft();
         this.$title.css("left", left + "px")
+
+        let $tool = $(this.toolBar.getViewUI());
+        $tool.css("top", $target.scrollTop() + 30 + "px");
+        left = +$target.scrollLeft() + 5;
+        $tool.css("left", left + "px")
     }
 
     refresh(schemaDto?: SchemaDto) {
@@ -360,8 +368,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
         this.handleResize();
         this.initTableAndRelation();
         this.initReference();
-
-
+        this.initOther();
     }
 
     private destroyElement() {
@@ -480,7 +487,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
                 let tableView = new TableView(table);
                 this.tables.push(tableView);
                 this.$canvas.append(tableView.getViewUI());
-                tableView.afterComponentAssemble();
+//                tableView.afterComponentAssemble();
             }
         }
     }
@@ -513,7 +520,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
             this.relationDlg.show(SchemaView.DEFAULT_RELATION_TYPE);
             return true;
         });
-        this.toolBar.afterComponentAssemble();
+//        this.toolBar.afterComponentAssemble();
 
     }
 
@@ -561,17 +568,17 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
         return key.substr(1, key.indexOf("_"))
     }
 
-    /**
-     * 取得视图的组件
-     */
-    public getViewUI(): HTMLElement {
-        if (!this.element) {
-            this.element = this.createUI();
-            this.$element = $(this.element);
-        }
-        this.initSubControllers();
-        return this.element;
-    }
+    // /**
+    //  * 取得视图的组件
+    //  */
+    // public getViewUI(): HTMLElement {
+    //     if (!this.element) {
+    //         this.element = this.createUI();
+    //         this.$element = $(this.element);
+    //     }
+    //     this.initSubControllers();
+    //     return this.element;
+    // }
 
     destroy(): boolean {
         this.destroying = true;

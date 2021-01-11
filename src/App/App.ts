@@ -20,7 +20,6 @@ export class App {
         this.mainFrame = this.createMainFrame();
         let $body = $("body");
         $body.append(this.mainFrame.getViewUI());
-        this.mainFrame.afterComponentAssemble();
         window.onhashchange = (e) => {
             if (this.maskChange) {
                 this.maskChange = false;

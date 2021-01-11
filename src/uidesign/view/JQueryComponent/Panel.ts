@@ -32,14 +32,14 @@ export class Panel<T extends Component> extends TextInput<T> {
             this.$element.find(".comp-body").get(0), this);
         this.lstSubControl.push(control);
         this.$element.append(control.getViewUI());
-        control.afterComponentAssemble();
+ //       control.afterComponentAssemble();
         return control;
     }
 
     addSubControl(control: BaseComponent<any>) {
         this.lstSubControl.push(control);
         this.$element.append(control.getViewUI());
-        control.afterComponentAssemble();
+  //      control.afterComponentAssemble();
         return control;
     }
 

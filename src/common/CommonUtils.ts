@@ -167,7 +167,7 @@ export class CommonUtils {
         return (obj.hasOwnProperty("changeNum") &&
             obj.hasOwnProperty("err") &&
             obj.hasOwnProperty("page") &&
-            obj.hasOwnProperty("lstData") &&
+            obj.hasOwnProperty("data") &&
             obj.hasOwnProperty("success")
         )
     }

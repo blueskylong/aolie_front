@@ -14,6 +14,7 @@ import "./test/TestFunc";
 
 ///以下是视图注册
 import "./sysfunc/user/UserToResource"
+import "./sysfunc/right/RoleToResource"
 
 
 export class FunctionReg {

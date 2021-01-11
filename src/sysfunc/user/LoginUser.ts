@@ -1,5 +1,5 @@
 import {UserDto} from "./UserDto";
-import {RoleDto} from "./RoleDto";
+import {RoleDto} from "../right/RoleDto";
 
 export class LoginUser extends UserDto {
     //登录角色

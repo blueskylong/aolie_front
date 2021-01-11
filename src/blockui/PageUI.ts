@@ -23,6 +23,7 @@ export default class PageUI<T extends PageUIInfo> extends BaseComponent<any> {
     protected layout: BorderLayout<any>;
     protected pageInfo: PageInfo;
     protected lstBaseUI: Array<BaseUI<any>> = new Array<BaseUI<any>>();
+    protected readyCount = 0;
 
     protected createUI(): HTMLElement {
         this.layout = new BorderLayout<any>(BorderLayoutProperty.genDefaultFullProperty());
@@ -59,11 +60,11 @@ export default class PageUI<T extends PageUIInfo> extends BaseComponent<any> {
             this.lstBaseUI.push(baseUI);
             this.layout.addComponent(detail.pagePosition, baseUI);
         }
-        this.ready = true;
+        this.layout.show();
     }
 
     protected async createSubUI(pageDetail: PageDetailDto) {
-        let baseUi = null;
+        let baseUi: BaseUI<any> = null;
         if (pageDetail.viewType == Constants.PageViewType.blockView) {
             //以下显示块
             let blockViewId = pageDetail.viewId;
@@ -90,44 +91,39 @@ export default class PageUI<T extends PageUIInfo> extends BaseComponent<any> {
             baseUi = PageUI.getInstance(pageDetail.viewId, pageDetail.versionCode);
 
         }
+        baseUi.addReadyListener(() => {
+            console.log("-----------------------ready")
+            this.readyCount++;
+            if (this.readyCount == this.pageInfo.getPageDetail().length) {
+                this.ready = true;
+                this.fireReadyEvent();
+            }
+        });
         return baseUi;
     }
 
-    afterComponentAssemble(): void {
-        //这个只能等到所有子界面存在后,才可以调用
-        CommonUtils.readyDo(() => {
-            if (!this.pageInfo || this.pageInfo.getPageDetail().length != this.lstBaseUI.length) {
-                return false;
-            }
-            return true;
-        }, () => {
-            this.layout.afterComponentAssemble();
-
-        });
-        //这个只能等到所有子界面存完成后,才可以调用
-        CommonUtils.readyDo(() => {
-            if (!this.pageInfo.getPageDetail() || this.pageInfo.getPageDetail().length == 0) {
-                return true;
-            }
-            for (let baseUI of this.lstBaseUI) {
-                if (!baseUI.isReady()) {
-                    return false;
-                }
-            }
-            return true;
-        }, () => {
-            this.fireReadyEvent();
-        });
-
-    }
 
     getValue(): any {
     }
 
     setEditable(editable: boolean) {
+        if (this.lstBaseUI) {
+            for (let ui of this.lstBaseUI) {
+                if (typeof ui["setEditable"] === "function") {
+                    ui["setEditable"](editable);
+                }
+            }
+        }
     }
 
     setEnable(enable: boolean) {
+        if (this.lstBaseUI) {
+            for (let ui of this.lstBaseUI) {
+                if (typeof ui["enable"] === "function") {
+                    ui["enable"](enable);
+                }
+            }
+        }
     }
 
     setValue(value: any) {

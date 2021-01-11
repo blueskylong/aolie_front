@@ -463,6 +463,7 @@ export class Table extends BaseComponent<TableRenderProvider> {
     protected createUI(): HTMLElement {
         let $ele = $(require("../templete/Table.html"));
         $ele.find(".jq-pager").attr("id", this.getPagerId());
+        this.$fullElement = $ele;
         return $ele.get(0);
     }
 
@@ -531,8 +532,7 @@ export class Table extends BaseComponent<TableRenderProvider> {
         }
     }
 
-
-    public async showTable() {
+    protected async initSubControllers() {
         this.hasShow = true;
         let option = await this.properties.getOptions(this);
         let multiSelect = option.multiselect;
@@ -552,8 +552,7 @@ export class Table extends BaseComponent<TableRenderProvider> {
                 renderProvider: this.properties
             },
             option
-        )
-        ;
+        );
 
         param = $.extend(true, param, this.properties);
         if (param.pager) {
@@ -561,7 +560,6 @@ export class Table extends BaseComponent<TableRenderProvider> {
         }
 
         //如果是指定后台生成,则取数据
-        this.$fullElement = this.$element;
         this.$element = this.$element.find(".jq-table").jqGrid(param);
         let createEl = $.jgrid.createEl;
         let table = this.$element;
@@ -599,6 +597,10 @@ export class Table extends BaseComponent<TableRenderProvider> {
         this.setMultiSelect(false);
         this.onUiReady();
         this.fireReadyEvent();
+    }
+
+    public async showTable() {
+
 
     }
 
@@ -614,10 +616,6 @@ export class Table extends BaseComponent<TableRenderProvider> {
      * 这里不做任何事情
      */
     afterComponentAssemble(): void {
-        if (!this.hasShow) {
-            this.showTable();
-        }
-
 
     }
 
@@ -626,6 +624,7 @@ export class Table extends BaseComponent<TableRenderProvider> {
     }
 
     destroy(): boolean {
+        this.$element.GridUnload();
         this.$element = this.$fullElement;
         this.$fullElement = null;
         $(window).off("." + this.hashCode);

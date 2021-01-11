@@ -164,13 +164,8 @@ export default class BlockDesign<T extends MenuInfo> extends MenuFunction<T> {
 
     afterComponentAssemble(): void {
         this.bindEvent();
-        this.dsTree.afterComponentAssemble();
-        this.blockTree.afterComponentAssemble();
-        this.designPanel.afterComponentAssemble();
-        this.fBlock.afterComponentAssemble();
-        this.fColAttr.afterComponentAssemble();
-        this.schemaSelect.afterComponentAssemble();
-        super.afterComponentAssemble();
+        this.ready = true;
+        this.fireReadyEvent();
     }
 
     private bindEvent() {
@@ -354,6 +349,7 @@ export default class BlockDesign<T extends MenuInfo> extends MenuFunction<T> {
     }
 
     public clearAttrShow() {
+        this.lastBlockId = null;
         this.designPanel.showBlock(null, GlobalParams.loginVersion);
         this.fBlock.setValue({});
         this.fColAttr.setValue({});

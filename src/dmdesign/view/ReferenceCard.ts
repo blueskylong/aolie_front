@@ -44,7 +44,7 @@ export class ReferenceCard extends BaseUI<any> {
     }
 
     afterComponentAssemble(): void {
-        this.referenceCard.afterComponentAssemble();
+//        this.referenceCard.afterComponentAssemble();
 
         super.afterComponentAssemble();
     }

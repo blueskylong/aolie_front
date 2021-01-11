@@ -36,7 +36,6 @@ export class ManagedDlg<T extends ManagedDialogInfo> extends Dialog<T> {
         }
         this.$element.find(".sub-ui").append(this.ui.getViewUI());
 
-        this.ui.afterComponentAssemble();
         this.ui.addReadyListener(() => {
             this.doOperation();
         });
@@ -82,13 +81,14 @@ export class ManagedDlg<T extends ManagedDialogInfo> extends Dialog<T> {
         let viewer: BlockViewer = await UiService.getSchemaViewer(blockViewId);
         showType = showType || viewer.getBlockViewDto().defaultShowType;
         pageDetail.loadOnshow = 0;
+        pageDetail.viewId = blockViewId;
         if (showType === Constants.DispType.table) {
             this.ui = ManagedTable.getManagedInstance(new ServerRenderProvider(blockViewId), pageDetail);
         } else if (showType === Constants.DispType.form) {
-            this.ui = ManagedForm.getManagedInstance(blockViewId, pageDetail)
+            this.ui = ManagedForm.getManagedInstance(pageDetail)
 
         } else if (showType === Constants.DispType.tree) {
-            this.ui = ManagedTreeUI.getManagedInstance(blockViewId, pageDetail);
+            this.ui = ManagedTreeUI.getManagedInstance(pageDetail);
         }
     }
 

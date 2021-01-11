@@ -17,7 +17,6 @@ export class InputDlg extends Dialog<InputDlgInfo> {
     }
 
     protected beforeShow(value?: any) {
-        this.fName.afterComponentAssemble();
         if (value) {
             this.fName.setValue({name: value});
         }

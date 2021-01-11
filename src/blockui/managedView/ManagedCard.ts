@@ -154,13 +154,17 @@ export class ManagedCard<T extends BlockViewDto> extends CardList<T> implements 
     }
 
 
-    static getManagedInstance(blockId, pageDetail: PageDetailDto, version?) {
+    static getManagedInstance(pageDetail: PageDetailDto, version?) {
         let blockDto = new BlockViewDto();
-        blockDto.blockViewId = blockId;
+        blockDto.blockViewId = pageDetail.viewId;
         blockDto.versionCode = version || GlobalParams.getLoginVersion();
 
         let card = new ManagedCard(blockDto);
         card.pageDetail = pageDetail;
+        card.addReadyListener(() => {
+                card.setEditable(card.getPageDetail().initState == Constants.UIState.view);
+            }
+        )
         return card;
     }
 
@@ -206,10 +210,6 @@ export class ManagedCard<T extends BlockViewDto> extends CardList<T> implements 
 
     setManageCenter(listener: ManagedEventListener) {
         this.managedEventListener = listener;
-    }
-
-    protected initSubControllers() {
-        super.initSubControllers();
     }
 
     /**
