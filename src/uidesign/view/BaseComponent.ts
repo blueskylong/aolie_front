@@ -6,22 +6,43 @@ import {MenuButtonDto} from "../../sysfunc/menu/dto/MenuButtonDto";
 import {ButtonInfo} from "./JQueryComponent/Toolbar";
 import ClickEvent = JQuery.ClickEvent;
 import {Constants} from "../../common/Constants";
+import {StringMap} from "../../common/StringMap";
 
 export abstract class BaseComponent<T> extends BaseUI<T> {
     protected changeEventHandler: Array<GeneralEventListener> = new Array<GeneralEventListener>();
     protected editable = true;
     protected enabled = true;
 
+    protected extendData: StringMap<any>;
+
     constructor(dto: T) {
         super(dto);
         this.init();
     }
 
-    public abstract getValue(): any;
+    public getValue(): any {
+        return null;
+    }
 
     protected init() {
 
     }
+
+    /**
+     * 控件需要的额外数据的名称,供个性化开发使用
+     */
+    public getRequireExtendDataName(): Array<string> {
+        return null;
+    }
+
+    /**
+     * 设置所需要的个性化数据,供个性化开发使用
+     * @param data
+     */
+    public setExtendData(data: StringMap<any>) {
+        this.extendData = data;
+    }
+
 
     public addValueChangeListener(listener: GeneralEventListener) {
         if (listener) {
@@ -61,7 +82,9 @@ export abstract class BaseComponent<T> extends BaseUI<T> {
      * @param value
      * @param extendData 这里主要是给选择项等有条件计算的控件,更多值的机会.
      */
-    public abstract setValue(value: any, extendData?);
+    public setValue(value: any, extendData?) {
+
+    }
 
     public setEditable(editable: boolean) {
         this.editable = editable;
@@ -77,6 +100,7 @@ export abstract class BaseComponent<T> extends BaseUI<T> {
 
     destroy(): boolean {
         this.changeEventHandler = null;
+        this.extendData = null;
         return super.destroy();
     }
 
@@ -119,5 +143,6 @@ export abstract class BaseComponent<T> extends BaseUI<T> {
     }
 
     protected componentButtonClicked?(event: ClickEvent, menuBtnDto: MenuButtonDto, data);
+
 
 }

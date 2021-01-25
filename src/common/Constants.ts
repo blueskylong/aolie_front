@@ -4,15 +4,18 @@ export class Constants {
 
     static DEFAULT_SCHEMA_ID = 2;//默认的方案ID
     static DEFAULT_REFERENCE_ID = 0;//默认的引用方案
-    static TitlePosition = {left: "left", right: "right", none: "none"};
+    static TitlePosition = {left: "1", right: "2", none: "0"};
 
     static ROW_HEIGHT = 25;
 
     static FieldType = {
-        int: "int",
-        varchar: "varchar",
-        decimal: "decimal",
-        datatime: "datatime"
+        int: "2",
+        varchar: "1",
+        decimal: "4",
+        datetime: "10",
+        text:"20",
+        binary:"30"
+
     };
 
     static DispType = {
@@ -25,24 +28,24 @@ export class Constants {
     };
 
     static ComponentType = {
-        text: "text",
-        button: "button",
-        password: "password",
-        hidden: 'hidden',
-        file: "fileinput",
-        checkbox: "checkbox",
-        radio: 'radioinput',
-        textarea: "textarea",
-        select: "select",
-        label: "label",
-        panel: "panel",
-        time: "time",
-        email: "email",
-        color: "color",
-        date: "date",
-        number: "number",
-        filter: "filter",
-        formula: "formula"
+        text: "1",
+        button: "5",
+        password: "10",
+        hidden: '15',
+        file: "20",
+        checkbox: "22",
+        radio: '26',
+        textarea: "34",
+        select: "39",
+        label: "45",
+        panel: "50",
+        time: "55",
+        email: "60",
+        color: "65",
+        date: "70",
+        number: "75",
+        filter: "78",
+        formula: "80"
     };
 
     static Icons = {

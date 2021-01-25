@@ -75,6 +75,9 @@ export class ManagedTable extends Table implements AutoManagedUI {
     onUiReady() {
         this.addDblClickLister({
             handleEvent: (eventType: string, data: any, source: any, extObject?: any) => {
+                if (!this.enabled) {
+                    return;
+                }
                 if (this.hasBtn(Constants.TableOperatorType.edit)) {
                     this.doView(true, data);
                     return;
@@ -167,7 +170,9 @@ export class ManagedTable extends Table implements AutoManagedUI {
     stateChange(source: any, tableId, state: number) {
         if (this.dsIds.indexOf(tableId) != -1) {
             //这是需要进一步判断,哪些控件可以编辑
-            this.setEditable(Constants.UIState.view != state);
+            this.setEnable(Constants.TableState.view != state);
+        } else if (SchemaFactory.isChildAndAncestor(tableId, this.dsIds[0])) {
+            this.setEnable(Constants.TableState.view === state);
         }
     }
 
@@ -308,8 +313,10 @@ export class ManagedTable extends Table implements AutoManagedUI {
         new ManagedDlg(dlgInfo).show();
     }
 
-//menuBtnDto.tableOpertype === Constants.TableOperatorType.edit
     protected componentButtonClicked(event: ClickEvent, menuBtnDto: MenuButtonDto, data) {
+        if (!this.enabled) {
+            return;
+        }
         if (menuBtnDto.tableOpertype === Constants.TableOperatorType.add) {
             this.doAdd();
         } else if (menuBtnDto.tableOpertype === Constants.TableOperatorType.delete) {

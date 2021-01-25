@@ -16,6 +16,10 @@ import {ColumnDto} from "../datamodel/dto/ColumnDto";
 import {Column} from "../datamodel/DmRuntime/Column";
 import {BeanFactory} from "../decorator/decorator";
 import {ButtonInfo, Toolbar, ToolbarInfo} from "../uidesign/view/JQueryComponent/Toolbar";
+import "./uiruntime/validator";
+import {Alert} from "../uidesign/view/JQueryComponent/Alert";
+import {BootstrapValidator} from "./uiruntime/validator/BootstrapValidator";
+import "jquery-validation"
 
 
 export class Form extends BaseComponent<BlockViewDto> {
@@ -49,7 +53,6 @@ export class Form extends BaseComponent<BlockViewDto> {
      */
     private toolbarHasPosition = false;
 
-
     constructor(dto: BlockViewDto) {
         super(dto);
         if (dto) {
@@ -71,6 +74,30 @@ export class Form extends BaseComponent<BlockViewDto> {
         return new Form(blockDto);
     }
 
+    setExtendData(data: StringMap<any>) {
+        this.extendData = data;
+        if (this.subComponents.getSize() > 0) {
+            let isEmpty = !this.extendData || this.extendData.getSize() < 1;
+
+            let lstComp = this.subComponents.getValues();
+            for (let com of lstComp) {
+                if (isEmpty) {
+                    com.setExtendData(null);
+                    continue;
+                }
+                let names = com.getRequireExtendDataName();
+                if (!names) {
+                    return;
+                }
+                let values = new StringMap<any>();
+                for (let name of names) {
+                    values.set(name, this.extendData.get(name));
+                }
+                com.setExtendData(values);
+            }
+        }
+    }
+
     showHead(isShow) {
         this.isShowTitle = isShow;
         this.updateTitle();
@@ -80,6 +107,10 @@ export class Form extends BaseComponent<BlockViewDto> {
     showClose(isShowClose) {
         this.isShowClose = isShowClose && this.editable;
 
+    }
+
+    getFormBody() {
+        return this.$formBody;
     }
 
     updateTitle() {
@@ -146,6 +177,17 @@ export class Form extends BaseComponent<BlockViewDto> {
         this.updateSize();
         this.updateTitle();
         this.onUiDataReady();
+        this.initValidator();
+    }
+
+    private initValidator() {
+        let validator = new BootstrapValidator(this.viewer);
+        validator.bindForm(this);
+    }
+
+
+    public check() {
+        return this.$formBody.valid();
     }
 
     private updateSize() {
@@ -163,7 +205,7 @@ export class Form extends BaseComponent<BlockViewDto> {
     }
 
     protected onUiDataReady() {
-        this.ready = true;
+
         this.fireReadyEvent();
     }
 
@@ -257,10 +299,20 @@ export class Form extends BaseComponent<BlockViewDto> {
     }
 
     /**
-     * 这时注意,返回的是StringMap
+     * 这时注意
      */
     getValue(): object {
         this.stopEdit();
+        if (!this.values) {
+            this.values = new StringMap<object>();
+        }
+        return this.values.getValueAsObject();
+    }
+
+    /**
+     * 这里会少触发一次值的刷新,如果计算
+     */
+    getCurrentValue(): object {
         if (!this.values) {
             this.values = new StringMap<object>();
         }
@@ -451,3 +503,27 @@ export class Form extends BaseComponent<BlockViewDto> {
 
 
 }
+
+CommonUtils.readyDo(() => {
+    return !!$.validator;
+}, () => {
+    $.extend($.validator.messages, {
+        required: "这是必填字段",
+        remote: "请修正此字段",
+        email: "请输入有效的电子邮件地址",
+        url: "请输入有效的网址",
+        date: "请输入有效的日期",
+        dateISO: "请输入有效的日期 (YYYY-MM-DD)",
+        number: "请输入有效的数字",
+        digits: "只能输入数字",
+        creditcard: "请输入有效的信用卡号码",
+        equalTo: "你的输入不相同",
+        extension: "请输入有效的后缀",
+        maxlength: $.validator.format("最多可以输入 {0} 个字符"),
+        minlength: $.validator.format("最少要输入 {0} 个字符"),
+        rangelength: $.validator.format("请输入长度在 {0} 到 {1} 之间的字符串"),
+        range: $.validator.format("请输入范围在 {0} 到 {1} 之间的数值"),
+        max: $.validator.format("请输入不大于 {0} 的数值"),
+        min: $.validator.format("请输入不小于 {0} 的数值")
+    });
+});

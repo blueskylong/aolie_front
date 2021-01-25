@@ -1,0 +1,84 @@
+import {FlowLayout} from "../../../../blockui/layout/FlowLayout";
+import BaseUI from "../../BaseUI";
+import {FormulaParse} from "../../../../datamodel/DmRuntime/formula/transelement";
+import {DmConstants} from "../../../../datamodel/DmConstants";
+
+export class ButtonPanel<T extends ButtonPanelProperty> extends FlowLayout<T> {
+
+    private mathPad: FlowLayout<any>;
+    private logicPad: FlowLayout<any>;
+    private mathEle = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', ".", "+", "-", "*", "/", "(", ")"];
+
+    protected initSubControllers() {
+        this.mathPad = new FlowLayout({});
+        this.addUI(this.mathPad);
+        this.mathPad.setWidth(200);
+        for (let i = 0; i < this.mathEle.length; i++) {
+            this.mathPad.addUI(new AcButton({
+                width: 30, height: 30, title: this.mathEle[i], value: this.mathEle[i],
+                clickHandle: (value) => {
+                    this.properties.clickHandle(value);
+                }
+            }));
+        }
+
+        //增加逻辑按钮
+        this.logicPad = new FlowLayout<any>({});
+        this.addUI(this.logicPad);
+        this.logicPad.setWidth(300);
+        for (let exp of FormulaParse.getTransElements()) {
+            if (exp.getElementType() === DmConstants.FormulaElementType.logic ||
+                exp.getElementType() === DmConstants.FormulaElementType.compare) {
+                this.logicPad.addUI(new AcButton({
+                    width: 80, height: 30, title: exp.getName(), value: exp.getExpressionCN(), clickHandle: (value) => {
+                        this.properties.clickHandle(" " + value + " ");
+                    }
+                }));
+            }
+        }
+        this.fireReadyEvent();
+    }
+
+
+    destroy(): boolean {
+        this.mathPad.destroy();
+        return super.destroy();
+    }
+
+
+}
+
+export interface ButtonPanelProperty {
+    clickHandle: (value) => void;
+}
+
+class AcButton<T extends AcButtonProperty> extends BaseUI<T> {
+    protected createUI(): HTMLElement {
+        let ele = $("<button class='btn-info btn  btn-acbtn'></button>");
+        ele.text(this.properties.title);
+        ele.on("click", (e) => {
+            if (this.properties.clickHandle) {
+                this.properties.clickHandle(this.properties.value);
+            }
+        });
+        return ele.get(0);
+    }
+
+    protected initSubControllers() {
+        this.setHeight(this.properties.height);
+        this.setWidth(this.properties.width);
+    }
+
+    destroy(): boolean {
+        this.$element.off("click");
+        return super.destroy();
+    }
+}
+
+export interface AcButtonProperty {
+    width: number;
+    height: number;
+    title: string;
+    value: string;
+    clickHandle: (value) => void;
+}

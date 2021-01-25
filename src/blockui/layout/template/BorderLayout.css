@@ -5,3 +5,11 @@
 .horizontal-percent > .split-pane-divider {
     height: 5px;
 }
+
+.flow-layout-panel > * {
+    display: inline-block;
+}
+
+.full-width-display {
+    width: 100%;
+}

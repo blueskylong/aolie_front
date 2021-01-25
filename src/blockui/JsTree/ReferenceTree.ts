@@ -27,19 +27,42 @@ export class ReferenceTree<T extends ReferenceTreeInfo> extends BaseComponent<T>
         return this.jsTree;
     }
 
-    async initSubControllers() {
-        if (!this.refDto) {
-            this.refDto = await UiService.getReferenceDto(this.properties.refId) as any;
+    /**
+     * 切换显示的引用数据
+     * @param refId
+     */
+    async changeRefId(refId, onReady?: () => void) {
+        if (this.properties.refId == refId) {
+            return;
         }
-        if (!this.refDto) {
-            console.log("Reference " + this.properties.refId + " not exists!")
+        this.properties.refId = refId;
+        this.clearShow();
+        await this.initSubControllers();
+        if (onReady) {
+            this.addReadyListener(onReady);
         }
+        this.reload();
+    }
 
+    private clearShow() {
+        this.jsTree.destroy();
+        this.$element.children().remove();
+    }
+
+    async initSubControllers() {
+        if (this.properties.refId >= 0) {
+            if (!this.refDto) {
+                this.refDto = await UiService.getReferenceDto(this.properties.refId) as any;
+            }
+            if (!this.refDto) {
+                console.log("Reference " + this.properties.refId + " not exists!")
+            }
+        }
         let jsTreeInfo = this.genTreeInfo();
-        jsTreeInfo.rootName = this.refDto.refName;
+        jsTreeInfo.rootName = this.properties.refId < 0 ? "未指定引用" : this.refDto.refName;
         jsTreeInfo.showSearch = true;
         jsTreeInfo.url = () => {
-            if (!this.canLoadData) {
+            if (!this.canLoadData || this.properties.refId < 0) {
                 return null;
             }
             return "/ui/findReferenceData/" + this.properties.refId;
@@ -47,8 +70,8 @@ export class ReferenceTree<T extends ReferenceTreeInfo> extends BaseComponent<T>
         this.jsTree = new JsTree<any>(jsTreeInfo);
         this.$element.append(this.jsTree.getViewUI());
         this.jsTree.addReadyListener(() => {
-            this.ready = true;
             this.fireReadyEvent();
+            this.jsTree.setEditable(this.editable);
         })
 
     }
@@ -78,10 +101,14 @@ export class ReferenceTree<T extends ReferenceTreeInfo> extends BaseComponent<T>
 
     setEditable(editable: boolean) {
         this.jsTree.setEditable(editable);
+        super.setEditable(editable);
+        super.setEnable(editable);
     }
 
     setEnable(enable: boolean) {
         this.jsTree.setEnable(enable);
+        super.setEnable(enable);
+        super.setEditable(enable);
     }
 
     setValue(value: any) {

@@ -1,7 +1,7 @@
 import FormulaDto from "../../datamodel/dto/FormulaDto";
 import {CommonUtils} from "../../common/CommonUtils";
 
-export class Formula {
+export class FormulaInfo {
     private formulaDto: FormulaDto;
 
     getFormulaDto(): FormulaDto {

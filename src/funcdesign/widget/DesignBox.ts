@@ -13,7 +13,7 @@ import {UiService} from "../../blockui/service/UiService";
 import {TreeUI} from "../../blockui/JsTree/TreeUI";
 import {ReferenceTree} from "../../blockui/JsTree/ReferenceTree";
 import PageUI from "../../blockui/PageUI";
-import {ManagedCustomPanel} from "../../blockui/managedView/ManagedCustomPanel";
+import {ManagedCustomPanelContainer} from "../../blockui/managedView/ManagedCustomPanelContainer";
 
 export class DesignBox extends BaseUI<DesignBoxInfo> {
     private pageDetailDto: PageDetailDto;
@@ -150,7 +150,7 @@ export class DesignBox extends BaseUI<DesignBoxInfo> {
 
             } else if (showType == Constants.DispType.custom) {//这里特殊处理,2为固定的
                 //自定义组件
-                this.baseUi = new ManagedCustomPanel(this.pageDetailDto);
+                this.baseUi = new ManagedCustomPanelContainer(this.pageDetailDto);
                 this.$element.append(this.baseUi.getViewUI());
 
             } else {

@@ -1,0 +1,18 @@
+.filter-editor .btn-acbtn {
+    margin: 5px 10px 10px 0px;
+}
+
+.filter-editor .flow-layout-panel {
+    vertical-align: top;
+    text-align: center;
+    align-content: center;
+}
+
+.filter-editor [component-class="TextArea"] {
+    margin-bottom: 0px;
+}
+
+.filter-editor textarea {
+    height: 100% !important;
+    width: 100% !important;
+}

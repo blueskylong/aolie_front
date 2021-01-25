@@ -30,7 +30,7 @@ export class ReferenceCard extends BaseUI<any> {
         });
         this.referenceCard.setBeforeAdd(() => {
             if (this.curTableId == ReferenceCard.NO_TABLE_ID) {
-                Alert.showMessage("请选择方案后再增加");
+                Alert.showMessage("请选择引用的表再增加");
                 return false;
             }
             return true;
@@ -87,6 +87,10 @@ export class ReferenceCard extends BaseUI<any> {
         this.lstReference = dtos;
         this.curTableId = tableId;
         this.referenceCard.setValue(dtos);
+    }
+
+    clearSelectTable() {
+        this.curTableId = ReferenceCard.NO_TABLE_ID;
     }
 
     private saveCurrentData() {

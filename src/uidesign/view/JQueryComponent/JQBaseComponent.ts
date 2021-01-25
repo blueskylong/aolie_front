@@ -6,7 +6,7 @@ import {GeneralEventListener} from "../../../blockui/event/GeneralEventListener"
 export abstract class JQBaseComponent<T extends Component> extends BaseComponent<T> {
 
 
-    protected constructor(dto: T, eventHandler?: GeneralEventListener) {
+    public constructor(dto: T, eventHandler?: GeneralEventListener) {
         super(dto);
         this.addValueChangeListener(eventHandler);
     }
@@ -75,3 +75,5 @@ export abstract class JQBaseComponent<T extends Component> extends BaseComponent
 
 
 }
+
+

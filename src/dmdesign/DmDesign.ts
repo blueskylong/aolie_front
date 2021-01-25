@@ -6,15 +6,12 @@ import TapPanel from "./view/TapPanel";
 import SchemaDto from "../datamodel/dto/SchemaDto";
 import {Form} from "../blockui/Form";
 import {BlockViewDto} from "../uidesign/dto/BlockViewDto";
-import {ServerRenderProvider} from "../blockui/table/TableRenderProvider";
 import {CardList} from "../blockui/cardlist/CardList";
 import {Column} from "../datamodel/DmRuntime/Column";
-import {Formula} from "../blockui/uiruntime/Formula";
 import {Constraint} from "../datamodel/DmRuntime/Constraint";
 import TableDto from "../datamodel/dto/TableDto";
 import {MenuFunc} from "../decorator/decorator";
 import {MenuFunction} from "../blockui/MenuFunction";
-import {CommonUtils} from "../common/CommonUtils";
 import {SchemaMainInfo} from "./view/SchemaMainInfo";
 import {BorderLayoutProperty} from "../blockui/layout/BorderLayout";
 import {ReferenceCard} from "./view/ReferenceCard";
@@ -25,6 +22,8 @@ import {Alert} from "../uidesign/view/JQueryComponent/Alert";
 import {MenuInfo} from "../sysfunc/menu/dto/MenuInfo";
 import {MenuButtonDto} from "../sysfunc/menu/dto/MenuButtonDto";
 import {DmConstants} from "../datamodel/DmConstants";
+import {FormulaInfo} from "../blockui/uiruntime/FormulaInfo";
+import {FilterCardList} from "./view/FilterCardList";
 
 @MenuFunc()
 export default class DmDesign<T extends MenuInfo> extends MenuFunction<T> {
@@ -38,7 +37,7 @@ export default class DmDesign<T extends MenuInfo> extends MenuFunction<T> {
     private fReference: ReferenceCard;
     private fTable: Form;
     private listFormula: CardList<BlockViewDto>;
-    private listConstraint: CardList<BlockViewDto>;
+    private listConstraint: FilterCardList<BlockViewDto>;
     private schemaDto: SchemaDto;
 
     /**
@@ -57,10 +56,8 @@ export default class DmDesign<T extends MenuInfo> extends MenuFunction<T> {
         this.addTabInfoUI(this.$element);
         this.addAttrUI(this.$element);
         this.addSchemaUI(this.$element);
-        this.ready = true;
         this.fireReadyEvent();
     }
-
 
 
     private getUI() {
@@ -130,7 +127,7 @@ export default class DmDesign<T extends MenuInfo> extends MenuFunction<T> {
 
 
     private isReferenceSchema() {
-        return this.schemaDto && this.schemaDto.schemaId == DmConstants.DEFAULT_REFERENCE_ID;
+        return this.schemaDto && this.schemaDto.schemaId == DmConstants.DefaultSchemaIDs.DEFAULT_REFERENCE_SCHEMA;
     }
 
     private updateItemData() {
@@ -144,7 +141,7 @@ export default class DmDesign<T extends MenuInfo> extends MenuFunction<T> {
     updateConstraint(dto?: TableDto) {
         //TODO 根据选择的信息显示相应的约束
         if (!dto) {
-            this.listConstraint.setValue(this.schemaView.getConstraintDtos());
+            this.listConstraint.setData(this.schemaView.getConstraintDtos(), this.schemaView.getSchema());
         }
     }
 
@@ -169,6 +166,7 @@ export default class DmDesign<T extends MenuInfo> extends MenuFunction<T> {
                     this.tapPanel.showTap(4);
                 } else {
                     this.tapPanel.hideTap(4);
+                    this.fReference.clearSelectTable();
                 }
             }
         });
@@ -180,7 +178,6 @@ export default class DmDesign<T extends MenuInfo> extends MenuFunction<T> {
             }
         });
         this.tapPanel.addTap("方案信息", this.schemaInfo.getViewUI());
-
 
 
         this.fTable = Form.getInstance(30);
@@ -204,11 +201,11 @@ export default class DmDesign<T extends MenuInfo> extends MenuFunction<T> {
         });
         this.listFormula.setDefaultValueProvider(() => {
 
-            return Formula.genNewFormula(this.schemaDto.schemaId, this.schemaDto.versionCode, null);
+            return FormulaInfo.genNewFormula(this.schemaDto.schemaId, this.schemaDto.versionCode, null);
         });
         this.listFormula.setFullEditable();
 
-        this.listConstraint = CardList.getInstance(40);
+        this.listConstraint = FilterCardList.getInstance(40);
 
         this.tapPanel.addTap("约束", this.listConstraint.getViewUI());
         this.listConstraint.setEditable(true);

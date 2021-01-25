@@ -64,6 +64,7 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
     }
 
     fireReadyEvent() {
+        this.ready = true;
         if (this.lstReadyListener) {
             for (let listener of this.lstReadyListener) {
                 listener(this);
@@ -162,6 +163,7 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
         this.lstReadyListener = null;
         this.mapListener.clear();
         this.destroyed = true;
+        this.properties = null;
         return true;
     }
 
@@ -237,7 +239,7 @@ class DomAssembleNotifier {
         if (DomAssembleNotifier.mapElement.has(ui.getHashCode() + "")) {
             return;
         } else {
-            console.log("----->addUI:" + ui.getHashCode());
+            // console.log("----->addUI:" + ui.getHashCode());
             if (DomAssembleNotifier.task == null) {
                 DomAssembleNotifier.task = setInterval(() => {
                     DomAssembleNotifier.clearOutOfDateWaiter();
@@ -258,13 +260,13 @@ class DomAssembleNotifier {
             if (this.mapElement.has(hashCode)) {
                 let ui = this.mapElement.get(hashCode);
                 ui.afterComponentAssemble();
-                console.log("----->notify:" + hashCode);
+                // console.log("----->notify:" + hashCode);
                 //只通知一次
                 this.mapElement.delete(hashCode);
                 //如果不是处理下级的,则要检查下级并通知
                 if (!isHandleSub) {
                     let lstSub = $(ui.getViewUI()).find("[hashcode]");
-                    console.log("----->notify-sub:" + hashCode);
+                    // console.log("----->notify-sub:" + hashCode);
                     if (lstSub.length > 0) {//也要通知子控件
                         lstSub.each((index, element) => {
                             //因为下级已被平铺出来,这里就不需要递归了

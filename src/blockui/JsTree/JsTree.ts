@@ -102,6 +102,11 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         this.setEditable(this.editable);
     }
 
+    deselectAll(supress_event?: boolean) {
+        this.getJsTree().deselect_all(supress_event);
+        this.selectNode(this.getJsTree().select_node(JsTree.ROOT_KEY))
+    }
+
 
     protected initSubControllers() {
         this.createTree();
@@ -119,31 +124,8 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         CommonUtils.readyDo(() => {
             return this.isReady()
         }, () => {
-            let data = this.jsTree.get_json(null, {flat: true});
             this.jsTree.deselect_all();
-            if (data) {
-
-                if (!(id instanceof Array)) {
-                    id = [id + ""];
-                }
-                let count = id.length;
-                //这里需要转ID成字符串
-                for (let i = 0; i < count; i++) {
-                    id[i] = id[i] + "";
-                }
-                for (let row of data) {
-                    let node = this.jsTree.get_node(row.id);
-                    if (node.data && id.indexOf(node.data[this.properties.idField]) != -1) {
-                        this.jsTree.select_node(node);
-                        count--;
-                        if (count == 0) {
-                            return;
-                        }
-
-                    }
-
-                }
-            }
+            this.jsTree.select_node(id);
         })
 
     }
@@ -291,10 +273,17 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         }
     }
 
+    addDblClick(listener: GeneralEventListener) {
+        this.addListener("dblclick", listener);
+    }
+
     private bindEvent() {
         this.$jsTree.on("activate_node.jstree", (obj, e) => {
             // 获取当前节点
             this.currentNode = e.node;
+        });
+        this.$jsTree.on("dblclick", (event) => {
+            this.fireEvent("dblclick", this.getCurrentNode(), this);
         });
 
         this.$jsTree.on("select_node.jstree", (event, data) => {
@@ -310,7 +299,7 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
             if (this.treeProps.dnd['isCanDrop']) {
                 this.$element.children("li").addClass("droppable");
             }
-            this.ready = true;
+
             this.fireReadyEvent();
             if (this.properties.loadOnReady) {
                 this.reload();
@@ -480,8 +469,9 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         //先收集所有的编辑数据
         if (data) {
             let codeField = this.properties.codeField;
+            let idField = this.properties.idField;
             for (let row of data) {
-                map.set(row[codeField], null);
+                map.set(row[codeField], row[idField]);
             }
             data.sort((row1, row2) => {
                 if (row1[codeField] > row2[codeField]) {
@@ -500,12 +490,12 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
                     node.parent = rootId;
 
                 } else {
-                    node.id = code;
+                    node.id = row[this.properties.idField];
                     try {
                         lvlProvider.setCurCode(code);
 
-                        node.parent = lvlProvider.getPreLvlString() ? lvlProvider.getPreLvlString() : rootId;
-                        if (!map.has(node.parent)) {
+                        node.parent = map.get(lvlProvider.getPreLvlString());
+                        if (!node.parent) {
                             node.parent = rootId;
                         }
                     } catch (e) {
@@ -529,6 +519,13 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         return null;
     }
 
+    getCurrentId() {
+        if (this.currentNode) {
+            return this.currentNode.id;
+        }
+        return null;
+    }
+
     getCurrentNode() {
         return this.currentNode;
     }
@@ -537,27 +534,15 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         return this.jsTree.get_json(node);
     }
 
-    isLeaf(node: string | object) {
-        return this.jsTree.is_leaf(node);
+    getNodeCode(node: any) {
+        let data = this.jsTree.get_json(node);
+        if (data) {
+            return data.data[this.properties.codeField];
+        }
     }
 
-    /**
-     * 取得选择的业务ID  适用多选
-     * @param onlyLeaf
-     */
-    getSelectedRealId(onlyLeaf = false) {
-        let data = this.getJsTree().get_selected(true);
-        if (data && data.length > 0) {
-            let result = [];
-            for (let row of data) {
-                if (row.data) {
-                    result.push(row.data[this.properties.idField]);
-                }
-
-            }
-            return result;
-        }
-        return null;
+    isLeaf(node: string | object) {
+        return this.jsTree.is_leaf(node);
     }
 
     /**
@@ -616,58 +601,6 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         }
         return data;
     }
-
-    // getSelectData(full = true, onlyLeaf = false, realId = false) {
-    //     if (this.properties.multiSelect) {
-    //         if (full && onlyLeaf) {
-    //             return this.jsTree.get_bottom_selected(true);
-    //         }
-    //
-    //         if (full) {
-    //             return this.jsTree.get_selected(true);
-    //         }
-    //         if (onlyLeaf) {
-    //             if (!realId) {
-    //                 return this.getJsTree().get_bottom_selected(false);
-    //             } else {
-    //                 //需要真实ID
-    //                 let data = this.getJsTree().get_bottom_selected(true);
-    //                 if (data && data.length > 0) {
-    //                     let result = [];
-    //                     for (let row of data) {
-    //                         result.push(row[this.properties.idField]);
-    //                     }
-    //                     return result;
-    //                 }
-    //                 return null;
-    //             }
-    //
-    //         } else {
-    //             //带上级
-    //             if (!realId) {
-    //                 return this.getJsTree().get_selected(false);
-    //             } else {
-    //                 //需要真实ID
-    //                 let data = this.getJsTree().get_selected(true);
-    //                 if (data && data.length > 0) {
-    //                     let result = [];
-    //                     for (let row of data) {
-    //                         result.push(row[this.properties.idField]);
-    //                     }
-    //                     return result;
-    //                 }
-    //                 return null;
-    //             }
-    //         }
-    //     } else {
-    //         return this.getCurrentData();
-    //     }
-    // }
-
-    private getRealIds(fullDatas) {
-
-    }
-
 
     isSelectRoot() {
         let node = this.getCurrentNode();
@@ -764,11 +697,3 @@ export interface DragAndDrop {
     isCanDrag?: (sourceData) => boolean;
 }
 
-
-// export interface TreeButton {
-//     text?: string;
-//     icon?: string;
-//     title?: string;
-//     isShow?: (data) => boolean;
-//     clickHandler?: (event: ClickEvent, data) => void;
-// }

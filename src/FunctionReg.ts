@@ -11,10 +11,12 @@ import "./funcdesign/PageDesign";
 import "./blockui/ManagedFunc";
 
 import "./test/TestFunc";
+import "./test/TestFunc2";
 
 ///以下是视图注册
 import "./sysfunc/user/UserToResource"
 import "./sysfunc/right/RoleToResource"
+import "./sysfunc/right/RightRelation"
 
 
 export class FunctionReg {

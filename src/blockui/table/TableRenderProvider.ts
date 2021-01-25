@@ -63,6 +63,8 @@ export interface TableRenderProvider {
 
     setEditable(editable): void;
 
+    setEnabled(enable): void;
+
     setExtFilterProvider(extFilterProvider: ExtFilterProvider);
 
 
@@ -79,6 +81,7 @@ export class ServerRenderProvider implements TableRenderProvider {
      * 是否可以编辑
      */
     protected isEditable = false;
+    protected isEnable = true;
     protected viewer: BlockViewer;
     protected tableOption: FreeJqGrid.JqGridOptions;
     protected isReady = false;
@@ -114,6 +117,10 @@ export class ServerRenderProvider implements TableRenderProvider {
      */
     setAllowLoadData(allow: boolean) {
         this.allowLoadData = allow;
+    }
+
+    setEnabled(enable) {
+        this.isEnable = enable;
     }
 
     /**
@@ -187,9 +194,7 @@ export class ServerRenderProvider implements TableRenderProvider {
      * 初始化表头
      */
     protected async init() {
-
         await this.findViewerInfo(this.blockId);
-
         if (this.viewer) {
             let lstComponent = this.viewer.lstComponent;
             if (!lstComponent || lstComponent.length == 0) {
@@ -213,14 +218,9 @@ export class ServerRenderProvider implements TableRenderProvider {
                 } else {
                     this.lstColumn.push(this.createColModel(node.data));
                 }
-
             }
-
-
         }
-
     }
-
 
 
     private createOperatorColModel(): ColumnModel {
@@ -269,7 +269,7 @@ export class ServerRenderProvider implements TableRenderProvider {
                     return value;
                 }
                 if (!this.isCellEditable(options.rowId, options.pos, cellValue)) {
-                    options.colModel.classes = "readonly_cell"
+                    options.colModel.classes = "readonly_cell";
                     return value;
                 } else {
                     options.colModel.classes = null;
@@ -316,6 +316,12 @@ export class ServerRenderProvider implements TableRenderProvider {
                     }
                 }
             };
+            this.tableOption.beforeSelectRow = () => {
+                if (!this.isEnable) {
+                    return false;
+                }
+            };
+
             return new Promise<FreeJqGrid.JqGridOptions>((resolve) => {
                 resolve(this.tableOption);
             });

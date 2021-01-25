@@ -2,6 +2,7 @@ import {ComponentDto} from "../../uidesign/dto/ComponentDto";
 import {Column} from "../../datamodel/DmRuntime/Column";
 import {BeanFactory, PopulateBean} from "../../decorator/decorator";
 import {ColumnDto} from "../../datamodel/dto/ColumnDto";
+import {Constants} from "../../common/Constants";
 
 /**
  * 视图中的控件处理类
@@ -44,8 +45,18 @@ export class Component {
         return "left";
     }
 
+    /**
+     * 是不是数字控件
+     */
     public isNumberField() {
-        return this.componentDto.dispType === "number";
+        return this.componentDto.dispType === Constants.ComponentType.number;
+    }
+
+    /**
+     * 是不是数字列
+     */
+    public isNumberColumn():boolean {
+        return this.column.isNumberColumn();
     }
 
     /**

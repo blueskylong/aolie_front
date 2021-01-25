@@ -4,6 +4,7 @@ import {JQueryGeneralComponentGenerator} from "../../../uidesign/view/JQueryComp
 import {BaseComponent} from "../../../uidesign/view/BaseComponent";
 import {Select} from "../../../uidesign/view/JQueryComponent/Select";
 import EventBus from "../EventBus";
+import {Constants} from "../../../common/Constants";
 
 export class RelationDlg<T extends DialogInfo> extends Dialog<T> {
     private selectCom: BaseComponent<Component>;
@@ -14,11 +15,12 @@ export class RelationDlg<T extends DialogInfo> extends Dialog<T> {
         let componentInfo = Component.fromSimpleComponent({
             title: "类型",
             fieldName: "c1",
-            dispType: "select",
+            dispType: Constants.ComponentType.select,
             horSpan: 12,
             refId: 40
         });
-        this.selectCom = new JQueryGeneralComponentGenerator().generateComponent("select", componentInfo, null, this);
+        this.selectCom = new JQueryGeneralComponentGenerator().generateComponent(Constants.ComponentType.select,
+            componentInfo, null, this);
         this.confirmDialg = new Dialog<DialogInfo>({
             title: "提示",
             content: "确定要删除连接吗?",

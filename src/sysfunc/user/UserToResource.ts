@@ -69,7 +69,7 @@ export class UserToResource<T extends PageDetailDto> extends BaseComponent<T> im
     private clearSelection() {
         if (this.lstTree && this.lstTree.length > 0) {
             for (let tree of this.lstTree) {
-                tree.getTree().getJsTree().deselect_all();
+                tree.getTree().deselectAll();
             }
         }
     }
@@ -142,7 +142,7 @@ export class UserToResource<T extends PageDetailDto> extends BaseComponent<T> im
         let result = {};
 
         this.mapTree.forEach((key, tree, map) => {
-            let selectIds = tree.getTree().getSelectedRealId(true);
+            let selectIds = tree.getTree().getSelectedId(true);
             if (selectIds && selectIds.length > 0) {
                 result[key] = selectIds;
             }

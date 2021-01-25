@@ -1,27 +1,56 @@
 import BaseUI from "../uidesign/view/BaseUI";
-import ClickEvent = JQuery.ClickEvent;
-import {BaseComponent} from "../uidesign/view/BaseComponent";
-import DmDesignBaseView from "../dmdesign/view/DmDesignBaseView";
 import * as jsPlumb from "jsplumb";
+import ClickEvent = JQuery.ClickEvent;
 
 export class Dialog<T extends DialogInfo> extends BaseUI<T> {
+
+    public static SIZE = {
+        small: "modal-sm",
+        middle: "modal-md",
+        large: "modal-lg",
+        x_large: "modal-xl"
+    };
     private static TEMPLATE = require("./templete/Dialog.html");
     private static FOOTER_SELECTOR = ".modal-footer";
     private static OK_BUTTON_SELECTOR = ".dlg-ok-button";
     private static CLOSE_BUTTON_SELECTOR = ".dlg-close-button";
     protected importValue: any;
+    protected hasInited = false;
 
     private btns: Array<HTMLElement | string> = new Array<HTMLElement | string>();
     private btnListeners: Array<(event: ClickEvent) => void> = new Array<(ClickEvent) => void>();
 
-    public show(value?: any) {
+    public show(value?: any, size?) {
         $("body").append(this.getViewUI());
+        if (size) {
+            this.setSize(size);
+        }
+
         this.beforeShow(value);
         this.importValue = value;
         this.$element.modal({backdrop: "static"});
         this.$element.modal('show');
-        jsPlumb.jsPlumb.getInstance({} as any).draggable(this.$element);
+        if (!this.hasInited) {
+            jsPlumb.jsPlumb.getInstance({} as any).draggable(this.$element);
+        }
 
+        this.afterShow();
+        this.hasInited = true;
+
+    }
+
+    protected afterShow() {
+
+    }
+
+    setSize(size) {
+        if (Array.isArray(size)) {
+            this.$element.find(".modal-dialog").width(size[0]);
+            this.$element.find(".modal-body").height(size[1]);
+            this.$element.find(".modal-dialog").addClass(Dialog.SIZE.x_large);
+        } else {
+            this.$element.find(".modal-dialog").addClass(size);
+        }
     }
 
     public close() {
@@ -30,10 +59,20 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
                 return;
             }
         }
+
+        this.$element.modal('hide');
+        if (typeof this.properties.destroyOnClose === "undefined" || typeof this.properties.destroyOnClose === null ||
+            this.properties.destroyOnClose) {
+            this.destroy();
+        }
+
+    }
+
+    destroy(): boolean {
         this.btnListeners = new Array<(ClickEvent) => void>();
         this.btns = new Array<HTMLElement | string>();
-        this.$element.modal('hide');
-        this.destroy();
+        this.hasInited = false;
+        return super.destroy();
     }
 
     protected beforeShow(value?: any) {
@@ -70,7 +109,10 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
 
     protected addEventHandler($element) {
         $element.on('hidden.bs.modal', () => {
-            this.destroy();
+            if (typeof this.properties.destroyOnClose === "undefined" || typeof this.properties.destroyOnClose === null ||
+                this.properties.destroyOnClose) {
+                this.destroy();
+            }
         });
         $element.find(Dialog.OK_BUTTON_SELECTOR).on("click", (e) => {
             if (!this.beforeOK()) {
@@ -167,4 +209,5 @@ export interface DialogInfo {
     beforeClose?: () => boolean;
     onOk?: (...items) => boolean;
     content?: string;
+    destroyOnClose?: boolean;
 }

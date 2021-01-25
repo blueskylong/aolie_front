@@ -5,6 +5,7 @@ import {BaseComponent} from "../../../uidesign/view/BaseComponent";
 import {Select} from "../../../uidesign/view/JQueryComponent/Select";
 import EventBus from "../EventBus";
 import {DmService} from "../../../datamodel/service/DmService";
+import {Constants} from "../../../common/Constants";
 
 export class SelectTableDlg<T extends DialogInfo> extends Dialog<T> {
     private selectCom: BaseComponent<Component>;
@@ -15,10 +16,10 @@ export class SelectTableDlg<T extends DialogInfo> extends Dialog<T> {
         let componentInfo = Component.fromSimpleComponent({
             title: "选择数据表",
             fieldName: "c1",
-            dispType: "select",
+            dispType: Constants.ComponentType.select,
             horSpan: 12
         });
-        this.selectCom = new JQueryGeneralComponentGenerator().generateComponent("select", componentInfo, null, this);
+        this.selectCom = new JQueryGeneralComponentGenerator().generateComponent(Constants.ComponentType.select, componentInfo, null, this);
 
         return this.selectCom.getViewUI();
     }

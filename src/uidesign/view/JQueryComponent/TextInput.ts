@@ -18,7 +18,7 @@ export class TextInput<T extends Component> extends JQBaseComponent<T> {
     }
 
     protected loadTemplate(): string {
-        return "right" == this.properties.componentDto.titlePosition ? TextInput.TEMPLATE_RIGHT : TextInput.TEMPLATE;
+        return Constants.TitlePosition.right == this.properties.componentDto.titlePosition ? TextInput.TEMPLATE_RIGHT : TextInput.TEMPLATE;
 
     }
 
@@ -55,7 +55,12 @@ export class TextInput<T extends Component> extends JQBaseComponent<T> {
 
     protected handleTitle($dom: JQuery, id: string) {
         let $title = $dom.find(".comp-title");
-        $title.text(this.properties.componentDto.title);
+        let title = this.properties.componentDto.title;
+        if (!this.properties.column.getColumnDto().nullable) {
+            //必填标记
+            title += "*";
+        }
+        $title.text(title);
         let color = this.properties.componentDto.titleColor;
         if (!CommonUtils.isEmpty(color)) {
             $title.css("color", color);
@@ -102,7 +107,8 @@ export class TextInput<T extends Component> extends JQBaseComponent<T> {
     }
 
     protected createEditor(id: string) {
-        return $("<input class='com-editor form-control' id='" + id
+        return $("<input class='com-editor form-control'" +
+            " name='" + this.properties.getColumn().getColumnDto().fieldName + "' id='" + id
             + "' type='" + this.getEditorType() + "'/>");
     }
 

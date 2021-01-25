@@ -3,6 +3,8 @@ import {ColumnDto} from "../../datamodel/dto/ColumnDto";
 import {BeanFactory} from "../../decorator/decorator";
 import {Schema} from "../../datamodel/DmRuntime/Schema";
 import {CommonUtils} from "../../common/CommonUtils";
+import {SchemaFactory} from "../../datamodel/SchemaFactory";
+import {GlobalParams} from "../../common/GlobalParams";
 
 
 export class DmDesignService {
@@ -44,6 +46,8 @@ export class DmDesignService {
                 if (callback) {
                     callback(result.data);
                 }
+                //刷新本地缓存
+                SchemaFactory.initOneSchema(schema.getSchemaDto().schemaId, GlobalParams.getLoginVersion());
             });
     }
 

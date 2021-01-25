@@ -96,6 +96,13 @@ export class CommonUtils {
         $(".mask-panel").modal("hide");
     }
 
+    static isNumber(value) {
+        if (typeof value === "undefined" || value == null || value == "") {
+            return false;
+        }
+        return Number(value) !== NaN;
+    }
+
     /**
      * 生成普通的ID
      */
@@ -175,4 +182,21 @@ export class CommonUtils {
     static log(code, name, message): void {
 
     }
+
+    static isIE() {
+        if (!!window['ActiveXObject'] || "ActiveXObject" in window)
+            return true;
+        else
+            return false;
+    }
+
+    //     return ; //IE
+    // } else if ($.browser.safari) {
+    //     alert("this is safari!"); //Safar
+    // } else if ($.browser.mozilla) {
+    //     alert("this is mozilla!");  //Firefox
+    // } else if ($.browser.opera) {
+    //     alert("this is opera");     //Opera
+    // }
+
 }

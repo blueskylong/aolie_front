@@ -47,7 +47,7 @@ export class ManagedFunc<T extends MenuInfo> extends MenuFunction<T> {
         this.$element.append(this.page.getViewUI());
         this.page.addReadyListener((source) => {
             this.managedUiCenter.registerManagedUI(this.page.getSubManagedUI());
-            this.ready = true;
+
             this.fireReadyEvent();
         });
         this.isValid = true;

@@ -104,6 +104,10 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
         return true;
     }
 
+    getSchema() {
+        return this.schema;
+    }
+
     public setRefreshEvent(refreshEvent: GeneralEventListener) {
         this.refreshEvent = refreshEvent;
     }
@@ -318,7 +322,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
                 handleEvent: (eventType: string, data: object, source: object) => {
                     if (data instanceof TableView) {
                         this.removeTable(data);
-                        $(data.getViewUI()).remove();
+                        // $(data.getViewUI()).remove();
                         data.destroy();
                     }
                 }
@@ -375,7 +379,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
         if (this.tables) {
             for (let table of this.tables) {
                 table.destroy();
-                $(table.getViewUI()).remove();
+                // $(table.getViewUI()).remove();
             }
             this.tables = new Array<TableView>();
         }

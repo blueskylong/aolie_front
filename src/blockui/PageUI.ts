@@ -16,7 +16,7 @@ import {Form} from "./Form";
 import {ReferenceTree} from "./JsTree/ReferenceTree";
 import {CommonUtils} from "../common/CommonUtils";
 import BaseUI from "../uidesign/view/BaseUI";
-import {ManagedCustomPanel} from "./managedView/ManagedCustomPanel";
+import {ManagedCustomPanelContainer} from "./managedView/ManagedCustomPanelContainer";
 
 export default class PageUI<T extends PageUIInfo> extends BaseComponent<any> {
 
@@ -81,7 +81,7 @@ export default class PageUI<T extends PageUIInfo> extends BaseComponent<any> {
                 let treeInstance = TreeUI.getTreeInstance(viewer.blockViewDto.blockViewId);
                 baseUi = treeInstance;
             } else if (showType == Constants.DispType.custom) {
-                baseUi = new ManagedCustomPanel(pageDetail);
+                baseUi = new ManagedCustomPanelContainer(pageDetail);
             } else {
                 baseUi = Form.getInstance(viewer.blockViewDto.blockViewId);
             }
@@ -95,7 +95,7 @@ export default class PageUI<T extends PageUIInfo> extends BaseComponent<any> {
             console.log("-----------------------ready")
             this.readyCount++;
             if (this.readyCount == this.pageInfo.getPageDetail().length) {
-                this.ready = true;
+
                 this.fireReadyEvent();
             }
         });

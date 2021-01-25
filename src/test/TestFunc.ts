@@ -63,7 +63,6 @@ export default class TestFunc<T extends MenuInfo> extends MenuFunction<T> {
     }
 
     afterComponentAssemble(): void {
-        this.ready = true;
         this.fireReadyEvent();
     }
 

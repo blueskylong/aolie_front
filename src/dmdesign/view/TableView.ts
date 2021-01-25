@@ -11,6 +11,7 @@ import {DmDesignService} from "../service/DmDesignService";
 import {Column} from "../../datamodel/DmRuntime/Column";
 import {BeanFactory} from "../../decorator/decorator";
 import {Alert} from "../../uidesign/view/JQueryComponent/Alert";
+import {Constants} from "../../common/Constants";
 
 
 export default class TableView extends DmDesignBaseView<TableInfo> implements AttrChangeListener {
@@ -246,7 +247,7 @@ export default class TableView extends DmDesignBaseView<TableInfo> implements At
         dto.columnId = DmDesignService.genColId();
         dto.title = "新加列";
         dto.fieldName = "unNamed";
-        dto.fieldType = "varchar";
+        dto.fieldType = Constants.FieldType.varchar;
         dto.length = 100;
         let col = new Column();
         col.setColumnDto(dto);

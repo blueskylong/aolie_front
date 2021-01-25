@@ -4,7 +4,7 @@ import {Toolbar} from "../../uidesign/view/JQueryComponent/Toolbar";
 import {UserRightService} from "./service/UserRightService";
 import {DmConstants} from "../../datamodel/DmConstants";
 import {StringMap} from "../../common/StringMap";
-import "./templates/MenuAndButton.css";
+import "./templates/rigth.css";
 import {CommonUtils} from "../../common/CommonUtils";
 
 export class MenuAndButton<T> extends BaseComponent<T> {
@@ -110,7 +110,6 @@ export class MenuAndButton<T> extends BaseComponent<T> {
         this.menuButtonTree = new JsTree(treeInfo);
         this.$element.append(this.menuButtonTree.getViewUI());
         this.menuButtonTree.addReadyListener(() => {
-            this.ready = true;
             this.fireReadyEvent();
         });
     }

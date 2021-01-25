@@ -1,6 +1,5 @@
 import TableDto from "../dto/TableDto";
 import {Column} from "./Column";
-import {Formula} from "../../blockui/uiruntime/Formula";
 import FormulaDto from "../dto/FormulaDto";
 import {PopulateBean} from "../../decorator/decorator";
 import {ReferenceDto} from "../dto/ReferenceDto";
@@ -172,6 +171,22 @@ export class TableInfo {
         }
         this.keyField = keyColumns[0].getColumnDto().fieldName;
         return this.keyField;
+    }
+
+    /**
+     * 根据列标题查询列
+     * @param colTitle
+     */
+    public findColumnByColTitle(colTitle: string): Column {
+        if (!this.lstColumn) {
+            return null;
+        }
+        for (let col of this.lstColumn) {
+            if (col.getColumnDto().title === colTitle) {
+                return col;
+            }
+        }
+        return null;
     }
 
 }

@@ -18,6 +18,7 @@ import {SchemaFactory} from "../../datamodel/SchemaFactory";
 import {TreeNode, TreeNodeFactory} from "../../common/TreeNode";
 import {BlockViewDto} from "../dto/BlockViewDto";
 import {DesignTable} from "./DesignTable";
+import {JQueryGeneralComponentGenerator} from "../view/JQueryComponent/JQueryGeneralComponentGenerator";
 
 export class DesignPanel<T> extends BaseUI<T> {
 
@@ -88,7 +89,7 @@ export class DesignPanel<T> extends BaseUI<T> {
     afterComponentAssemble(): void {
         this.$compBody = this.$element.find(".form-body");
         this.$element.find(".split-pane")['splitPane']();
- //       this.compTree.afterComponentAssemble();
+        //       this.compTree.afterComponentAssemble();
         this.dropHandler = (event, data) => {
             if (!this.blockViewer) {
                 return;
@@ -334,7 +335,7 @@ export class DesignPanel<T> extends BaseUI<T> {
         col.setColumnDto(colDto);
         comp.setColumn(col);
         let compDto = new ComponentDto();
-        compDto.dispType = this.getDisplayTypeByFieldType(colDto.fieldType);
+        compDto.dispType = this.getDisplayTypeByFieldType(colDto);
         compDto.title = colDto.title;
         compDto.columnId = colDto.columnId;
         compDto.componentId = CommonUtils.genId();
@@ -349,13 +350,17 @@ export class DesignPanel<T> extends BaseUI<T> {
     }
 
 
-    private getDisplayTypeByFieldType(colType: string) {
+    private getDisplayTypeByFieldType(colDto: ColumnDto) {
+        if (colDto.refId) {
+            return Constants.ComponentType.select;
+        }
+        let colType = colDto.fieldType;
         if (colType == Constants.FieldType.int || colType == Constants.FieldType.decimal) {
-            return "number";
-        } else if (colType == Constants.FieldType.datatime) {
-            return "time";
+            return Constants.ComponentType.number;
+        } else if (colType == Constants.FieldType.datetime) {
+            return Constants.ComponentType.time;
         } else {
-            return "text";
+            return Constants.ComponentType.text;
         }
     }
 

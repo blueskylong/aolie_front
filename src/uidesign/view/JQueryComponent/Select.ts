@@ -6,8 +6,8 @@ import {StringMap} from "../../../common/StringMap";
 import "bootstrap-select/js/i18n/defaults-zh_CN"
 import {CommonUtils} from "../../../common/CommonUtils";
 import {GlobalParams} from "../../../common/GlobalParams";
-import {FilterExpression} from "../../../datamodel/DmRuntime/FilterExpression";
 import {Column} from "../../../datamodel/DmRuntime/Column";
+import {FilterExpression} from "../../../datamodel/DmRuntime/formula/FilterExpression";
 
 export class Select<T extends Component> extends TextInput<T> {
     private valueTitle: StringMap<string> = new StringMap<string>();
@@ -179,7 +179,8 @@ export class Select<T extends Component> extends TextInput<T> {
 
     protected createEditor(id: string) {
         // @ts-ignore
-        return $("<select class='com-editor form-control selectpicker'  data-size='5' id='" + id +
+        return $("<select class='com-editor form-control selectpicker'" +
+            " name='" + this.properties.column.getColumnDto().fieldName + "' data-size='5' id='" + id +
             "'><option></option></select>");
     }
 

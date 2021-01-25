@@ -681,6 +681,14 @@ export class Table extends BaseComponent<TableRenderProvider> {
 
 
     setEnable(enable: boolean) {
+        this.properties.setEnabled(enable);
+        super.setEnable(enable);
+        if (enable) {
+            this.showOperatorCol();
+        } else {
+            this.hideOperatorCol();
+
+        }
 
     }
 

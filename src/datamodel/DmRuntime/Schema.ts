@@ -1,7 +1,6 @@
 import SchemaDto from "../dto/SchemaDto";
 import {Constraint} from "./Constraint";
 import {Reference} from "./Reference";
-import {Formula} from "../../blockui/uiruntime/Formula";
 import {PopulateBean} from "../../decorator/decorator";
 import {TableInfo} from "./TableInfo";
 import FormulaDto from "../dto/FormulaDto";
@@ -45,6 +44,32 @@ export class Schema {
     @PopulateBean(Reference)
     setLstReference(lstReference: Array<Reference>) {
         this.lstReference = lstReference;
+    }
+
+    findTableById(tableId) {
+        if (!this.lstTable) {
+            return null;
+        }
+        for (let table of this.lstTable) {
+            if (table.getTableDto().tableId === tableId) {
+                return table;
+            }
+        }
+        return null;
+    }
+
+    findColumnById(colId) {
+        if (!this.lstTable) {
+            return null;
+        }
+        let col;
+        for (let table of this.lstTable) {
+            col = table.getColById(colId);
+            if (col) {
+                return col;
+            }
+        }
+        return null;
     }
 
     getLstFormula() {
@@ -186,10 +211,26 @@ export class Schema {
     }
 
     /**
+     * 根据表中文名查询表
+     * @param title
+     */
+    findTableByTitle(title: string): TableInfo {
+        if (!this.lstTable || this.lstTable.length == 0) {
+            return null;
+        }
+        for (let table of this.lstTable) {
+            if (title === table.getTableDto().title) {
+                return table;
+            }
+        }
+        return null;
+    }
+
+    /**
      * 保存前检查
      */
     check() {
-        if (this.getSchemaDto().schemaId == DmConstants.DEFAULT_REFERENCE_ID) {
+        if (this.getSchemaDto().schemaId == DmConstants.DefaultSchemaIDs.DEFAULT_REFERENCE_SCHEMA) {
             for (let tableInfo of this.lstTable) {
                 if (!tableInfo.getLstReference() || tableInfo.getLstReference().length <= 0) {
                     Alert.showMessage("表[" + tableInfo.getTableDto().tableName + "]没有引用信息");

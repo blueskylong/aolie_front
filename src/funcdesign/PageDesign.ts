@@ -32,7 +32,7 @@ export default class PageDesign<T extends MenuInfo> extends MenuFunction<T> {
     private fAttr: Form;
     private designPanel: BorderDesignPanel;
     private addDialog: InputDlg;
-    private schemaId = DmConstants.DEFAULT_SCHEMA_ID;
+    private schemaId = DmConstants.DefaultSchemaIDs.DEFAULT_SYS_SCHEMA;
     private schemaSelect: Select<any>;
     private generator: IComponentGenerator = new JQueryGeneralComponentGenerator();
 
@@ -139,7 +139,6 @@ export default class PageDesign<T extends MenuInfo> extends MenuFunction<T> {
         this.splitCenter.addComponent(BorderLayout.east, this.fAttr);
         this.splitCenter.show();
         this.bindEvent();
-        this.ready = true;
         this.fireReadyEvent();
     }
 

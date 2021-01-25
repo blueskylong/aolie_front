@@ -11,5 +11,6 @@ export class UserDto extends BaseDto {
     avatar: string;
     state: string;
     accountCode: string;
-    lockout_time;
+    lockoutTime;
+    belongOrg: number;
 }

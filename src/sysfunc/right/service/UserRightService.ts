@@ -40,4 +40,16 @@ export class UserRightService {
                 + destRsId + "/" + sourceId)
             , callback);
     };
+
+    /**
+     * 根据权限资源ID,查询权限资源全信息
+     *
+     * @param lstId
+     * @return
+     */
+    static findRightResources(lstId: Array<any>, callback: (handleResult: HandleResult) => void) {
+        CommonUtils.handleResponse(
+            NetRequest.axios.post(UserRightService.URL_ROOT + "/findRightResources", lstId)
+            , callback);
+    };
 }

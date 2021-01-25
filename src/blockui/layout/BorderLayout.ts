@@ -71,7 +71,7 @@ export class BorderLayout<T extends BorderLayoutProperty> extends BaseUI<T> {
     }
 
     afterComponentAssemble(): void {
-        this.ready = true;
+
         this.fireReadyEvent();
     }
 

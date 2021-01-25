@@ -1,6 +1,9 @@
+import {Constants} from "../common/Constants";
+import {SystemParam} from "../common/GlobalParams";
+
 export class DmConstants {
-    static DEFAULT_SCHEMA_ID = 2;//默认的方案ID
-    static DEFAULT_REFERENCE_ID = 0;//默认的引用方案
+    // static DEFAULT_SCHEMA_ID = 2;//默认的方案ID
+    // static DEFAULT_REFERENCE_ID = 0;//默认的引用方案
     /**
      * 关系类型
      */
@@ -48,12 +51,37 @@ export class DmConstants {
          * 全局引用方案
          */
         DEFAULT_REFERENCE_SCHEMA: 0,
-    }
+    };
 
     static DefaultRsIds = {
         role: 11,
         menu: 12,
         menuButton: 13,
         organization: 14
+    };
+
+    /**
+     *固定系统参数
+     */
+    static GlobalParamsIds = {
+        userId: 9991,
+        roleId: 9992,
+        version: 9995,
+        userName: 9999,
+        userBelong: 9998,
+        userAccount: 9996
+    }
+
+    /**
+     * 公式元素类型
+     */
+    static FormulaElementType = {
+        logic: 100,//逻辑运算符,如: and  or
+        compare: 200,//比较符 如:> <
+        mathOperator: 300, //数学符号, 如 +-
+        bracket: 500,//括号
+        column: 800,//字段
+        sysparam: 900,//系统参数
+        constant: 1000//常量,如"xxx"
     }
 }

@@ -11,6 +11,7 @@ import {Constants} from "../../common/Constants";
 import {HandleResult} from "../../common/HandleResult";
 import {Alert} from "../../uidesign/view/JQueryComponent/Alert";
 import * as jsPlumb from "jsplumb";
+import {StringMap} from "../../common/StringMap";
 
 /**
  * 此控件,会在原始的指针值上维护数据,可以直接使用传入的值 ,也可以使用getValue取得新组织的数据.
@@ -79,6 +80,16 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
         this.setShowAdd(this.showAdd, true);
     }
 
+    setExtendData(data: StringMap<any>) {
+        super.setExtendData(data);
+        if (this.lstForm.length > 0) {
+            for (let form of this.lstForm) {
+                form.setExtendData(data);
+            }
+        }
+
+    }
+
     protected initEvent() {
         this.$element.find(".btn-add").on("click", (event) => {
             this.addNewCard({});
@@ -134,7 +145,6 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
     }
 
     afterComponentAssemble(): void {
-        this.ready = true;
         this.fireReadyEvent();
     }
 
@@ -363,6 +373,7 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
             this.values.push(value);
         }
         let form = new Form(this.properties);
+
         let that = this;
         form.addValueChangeListener({
             handleEvent(eventType: string, data: object, source: object, extObject?: any) {
@@ -376,6 +387,7 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
         }
         form.setBlockViewer(this.viewer);
         this.$element.append(form.getViewUI());
+        form.setExtendData(this.extendData);
         $(form.getViewUI()).on("click", (event) => {
             if (this.curForm === form) {
                 return;
@@ -409,7 +421,6 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
 
         });
         form.setEditable(this.editable);
-
         this.lstForm.push(form);
     }
 
@@ -430,7 +441,6 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
             return;
         }
         this.values[index][fieldName] = value;
-
     }
 
     public check() {

@@ -164,7 +164,6 @@ export default class BlockDesign<T extends MenuInfo> extends MenuFunction<T> {
 
     afterComponentAssemble(): void {
         this.bindEvent();
-        this.ready = true;
         this.fireReadyEvent();
     }
 
@@ -243,7 +242,7 @@ export default class BlockDesign<T extends MenuInfo> extends MenuFunction<T> {
             if (this.blockTree.getCurrentData()) {
                 curId = this.blockTree.getCurrentData().blockViewId;
             }
-            DesignUiService.updateBlockLevel(obj, DmConstants.DEFAULT_SCHEMA_ID, (data) => {
+            DesignUiService.updateBlockLevel(obj, DmConstants.DefaultSchemaIDs.DEFAULT_SYS_SCHEMA, (data) => {
                 this.blockTree.reload();
                 if (curId) {
                     this.blockTree.selectNodeById(curId);

@@ -13,7 +13,7 @@ import {ManagedTreeUI} from "./ManagedTreeUI";
 import BaseUI from "../../uidesign/view/BaseUI";
 import {ManagedRefTree} from "./ManagedRefTree";
 import {ManagedCard} from "./ManagedCard";
-import {ManagedCustomPanel} from "./ManagedCustomPanel";
+import {ManagedCustomPanelContainer} from "./ManagedCustomPanelContainer";
 
 /**
  * 此表单只响应列表或树选中情况下的显示
@@ -65,7 +65,7 @@ export class ManagedPage<T extends PageUIInfo> extends PageUI<T> {
                 let card = ManagedCard.getManagedInstance(pageDetail);
                 baseUi = card;
             } else if (showType == Constants.DispType.custom) {
-                baseUi = new ManagedCustomPanel(pageDetail);
+                baseUi = new ManagedCustomPanelContainer(pageDetail);
             } else {
                 baseUi = ManagedForm.getManagedInstance(pageDetail);
             }
@@ -80,7 +80,7 @@ export class ManagedPage<T extends PageUIInfo> extends PageUI<T> {
             console.log("-----------------------ready")
             this.readyCount++;
             if (this.readyCount == this.pageInfo.getPageDetail().length) {
-                this.ready = true;
+
                 this.fireReadyEvent();
             }
         });

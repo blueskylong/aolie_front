@@ -41,25 +41,34 @@ export class SchemaFactory {
         DmService.findSchemaIds((data) => {
             if (data) {
                 for (let id of data) {
-                    DmService.findSchemaInfo(id, GlobalParams.loginVersion).then(
-                        (result) => {
-                            let schema = BeanFactory.populateBean(Schema, result.data);
-                            SchemaFactory.CACHE_SCHEMA
-                                .set(CommonUtils.genKey(id, GlobalParams.loginVersion), schema);
-                            this.initShortSearchInfo(schema);
-                        }
-                    )
+                    SchemaFactory.initOneSchema(id, GlobalParams.getLoginVersion());
                 }
             }
         });
 
     }
 
+    static initOneSchema(id, version) {
+        DmService.findSchemaInfo(id, version).then(
+            (result) => {
+                let schema = BeanFactory.populateBean(Schema, result.data);
+                if (schema) {
+                    SchemaFactory.CACHE_SCHEMA
+                        .set(CommonUtils.genKey(id, version), schema);
+                    this.initShortSearchInfo(schema);
+                } else {
+                    SchemaFactory.CACHE_SCHEMA.delete(CommonUtils.genKey(id, version));
+                }
+
+            }
+        )
+    }
+
     /**
      * 整理查询用的缓存信息
      * @param schema
      */
-    private initShortSearchInfo(schema: Schema) {
+    private static initShortSearchInfo(schema: Schema) {
         let mapColIdToTable = SchemaFactory.CACHE_OTHER.get(SchemaFactory.KEY_COL_TABLE)
             ? SchemaFactory.CACHE_OTHER.get(SchemaFactory.KEY_COL_TABLE) : new StringMap<any>();
         let mapColIdToCol = SchemaFactory.CACHE_OTHER.get(SchemaFactory.KEY_COLID_COL)
@@ -98,6 +107,25 @@ export class SchemaFactory {
         version = version ? version : GlobalParams.getLoginVersion();
         return (<StringMap<any>>SchemaFactory.CACHE_OTHER
             .get(SchemaFactory.KEY_COLID_COL)).get(colId + "_" + version);
+    }
+
+    /**
+     * 尝试用表名和列名查询列信息
+     * @param tableTitle
+     * @param colTitle
+     * @param schemaId
+     * @param versionCode
+     */
+    static findColumnByFullName(tableTitle, colTitle, schemaId, versionCode): Column {
+        let schema = SchemaFactory.getSchema(schemaId, versionCode);
+        if (!schema) {
+            return null;
+        }
+        let tableInfo = schema.findTableByTitle(tableTitle);
+        if (!tableInfo) {
+            return null;
+        }
+        return tableInfo.findColumnByColTitle(colTitle);
     }
 
     /**
@@ -179,7 +207,7 @@ export class SchemaFactory {
 
 
     /**
-     * 判断二个表是不是有补祖孙关系,传送的关系是,祖为一对多,或一对一的传递到此表
+     * 判断二个表是不是有祖孙关系,传送的关系是,祖为一对多,或一对一的传递到此表
      * 查询方法,是从子开始向上查找,直到找到头
      * @param childId
      * @param ancestorId

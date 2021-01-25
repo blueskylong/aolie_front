@@ -25,7 +25,8 @@ OrangeRed	橙红色	#FF4500	255,69,0
 .btn-toolbar .button-icon {
     font-size: large;
 }
-.btn-toolbar .toolbar-button{
+
+.btn-toolbar .toolbar-button {
     cursor: pointer;
 }
 
@@ -55,11 +56,11 @@ OrangeRed	橙红色	#FF4500	255,69,0
 .dm-form .form-head {
     cursor: auto;
     background-color: #1E90FF;
-    padding: 5px;
+    color: white;
     margin-bottom: 6px;
     width: 100%;
     height: 30px;
-    padding-left: 20px;
+    padding: 5px 5px 5px 20px;
     position: relative;
 }
 
@@ -170,11 +171,25 @@ OrangeRed	橙红色	#FF4500	255,69,0
 }
 
 .jstree-default .jstree-node .jstree-disabled.jstree-clicked {
-    background-color:  #1e90ff63;
+    background-color: #1e90ff63;
 }
-.jstree-default .jstree-disabled > .jstree-icon{
+
+.jstree-default .jstree-disabled > .jstree-icon {
     opacity: 1;
 }
-.js-tree{
-    padding:5px;
+
+.js-tree {
+    padding: 5px;
+}
+
+form .com-editor.error {
+    border: 1px solid red;
+}
+
+form .com-editor.error, form .com-editor.error ~ button.btn.dropdown-toggle {
+    border: 1px solid red;
+}
+
+form label.error {
+    color: red;
 }

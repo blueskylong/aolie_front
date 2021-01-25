@@ -121,7 +121,8 @@ export class ManagedForm extends Form implements AutoManagedUI {
     stateChange(source: any, tableId, state: number) {
         if (this.dsIds.indexOf(tableId) != -1) {
             //这是需要进一步判断,哪些控件可以编辑
-            this.setEditable(Constants.UIState.view != state);
+            this.setEditable(Constants.TableState.view != state);
+
         }
     }
 
@@ -293,7 +294,7 @@ export class ManagedForm extends Form implements AutoManagedUI {
             Alert.showMessage("当前在查看状态,没有需要保存的数据");
             return false;
         }
-        return true;
+        return super.check();
     }
 
     /**

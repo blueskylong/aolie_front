@@ -324,7 +324,7 @@ export class ManagedTreeUI<T extends BlockViewDto> extends TreeUI<T> implements 
 
         let codeLevelProvider = CodeLevelProvider.getDefaultCodePro();
         if (node.children && node.children.length > 0) {
-            levelCode = node.children[node.children.length - 1];
+            levelCode = this.jsTree.getNodeCode(node.children[node.children.length - 1]);
             codeLevelProvider.setCurCode(levelCode);
             levelCode = codeLevelProvider.getNext();
         } else {

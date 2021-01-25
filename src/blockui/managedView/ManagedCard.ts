@@ -180,7 +180,7 @@ export class ManagedCard<T extends BlockViewDto> extends CardList<T> implements 
     stateChange(source: any, tableId, state: number) {
         if (this.dsIds.indexOf(tableId) != -1) {
             //这是需要进一步判断,哪些控件可以编辑
-            this.setEditable(Constants.UIState.view != state);
+            this.setEditable(Constants.TableState.view != state);
         }
         return false;
     }

@@ -1,13 +1,15 @@
 import 'reflect-metadata';
 import {ExceptionHandler} from "../common/ExceptionHandler";
 import {StringMap} from "../common/StringMap";
+import {IValidator} from "../blockui/uiruntime/IValidator";
 
 
-//TODO 这里的服务不办法保证在调用前注册
+//TODO 这里的服务暂时没办法保证在调用前注册
 export class ApplicationContext {
     private static Services = {};
     private static lstServices: Array<Object> = new Array<Object>();
     private static menuFuncs = {};
+    private static validators = new StringMap<IValidator>();
     private static customUis = {};
 
     public static regService(service: any, name?: string) {
@@ -42,11 +44,22 @@ export class ApplicationContext {
         return ApplicationContext.customUis[name];
     }
 
+    public static getValidates() {
+        return ApplicationContext.validators.getValues();
+    }
+
     public static regMenuFunc(name: string, constructor: { new(...args: Array<any>): any }) {
         if (this.menuFuncs[name]) {
             console.log("************** warning![" + name + "] already exists,Replace the old one!***************")
         }
         this.menuFuncs[name] = constructor;
+    }
+
+    public static regValidator(name: string, validator: IValidator) {
+        if (this.validators.has(name)) {
+            console.log("************** warning![" + name + "] already exists,Replace the old one!***************")
+        }
+        this.validators.set(name, validator);
     }
 
     public static regCustomUi(name: string, constructor: { new(...args: Array<any>): any }) {
@@ -185,11 +198,30 @@ export function MenuFunc(name?: string) {
     }
 }
 
+/**
+ * 注册验证器,这里存的是一个实例,而不是类
+ * @param name
+ * @constructor
+ */
+export function RegValidator(name?: string) {
+    return (_constructor: { new(...args: Array<any>) }) => {
+        let funcName = name ? name : _constructor.name;
+        //注册
+        ApplicationContext.regValidator(funcName, BeanFactory.createBean(_constructor, []));
+        return;
+    }
+}
+
+/**
+ * 注册用户自定义组件
+ * @param name
+ * @constructor
+ */
 export function CustomUi(name?: string) {
     return (_constructor: Function) => {
         let funcName = name ? name : _constructor.name;
         //注册
-        ApplicationContext.regMenuFunc(funcName, _constructor as any);
+        ApplicationContext.regCustomUi(funcName, _constructor as any);
         return;
     }
 }

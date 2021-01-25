@@ -35,4 +35,29 @@ export class UserService {
         CommonUtils.handleResponse(NetRequest.axios.post(this.URL_ROOT + "/saveRightRelationDetails/"
             + rsSource + "/" + sourceId, destNewRsIdAndDetailIds), callback);
     }
+
+    /**
+     * @param rsSource                主资源
+     * @param sourceId                主权限定义ID
+     * @param destNewRsIdAndDetailIds 从权限定义ID 及权限数据ID
+     * @return
+     */
+    static saveRightRelationDetail(rrId, destNewRsIdAndDetailIds,
+                                   callback: (result: HandleResult) => void) {
+        CommonUtils.handleResponse(NetRequest.axios.post(this.URL_ROOT + "/saveRightRelationDetail/"
+            + rrId, destNewRsIdAndDetailIds), callback);
+    }
+
+    /**
+     * 保存权限关系
+     *
+     * @param rrId
+     * @param sourceToDestIds   key :sourceId value:Array(destIds)
+     * @return
+     */
+    static saveRightRelationDetailsByRrId(rrId, sourceToDestIds,
+                                          callback: (result: HandleResult) => void) {
+        CommonUtils.handleResponse(NetRequest.axios.post(this.URL_ROOT + "/saveRightRelationDetailsByRrId/"
+            + rrId, sourceToDestIds), callback);
+    }
 }

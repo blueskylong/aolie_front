@@ -20,31 +20,26 @@ import {Constants} from "../../common/Constants";
 import {UserService} from "../user/service/UserService";
 import {UserRightService} from "./service/UserRightService";
 import {CommonUtils} from "../../common/CommonUtils";
+import {AbstractManagedCustomPanel} from "../../blockui/managedView/AbstractManagedCustomPanel";
 
 @CustomUi()
-export class RoleToResource<T extends PageDetailDto> extends BaseComponent<T> implements AutoManagedUI {
+export class RoleToResource<T extends PageDetailDto> extends AbstractManagedCustomPanel<T> {
     public static RIGHT_RELATION_TABLE = "aolie_s_right_relation_detail";
 
     static RESOURCE_DS_ID_TABLE = "aolie_s_right_resource";
 
     private menuBtn: MenuAndButton<any>;
     private toolBar: Toolbar<any>;
-    private manageCenter: IManageCenter;
     private rightRelationTable: TableDto;
     private lstTree = new Array<ReferenceTree<any>>();
     private mapTree = new StringMap<ReferenceTree<any>>();
     private lastRoleId;
-
-
-    attrChanged(source: any, tableId: number, mapKeyAndValue: object, field: string, value: any) {
-    }
 
     protected initSubControllers() {
         this.toolBar = new Toolbar<any>({float: false});
         this.$element.append(this.toolBar.getViewUI());
         this.menuBtn = new MenuAndButton<any>({});
         this.menuBtn.addReadyListener(() => {
-            this.ready = true;
             this.fireReadyEvent();
             this.menuBtn.setEditable(this.properties.initState != Constants.UIState.view);
         });
@@ -71,9 +66,6 @@ export class RoleToResource<T extends PageDetailDto> extends BaseComponent<T> im
         super.setEditable(editable);
     }
 
-    btnClicked(source: any, buttonInfo: MenuButtonDto, data): boolean {
-        return false;
-    }
 
     private initTree(lstData: Array<any>) {
         if (!lstData) {
@@ -109,8 +101,6 @@ export class RoleToResource<T extends PageDetailDto> extends BaseComponent<T> im
         return $ele.get(0);
     }
 
-    dataChanged(source: any, tableId, mapKeyAndValue: object, changeType) {
-    }
 
     dsSelectChanged(source: any, tableId, mapKeyAndValue, row?) {
         this.lastRoleId = row["role_id"];
@@ -145,25 +135,10 @@ export class RoleToResource<T extends PageDetailDto> extends BaseComponent<T> im
         tree.getTree().selectNodeById(keys);
     }
 
-    getPageDetail(): PageDetailDto {
-        return this.properties;
-    }
 
     getTableIds(): Array<number> {
         return [this.rightRelationTable.tableId];
     }
-
-    getUiDataNum(): number {
-        return 1;
-    }
-
-    afterComponentAssemble(): void {
- //       this.menuBtn.afterComponentAssemble();
-    }
-
-    getValue(): any {
-    }
-
 
     referenceSelectChanged(source: any, refId, id, isLeaf) {
         Alert.showMessage("cc");
@@ -212,8 +187,8 @@ export class RoleToResource<T extends PageDetailDto> extends BaseComponent<T> im
     doSave() {
         let data = this.menuBtn.getValue();
         this.mapTree.forEach((key, tree, map) => {
-            data[key] = tree.getTree().getSelectedRealId(true);
-        })
+            data[key] = tree.getTree().getSelectedId(true);
+        });
         UserService.saveRightRelationDetails(DmConstants.DefaultRsIds.role, this.lastRoleId, data, (result => {
             if (result.success) {
                 Alert.showMessage("保存成功");
@@ -223,16 +198,6 @@ export class RoleToResource<T extends PageDetailDto> extends BaseComponent<T> im
         }));
     }
 
-    setManageCenter(manageCenter: IManageCenter) {
-        this.manageCenter = manageCenter;
-    }
-
-    setValue(value: any, extendData?) {
-    }
-
-    stateChange(source: any, tableId, state: number, extendData?: any) {
-
-    }
 
 
 }

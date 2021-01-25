@@ -7,7 +7,7 @@ import {ApplicationContext, BeanFactory} from "../../decorator/decorator";
 import {MenuFunction} from "../MenuFunction";
 import {Constants} from "../../common/Constants";
 
-export class ManagedCustomPanel<T extends PageDetailDto> extends BaseUI<T> implements AutoManagedUI {
+export class ManagedCustomPanelContainer<T extends PageDetailDto> extends BaseUI<T> implements AutoManagedUI {
     private customControl: AutoManagedUI;
 
     getPageDetail(): PageDetailDto {
@@ -68,15 +68,14 @@ export class ManagedCustomPanel<T extends PageDetailDto> extends BaseUI<T> imple
             return;
         }
         //初始化
-        let funcClazz = ApplicationContext.getMenuFunc(this.properties.customUi);
+        let funcClazz = ApplicationContext.getCustomUi(this.properties.customUi);
         this.customControl = <AutoManagedUI>BeanFactory.createBean(funcClazz, [this.properties]);
         this.$element.append(this.customControl.getViewUI());
         this.customControl.addReadyListener(() => {
-            this.ready = true;
+
             this.fireReadyEvent();
         });
     }
-
 
 
 }

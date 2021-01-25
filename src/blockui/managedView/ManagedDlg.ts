@@ -10,6 +10,7 @@ import {SchemaFactory} from "../../datamodel/SchemaFactory";
 import {UiService} from "../service/UiService";
 import {BlockViewer} from "../uiruntime/BlockViewer";
 import {Alert} from "../../uidesign/view/JQueryComponent/Alert";
+import {ManagedCard} from "./ManagedCard";
 
 export class ManagedDlg<T extends ManagedDialogInfo> extends Dialog<T> {
     private ui: AutoManagedUI;
@@ -84,11 +85,12 @@ export class ManagedDlg<T extends ManagedDialogInfo> extends Dialog<T> {
         pageDetail.viewId = blockViewId;
         if (showType === Constants.DispType.table) {
             this.ui = ManagedTable.getManagedInstance(new ServerRenderProvider(blockViewId), pageDetail);
-        } else if (showType === Constants.DispType.form) {
-            this.ui = ManagedForm.getManagedInstance(pageDetail)
-
         } else if (showType === Constants.DispType.tree) {
             this.ui = ManagedTreeUI.getManagedInstance(pageDetail);
+        } else if (showType === Constants.DispType.card) {
+            this.ui = ManagedCard.getManagedInstance(pageDetail)
+        } else {
+            this.ui = ManagedForm.getManagedInstance(pageDetail);
         }
     }
 

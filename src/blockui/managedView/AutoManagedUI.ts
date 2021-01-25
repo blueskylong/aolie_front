@@ -95,7 +95,7 @@ export interface ManagedEventListener {
     /**
      *数据状态变化
      * @param tableId
-     * @param state
+     * @param state  这里是 TableState ,参见 Constants.TableState
      * @return  是否被处理了
      */
     stateChange(source: any, tableId, state: number, extendData?: any);
