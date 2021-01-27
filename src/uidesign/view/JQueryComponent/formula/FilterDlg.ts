@@ -1,7 +1,6 @@
 import {Dialog, DialogInfo} from "../../../../blockui/Dialog";
 import {Schema} from "../../../../datamodel/DmRuntime/Schema";
 import {FilterEditor} from "./FilterEditor";
-import {Alert} from "../Alert";
 import {jsPlumb} from "jsplumb";
 
 /**
@@ -9,6 +8,7 @@ import {jsPlumb} from "jsplumb";
  */
 export class FilterDlg<T extends FilterDlgProperty> extends Dialog<T> {
     private filterEditor: FilterEditor<any>;
+    private isFilter = true;
 
     protected getBody(): HTMLElement {
         this.filterEditor = new FilterEditor<any>(this.properties);
@@ -25,10 +25,13 @@ export class FilterDlg<T extends FilterDlgProperty> extends Dialog<T> {
             this.filterEditor.check();
         });
         this.addButton("强行保存", (e) => {
-            if (this.properties.forceSave) {
-                this.properties.forceSave(this.getValue());
-                this.close();
-            }
+            Dialog.showConfirm("强型保存,会直接将未翻译的条件内容保存,请自行确认其正确性.确定保存吗?", () => {
+                if (this.properties.forceSave) {
+                    this.properties.forceSave(this.getValue());
+                    this.close();
+                }
+            });
+
         });
     }
 
@@ -48,8 +51,7 @@ export class FilterDlg<T extends FilterDlgProperty> extends Dialog<T> {
         if (!this.properties.editable) {
             return true;
         }
-        if (!this.filterEditor.check()) {
-            Alert.showMessage("检查不通过");
+        if (!this.filterEditor.check(true)) {
             return false;
         }
         return true;
@@ -58,7 +60,8 @@ export class FilterDlg<T extends FilterDlgProperty> extends Dialog<T> {
 }
 
 export interface FilterDlgProperty extends DialogInfo {
-    schema: Schema,
-    editable: boolean;
+    schema: Schema,//方案
+    editable: boolean;//是不是可以编辑
+    isFilter: boolean;//是不是过滤条件
     forceSave?: (value) => void;
 }

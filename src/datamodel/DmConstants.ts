@@ -82,6 +82,7 @@ export class DmConstants {
         bracket: 500,//括号
         column: 800,//字段
         sysparam: 900,//系统参数
-        constant: 1000//常量,如"xxx"
+        constant: 1000,//常量,如"xxx"
+        error: 9999//错误类型
     }
 }

@@ -1,7 +1,7 @@
 import {FlowLayout} from "../../../../blockui/layout/FlowLayout";
 import BaseUI from "../../BaseUI";
-import {FormulaParse} from "../../../../datamodel/DmRuntime/formula/transelement";
 import {DmConstants} from "../../../../datamodel/DmConstants";
+import {FormulaParse} from "../../../../datamodel/DmRuntime/formula/FormulaParse";
 
 export class ButtonPanel<T extends ButtonPanelProperty> extends FlowLayout<T> {
 
@@ -21,19 +21,24 @@ export class ButtonPanel<T extends ButtonPanelProperty> extends FlowLayout<T> {
                 }
             }));
         }
-
         //增加逻辑按钮
-        this.logicPad = new FlowLayout<any>({});
-        this.addUI(this.logicPad);
-        this.logicPad.setWidth(300);
-        for (let exp of FormulaParse.getTransElements()) {
-            if (exp.getElementType() === DmConstants.FormulaElementType.logic ||
-                exp.getElementType() === DmConstants.FormulaElementType.compare) {
-                this.logicPad.addUI(new AcButton({
-                    width: 80, height: 30, title: exp.getName(), value: exp.getExpressionCN(), clickHandle: (value) => {
-                        this.properties.clickHandle(" " + value + " ");
-                    }
-                }));
+        if (this.properties.isFilter) {
+            this.logicPad = new FlowLayout<any>({});
+            this.addUI(this.logicPad);
+            this.logicPad.setWidth(300);
+            for (let exp of FormulaParse.getTransElements()) {
+                if (exp.getElementType() === DmConstants.FormulaElementType.logic ||
+                    exp.getElementType() === DmConstants.FormulaElementType.compare) {
+                    this.logicPad.addUI(new AcButton({
+                        width: 80,
+                        height: 30,
+                        title: exp.getName(),
+                        value: exp.getExpressionCN(),
+                        clickHandle: (value) => {
+                            this.properties.clickHandle(" " + value + " ");
+                        }
+                    }));
+                }
             }
         }
         this.fireReadyEvent();
@@ -50,6 +55,7 @@ export class ButtonPanel<T extends ButtonPanelProperty> extends FlowLayout<T> {
 
 export interface ButtonPanelProperty {
     clickHandle: (value) => void;
+    isFilter: boolean;
 }
 
 class AcButton<T extends AcButtonProperty> extends BaseUI<T> {

@@ -1,6 +1,6 @@
 import {Schema} from "../../Schema";
-import {ApplicationContext, BeanFactory} from "../../../../decorator/decorator";
-import {FormulaParse} from "./FormulaParse";
+import {BeanFactory} from "../../../../decorator/decorator";
+import {FormulaParse} from "../FormulaParse";
 
 export interface TransElement extends TransCenter {
     /**
@@ -27,7 +27,11 @@ export interface TransElement extends TransCenter {
 
     getName(): string;
 
+    isOnlyForFilter(): boolean;
+
     getExpressionCN(): string;
+
+
 }
 
 export interface TransCenter {
@@ -47,6 +51,15 @@ export interface TransCenter {
      * @param transcenter
      */
     transToInner(curElement: string, schema?: Schema, transcenter?: TransCenter): string;
+
+    /**
+     * 翻译成值表达式,
+     * @param curElement
+     * @param rowData
+     * @param schema
+     * @param transcenter
+     */
+    transToValue(curElement: string, rowData, schema?: Schema, transcenter?: TransCenter): string;
 }
 
 

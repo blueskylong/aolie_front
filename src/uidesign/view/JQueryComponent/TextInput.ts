@@ -3,7 +3,8 @@ import {AutoFit} from "./AutoFit";
 import {Constants} from "../../../common/Constants";
 import {Component} from "../../../blockui/uiruntime/Component";
 import {CommonUtils} from "../../../common/CommonUtils";
-
+import {RegComponent} from "../../../decorator/decorator";
+@RegComponent(Constants.ComponentType.text)
 export class TextInput<T extends Component> extends JQBaseComponent<T> {
     private static TEMPLATE = require("./templete/BaseInput.html");
     private static TEMPLATE_RIGHT = require("./templete/BaseInput-right.html");

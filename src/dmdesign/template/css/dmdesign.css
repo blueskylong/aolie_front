@@ -210,8 +210,11 @@ html, body {
 
 .column-badge-right {
     position: absolute;
-    width: 20px;
+    width: 35px;
     right: 5px;
+}
+.column-badge-right .fa-calculator{
+    color:#FF4500;
 }
 
 

@@ -14,6 +14,9 @@ export class FormulaTools {
      * @param str
      */
     static getColumnParams(str): Array<string> {
+        if (str == null) {
+            return [];
+        }
         return FormulaTools.getParam(str, FormulaTools.colReg_g);
     }
 
@@ -82,8 +85,8 @@ export class FormulaTools {
      * @param toReplace
      * @param replace
      */
-    static replaceColumnValueStr(str: string, toReplace: string, fieldValue: string, fieldType): string {
-        if (fieldType === Constants.FieldType.int || fieldType === Constants.FieldType.decimal) {
+    static replaceColumnValueStr(str: string, toReplace: string, fieldValue: string, fieldType?): string {
+        if (!fieldType || fieldType === Constants.FieldType.int || fieldType === Constants.FieldType.decimal) {
             return str.replace("${" + toReplace + "}", fieldValue);
         } else {
             return str.replace("${" + toReplace + "}", "'" + fieldValue + "'");
@@ -97,11 +100,13 @@ export class FormulaTools {
      * @param toReplace
      * @param replace
      */
-    static replaceParamValueStr(str: string, toReplace: string, value: string, fieldType): string {
-        if (fieldType === Constants.FieldType.int || fieldType === Constants.FieldType.decimal) {
+    static replaceParamValueStr(str: string, toReplace: string, value: string, fieldType?): string {
+
+        if (!fieldType || fieldType === Constants.FieldType.int || fieldType === Constants.FieldType.decimal) {
             return str.replace("#{" + toReplace + "}", value)
         } else {
             return str.replace("#{" + toReplace + "}", "'" + value + "'");
         }
+
     }
 }

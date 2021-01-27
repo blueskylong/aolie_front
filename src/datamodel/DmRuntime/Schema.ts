@@ -11,6 +11,7 @@ import TableDto from "../dto/TableDto";
 import {SchemaFactory} from "../SchemaFactory";
 import {DmConstants} from "../DmConstants";
 import {Alert} from "../../uidesign/view/JQueryComponent/Alert";
+import {StringMap} from "../../common/StringMap";
 
 export class Schema {
     private schemaDto: SchemaDto;
@@ -22,6 +23,15 @@ export class Schema {
      * 表间约束
      */
     private lstConstraint: Array<Constraint>;
+
+    /**
+     * tableId 对约束
+     */
+    private mapTableConstraint: StringMap<Array<Constraint>>;
+    /**
+     * colId 对约束
+     */
+    private mapColumnConstraint: StringMap<Array<Constraint>>;
 
     //这是城只用作临时记录,给设计器一个直接操作的入口
     private lstConstraintDto: Array<ConstraintDto>;
@@ -113,6 +123,63 @@ export class Schema {
     @PopulateBean(TableInfo)
     setLstTable(value: Array<TableInfo>) {
         this.lstTable = value;
+    }
+
+    /**
+     * 取得指定表的单表约束
+     * @param tableId
+     */
+    getTableConstraints(tableId: number) {
+        if (this.mapTableConstraint == null) {
+            this.initMapConstraints();
+        }
+        return this.mapTableConstraint.get(tableId + "");
+    }
+
+    /**
+     * 取得指定列的单表约束
+     * @param tableId
+     */
+    getColumnConstraints(colId: number) {
+        if (this.mapColumnConstraint == null) {
+            this.initMapConstraints();
+        }
+        return this.mapColumnConstraint.get(colId + "");
+    }
+
+    /**
+     * 只初始化表内的约束
+     */
+    private initMapConstraints() {
+        this.mapTableConstraint = new StringMap<Array<Constraint>>();
+        this.mapColumnConstraint = new StringMap<Array<Constraint>>();
+        if (this.lstConstraint != null) {
+            for (let constraint of this.lstConstraint) {
+                let lstRefTable = constraint.getLstRefTable();
+                let lstRefColumn = constraint.getLstRefColumn();
+                if (lstRefTable != null && lstRefTable.length == 1) {
+                    let lstCon = this.mapTableConstraint.get(lstRefTable[0] + "");
+                    if (lstCon == null) {
+                        lstCon = new Array<Constraint>();
+                        this.mapTableConstraint.set(lstRefTable[0] + "", lstCon);
+                    }
+                    lstCon.push(constraint);
+                    if (lstRefColumn) {
+                        for (let refColumn of lstRefColumn) {
+                            let lstColCon = this.mapColumnConstraint.get(refColumn + "");
+                            if (!lstColCon) {
+                                lstColCon = new Array<Constraint>();
+                                this.mapColumnConstraint.set(refColumn + "", lstColCon);
+                            }
+                            lstColCon.push(constraint);
+                        }
+
+                    }
+
+
+                }
+            }
+        }
     }
 
     getLstConstraint(): Array<Constraint> {

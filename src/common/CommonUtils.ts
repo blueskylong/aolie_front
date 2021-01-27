@@ -6,6 +6,7 @@ import {Logger} from "./Logger";
 import {Alert} from "../uidesign/view/JQueryComponent/Alert";
 import {BeanFactory} from "../decorator/decorator";
 import {HandleResult} from "./HandleResult";
+import {StringMap} from "./StringMap";
 
 export class CommonUtils {
     static ID_SER = -1;
@@ -100,7 +101,7 @@ export class CommonUtils {
         if (typeof value === "undefined" || value == null || value == "") {
             return false;
         }
-        return Number(value) !== NaN;
+        return !isNaN(value);
     }
 
     /**
@@ -188,6 +189,21 @@ export class CommonUtils {
             return true;
         else
             return false;
+    }
+
+    /**
+     * 分类增加子元素
+     * @param map
+     * @param key
+     * @param subElement
+     */
+    static addMapListValue<T>(map: StringMap<Array<T>>, key, subElement: T) {
+        let lstEle = map.get(key);
+        if (!lstEle) {
+            lstEle = new Array<T>();
+            map.set(key, lstEle);
+        }
+        lstEle.push(subElement);
     }
 
     //     return ; //IE

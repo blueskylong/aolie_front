@@ -11,6 +11,8 @@ import {JQBaseComponent} from "../JQBaseComponent";
 import "../templete/FilterEditor.css"
 import {CommonUtils} from "../../../../common/CommonUtils";
 import {FilterExpression} from "../../../../datamodel/DmRuntime/formula/FilterExpression";
+import {Alert} from "../Alert";
+import {FormulaParse} from "../../../../datamodel/DmRuntime/formula/FormulaParse";
 
 export class FilterEditor<T extends FilterEditorProperty> extends BaseComponent<T> {
     private static TYPE_TABLE = "0";
@@ -73,7 +75,8 @@ export class FilterEditor<T extends FilterEditorProperty> extends BaseComponent<
                         return;
                     }
                     this.insertText(value);
-                }
+                },
+                isFilter: this.properties.isFilter
             });
             this.layout.addComponent(BorderLayout.south, this.btnsPanel);
 
@@ -201,7 +204,7 @@ export class FilterEditor<T extends FilterEditorProperty> extends BaseComponent<
         let tableNameCN = "";
         for (let table of tables) {
             row = {};
-            tableId = table.getTableDto().tableId;
+            tableId = "T_" + table.getTableDto().tableId;
             row.id = tableId;
             row.name = table.getTableDto().title;
             tableNameCN = row.name;
@@ -230,7 +233,16 @@ export class FilterEditor<T extends FilterEditorProperty> extends BaseComponent<
     /**
      * 检查公式是不是正确
      */
-    check(): boolean {
+    check(silence?): boolean {
+        try {
+            this.getFilterInner();
+            if (!silence) {
+                Alert.showMessage("检查通过!")
+            }
+        } catch (e) {
+            Alert.showMessage("检查未通过!    " + e.message);
+            return false;
+        }
         return true;
     }
 
@@ -267,7 +279,8 @@ export class FilterEditor<T extends FilterEditorProperty> extends BaseComponent<
     }
 
     getFilterInner() {
-        return FilterExpression.convertFilterToInner(this.getValue(), this.properties.schema);
+        return FormulaParse.getInstance(this.properties.isFilter,
+            this.properties.schema).transToInner(this.getValue());
     }
 
     setValue(value: any, extendData?) {
@@ -279,6 +292,7 @@ export class FilterEditor<T extends FilterEditorProperty> extends BaseComponent<
 
 export interface FilterEditorProperty {
     schema: Schema,
-    editable: boolean;
+    editable: boolean,
+    isFilter: boolean,
     onOk: (value) => void;
 }

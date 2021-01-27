@@ -5,7 +5,9 @@ import {JQBaseComponent} from "./JQBaseComponent";
 import {IComponentGenerator} from "../generator/IComponentGenerator";
 import {JQueryGeneralComponentGenerator} from "./JQueryGeneralComponentGenerator";
 import {BaseComponent} from "../BaseComponent";
-
+import {RegComponent} from "../../../decorator/decorator";
+import {Constants} from "../../../common/Constants";
+@RegComponent(Constants.ComponentType.panel)
 export class Panel<T extends Component> extends TextInput<T> {
     protected lstSubControl: Array<BaseComponent<Component>> = [];
     private generator: IComponentGenerator = new JQueryGeneralComponentGenerator();

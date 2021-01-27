@@ -54,4 +54,21 @@ export class Operator implements TransElement {
         return transcenter.transToInner(strs[0]) + oper + transcenter.transToInner(rightExp);
     }
 
+    transToValue(curElement: string, rowData, schema?: Schema, transcenter?: TransCenter): string {
+        console.log(this.getName() + "  matched!");
+        let strs = curElement.split(Operator.patten);
+        if (strs.length < 2) {
+            throw new Error(this.getName() + "数学运算符,需要二个操作数");
+        }
+        let oper = curElement.substr(strs[0].length, 1);
+        let rightExp = curElement.substr(strs[0].length + 1);
+        //仅将式子分隔成二块,由中心处理其它
+        return transcenter.transToValue(strs[0], rowData, schema, transcenter) +
+            oper + transcenter.transToValue(rightExp, rowData, schema, transcenter);
+    }
+
+    isOnlyForFilter(): boolean {
+        return false;
+    }
+
 }

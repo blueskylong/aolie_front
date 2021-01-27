@@ -20,6 +20,7 @@ import "./uiruntime/validator";
 import {Alert} from "../uidesign/view/JQueryComponent/Alert";
 import {BootstrapValidator} from "./uiruntime/validator/BootstrapValidator";
 import "jquery-validation"
+import {FormulaCalculator} from "../datamodel/DmRuntime/formula/FormulaCalculator";
 
 
 export class Form extends BaseComponent<BlockViewDto> {
@@ -52,6 +53,7 @@ export class Form extends BaseComponent<BlockViewDto> {
      * 工具栏是不是有位置
      */
     private toolbarHasPosition = false;
+    protected formulaCalculator: FormulaCalculator;
 
     constructor(dto: BlockViewDto) {
         super(dto);
@@ -159,6 +161,7 @@ export class Form extends BaseComponent<BlockViewDto> {
         if (!this.viewer) {
             this.viewer = await UiService.getSchemaViewer(this.blockViewId) as any;
         }
+        this.formulaCalculator = FormulaCalculator.getInstance(this.viewer);
         this.lstComponent = this.viewer.lstComponent;
         if (!this.lstComponent || this.lstComponent.length == 0) {
             this.lstComponent = [];
@@ -440,8 +443,17 @@ export class Form extends BaseComponent<BlockViewDto> {
         });
     }
 
-    private calcFormula(fieldWhoChange: string) {
-        //TODO 这里会有公式计算,界面使用计算,可以计算等
+    private calcFormula(fieldWhoChanged: string) {
+        let data = this.getValue();
+        let changedValue = this.formulaCalculator.fieldValueChanged(this.viewer.findFieldIdByName(fieldWhoChanged),
+            data);
+        if (changedValue.getSize() < 1) {
+            return;
+        }
+        //下面设置值
+        changedValue.forEach((key, value, map) => {
+            this.setFieldValue(key, value);
+        });
     }
 
     destroy(): boolean {

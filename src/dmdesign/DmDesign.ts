@@ -24,6 +24,7 @@ import {MenuButtonDto} from "../sysfunc/menu/dto/MenuButtonDto";
 import {DmConstants} from "../datamodel/DmConstants";
 import {FormulaInfo} from "../blockui/uiruntime/FormulaInfo";
 import {FilterCardList} from "./view/FilterCardList";
+import {ColumnDto} from "../datamodel/dto/ColumnDto";
 
 @MenuFunc()
 export default class DmDesign<T extends MenuInfo> extends MenuFunction<T> {
@@ -36,9 +37,10 @@ export default class DmDesign<T extends MenuInfo> extends MenuFunction<T> {
     private schemaInfo: SchemaMainInfo;
     private fReference: ReferenceCard;
     private fTable: Form;
-    private listFormula: CardList<BlockViewDto>;
+    private listFormula: FilterCardList<BlockViewDto>;
     private listConstraint: FilterCardList<BlockViewDto>;
     private schemaDto: SchemaDto;
+    private columnDto: ColumnDto;
 
     /**
      * 当前的编辑状态
@@ -108,7 +110,8 @@ export default class DmDesign<T extends MenuInfo> extends MenuFunction<T> {
                 let tableView = this.schemaView.findTableById((<Column>dto).getColumnDto().tableId);
                 this.updateReference(tableView);
                 this.fTable.setValue(tableView.getDtoInfo());
-                this.listFormula.setValue((<Column>dto).getLstFormulaDto());
+                this.listFormula.setData((<Column>dto).getLstFormulaDto(), this.schemaView.getSchema());
+                this.columnDto = (<Column>dto).getColumnDto();
             }
 
         });
@@ -148,6 +151,7 @@ export default class DmDesign<T extends MenuInfo> extends MenuFunction<T> {
     private showSchema(schemaDto: SchemaDto) {
         this.schemaDto = schemaDto;
         this.schemaView.refresh(schemaDto);
+        this.columnDto = null;
     }
 
     /**
@@ -189,19 +193,20 @@ export default class DmDesign<T extends MenuInfo> extends MenuFunction<T> {
         });
         this.tapPanel.addTap("表属性", this.fTable.getViewUI());
 
-        this.listFormula = CardList.getInstance(35);
+        this.listFormula = FilterCardList.getInstance(35);
         this.tapPanel.addTap("列公式", this.listFormula.getViewUI());
         this.listFormula.setEditable(true);
         this.listFormula.setBeforeAdd(() => {
-            if (!this.schemaDto) {
-                Alert.showMessage("请选择方案后再增加!");
+            if (!this.columnDto) {
+                Alert.showMessage("请选择表列后再增加!");
                 return false;
             }
             return true;
         });
         this.listFormula.setDefaultValueProvider(() => {
-
-            return FormulaInfo.genNewFormula(this.schemaDto.schemaId, this.schemaDto.versionCode, null);
+            return FormulaInfo.genNewFormula(this.schemaDto.schemaId,
+                this.schemaDto.versionCode,
+                this.columnDto.columnId);
         });
         this.listFormula.setFullEditable();
 

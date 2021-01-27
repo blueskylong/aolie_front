@@ -3,6 +3,7 @@ import {DmConstants} from "../../../DmConstants";
 import {Schema} from "../../Schema";
 import {FormulaTools} from "../FormulaTools";
 import {SchemaFactory} from "../../../SchemaFactory";
+import {Column} from "../../Column";
 
 @FormulaElement()
 export class ColumnElement implements TransElement {
@@ -15,7 +16,7 @@ export class ColumnElement implements TransElement {
         return "列参数";
     }
 
-    getExpressionCN(){
+    getExpressionCN() {
         return this.getName();
     }
 
@@ -24,15 +25,15 @@ export class ColumnElement implements TransElement {
     }
 
     isMatchCn(str): boolean {
-        return FormulaTools.isColumnParam(str);
+        return FormulaTools.isColumnParam(str.trim());
     }
 
     isMatchInner(str): boolean {
-        return FormulaTools.isColumnParam(str);
+        return FormulaTools.isColumnParam(str.trim());
     }
 
     transToCn(curElement: string, transcenter?: TransCenter): string {
-        console.log(this.getName()+"  matched!");
+        console.log(this.getName() + "  matched!");
         /**
          * 这里要注意,会有临时列,这里是查询不到的
          * @param exp
@@ -52,7 +53,7 @@ export class ColumnElement implements TransElement {
     }
 
     transToInner(curElement: string, schema: Schema, transcenter?: TransCenter): string {
-        console.log(this.getName()+"  matched!");
+        console.log(this.getName() + "  matched!");
         let columnParams = FormulaTools.getColumnParams(curElement);
         if (!columnParams || columnParams.length < 1) {
             return curElement;
@@ -77,4 +78,45 @@ export class ColumnElement implements TransElement {
         return curElement;
     }
 
+
+    transToValue(curElement: string, rowData, schema?: Schema, transcenter?: TransCenter): string {
+        console.log(this.getName() + "  matched!");
+        /**
+         * 这里要注意,会有临时列,这里是查询不到的
+         * @param exp
+         */
+
+        let columnParams = FormulaTools.getColumnParams(curElement);
+        if (!columnParams || columnParams.length < 1) {
+            return curElement;
+        }
+        for (let param of columnParams) {
+            let column = SchemaFactory.getColumnById(param);
+            let tableInfo = SchemaFactory.getTableByTableId(column.getColumnDto().tableId);
+
+            curElement = FormulaTools.replaceColumnValueStr(curElement, param,
+                this.getFieldValue(column, rowData));
+        }
+        return curElement;
+    }
+
+    private getFieldValue(column: Column, rowData) {
+        let value = rowData[column.getColumnDto().fieldName];
+        if (value == null) {
+            if (column.isNumberColumn()) {
+                value = 0;
+            } else {
+                value = "";
+            }
+        }
+        //给字符串包裹引号
+        if (!column.isNumberColumn()) {
+            value = "'" + value + "'";
+        }
+        return value;
+    }
+
+    isOnlyForFilter(): boolean {
+        return false;
+    }
 }

@@ -76,6 +76,17 @@ export class GlobalParams {
     }
 
     /**
+     * 取得系统参数名
+     * @param paramName
+     */
+    static getParamValue(paramName) {
+        if (GlobalParams.PARAMS.get(paramName) != null) {
+            return GlobalParams.PARAMS.get(paramName).value;
+        }
+        return null;
+    }
+
+    /**
      * 初始化全局参数
      */
     static initGlobalDefaultParam() {

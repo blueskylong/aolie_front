@@ -1,12 +1,12 @@
 import BaseUI from "./BaseUI";
 import EventBus from "../../dmdesign/view/EventBus";
-import {Component} from "../../blockui/uiruntime/Component";
 import {GeneralEventListener} from "../../blockui/event/GeneralEventListener";
 import {MenuButtonDto} from "../../sysfunc/menu/dto/MenuButtonDto";
 import {ButtonInfo} from "./JQueryComponent/Toolbar";
-import ClickEvent = JQuery.ClickEvent;
-import {Constants} from "../../common/Constants";
 import {StringMap} from "../../common/StringMap";
+import ClickEvent = JQuery.ClickEvent;
+
+
 
 export abstract class BaseComponent<T> extends BaseUI<T> {
     protected changeEventHandler: Array<GeneralEventListener> = new Array<GeneralEventListener>();

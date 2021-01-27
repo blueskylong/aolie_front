@@ -7,13 +7,17 @@ import {SchemaFactory} from "../../../datamodel/SchemaFactory";
 import {Schema} from "../../../datamodel/DmRuntime/Schema";
 import {StringMap} from "../../../common/StringMap";
 import {FilterDlg, FilterDlgProperty} from "./formula/FilterDlg";
+import {RegComponent} from "../../../decorator/decorator";
+import {Constants} from "../../../common/Constants";
+import {FormulaParse} from "../../../datamodel/DmRuntime/formula/FormulaParse";
 
+@RegComponent(Constants.ComponentType.filter)
 export class FilterInput<T extends Component> extends JQBaseComponent<T> {
     static schemaParamName = "schema";
-    private filter: string;
-    private textArea: TextArea<T>;
-    private schema: Schema;
-    private filterDlg: FilterDlg<any>;
+    protected filter: string;
+    protected textArea: TextArea<T>;
+    protected schema: Schema;
+    protected filterDlg: FilterDlg<any>;
 
 
     /**
@@ -35,28 +39,27 @@ export class FilterInput<T extends Component> extends JQBaseComponent<T> {
     protected initEvent() {
         this.$element.on("dblclick", (e) => {
             if (this.schema) {
-                if (this.filterDlg) {
-                    this.filterDlg.show(this.textArea.getValue());
-                } else {
-                    this.filterDlg = new FilterDlg<FilterDlgProperty>({
-                        title: "条件设计",
-                        destroyOnClose: false,
-                        editable: this.editable,
-                        schema: this.schema,
-                        onOk: (filterCN) => {
-                            this.setValue(this.filterDlg.getFilterInner());
-                            this.fireValueChanged(this.properties.column.getColumnDto().fieldName, this.filter);
-                            return true;
-                        },
-                        //强制保存,则二个表达式一样
-                        forceSave: (filterCN) => {
 
-                            this.setValue(filterCN);
-                            this.fireValueChanged(this.properties.column.getColumnDto().fieldName, this.filter);
-                        }
-                    })
-                }
+                this.filterDlg = new FilterDlg<FilterDlgProperty>({
+                    title: this.isFilter() ? "条件设计" : "公式设计",
+                    isFilter: this.isFilter(),
+                    editable: this.editable,
+                    schema: this.schema,
+                    onOk: (filterCN) => {
+                        this.setValue(this.filterDlg.getFilterInner());
+                        this.fireValueChanged(this.properties.column.getColumnDto().fieldName, this.filter);
+                        return true;
+                    },
+                    //强制保存,则二个表达式一样
+                    forceSave: (filterCN) => {
+
+                        this.setValue(filterCN);
+                        this.fireValueChanged(this.properties.column.getColumnDto().fieldName, this.filter);
+                    }
+                });
+                this.filterDlg.show(this.textArea.getValue());
             }
+
         });
         this.textArea.setEditable(false);
     }
@@ -88,7 +91,7 @@ export class FilterInput<T extends Component> extends JQBaseComponent<T> {
             if (CommonUtils.isEmpty(text)) {
                 return;
             }
-            this.filter = FilterExpression.convertFilterToInner(text, this.schema);
+            this.filter = FormulaParse.getInstance(this.isFilter(), this.schema).transToInner(text);
             return this.filter;
         } catch (e) {
             console.log("翻译失败:");
@@ -114,7 +117,9 @@ export class FilterInput<T extends Component> extends JQBaseComponent<T> {
         this.filter = value;
         try {
             if (this.filter) {
-                this.textArea.setValue(FilterExpression.convertFilterToCN(this.filter, this.schema));
+                this.textArea.setValue(FormulaParse.getInstance(this.isFilter(),
+                    this.schema).transToCn(this.filter)
+                );
             } else {
                 this.textArea.setValue(null);
             }
@@ -122,6 +127,10 @@ export class FilterInput<T extends Component> extends JQBaseComponent<T> {
             console.log(e.message);
             this.textArea.setValue(this.filter);
         }
+    }
+
+    protected isFilter() {
+        return true;
     }
 
 

@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import {ExceptionHandler} from "../common/ExceptionHandler";
 import {StringMap} from "../common/StringMap";
 import {IValidator} from "../blockui/uiruntime/IValidator";
+import {JQueryGeneralComponentGenerator} from "../uidesign/view/JQueryComponent/JQueryGeneralComponentGenerator";
 
 
 //TODO 这里的服务暂时没办法保证在调用前注册
@@ -208,6 +209,20 @@ export function RegValidator(name?: string) {
         let funcName = name ? name : _constructor.name;
         //注册
         ApplicationContext.regValidator(funcName, BeanFactory.createBean(_constructor, []));
+        return;
+    }
+}
+
+/**
+ * 注册验证器,这里存的是一个实例,而不是类
+ * @param name
+ * @constructor
+ */
+export function RegComponent(name: string) {
+    return (_constructor: { new(...args: Array<any>) }) => {
+        let funcName = name;
+        //注册
+        JQueryGeneralComponentGenerator.regCustomComponent(funcName, _constructor);
         return;
     }
 }

@@ -45,7 +45,8 @@ export class ReferenceCard extends BaseUI<any> {
 
     afterComponentAssemble(): void {
 //        this.referenceCard.afterComponentAssemble();
-
+        this.setFullEditable();
+        this.setShowHead(true);
         super.afterComponentAssemble();
     }
 

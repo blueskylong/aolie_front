@@ -64,7 +64,7 @@ export class Column {
 
     @PopulateBean(FormulaInfo)
     setLstFormula(value: Array<FormulaInfo>) {
-        this.lstFormula = value;
+        this.lstFormula = value||[];
         this.lstFormulaDto = [];
         if (value) {
             value.forEach((formula, index) => {

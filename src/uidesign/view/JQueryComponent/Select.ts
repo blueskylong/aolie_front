@@ -8,7 +8,9 @@ import {CommonUtils} from "../../../common/CommonUtils";
 import {GlobalParams} from "../../../common/GlobalParams";
 import {Column} from "../../../datamodel/DmRuntime/Column";
 import {FilterExpression} from "../../../datamodel/DmRuntime/formula/FilterExpression";
-
+import {RegComponent} from "../../../decorator/decorator";
+import {Constants} from "../../../common/Constants";
+@RegComponent(Constants.ComponentType.select)
 export class Select<T extends Component> extends TextInput<T> {
     private valueTitle: StringMap<string> = new StringMap<string>();
     private dataReady = false;

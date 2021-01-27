@@ -1,6 +1,9 @@
 import {ConstraintDto} from "../dto/ConstraintDto";
 import {PopulateBean} from "../../decorator/decorator";
 import {CommonUtils} from "../../common/CommonUtils";
+import {FilterExpression} from "./formula/FilterExpression";
+import {FormulaTools} from "./formula/FormulaTools";
+import {SchemaFactory} from "../SchemaFactory";
 
 export class Constraint {
     private constraintDto: ConstraintDto;
@@ -23,7 +26,11 @@ export class Constraint {
         this.constraintDto = value;
     }
 
-    gerLstRefTable(): Array<number> {
+
+    getLstRefTable(): Array<number> {
+        if (this.lstRefTable == null) {
+            this.initRef();
+        }
         return this.lstRefTable;
     }
 
@@ -31,7 +38,29 @@ export class Constraint {
         this.lstRefTable = value;
     }
 
+    private initRef() {
+        this.lstRefTable = new Array<number>();
+        this.lstRefColumn = new Array<number>();
+        let columnParams = FormulaTools.getColumnParams(this.constraintDto.expression + this.constraintDto.filter);
+        if (columnParams == null) {
+            return null;
+        }
+        let tableId: number;
+        for (let colId of columnParams) {
+            tableId = SchemaFactory.getTableByColId(colId).getTableDto().tableId;
+            if (this.lstRefTable.indexOf(tableId) === -1) {
+                this.lstRefTable.push(tableId);
+            }
+            if (this.lstRefColumn.indexOf(parseInt(colId)) === -1) {
+                this.lstRefColumn.push(parseInt(colId));
+            }
+        }
+    }
+
     getLstRefColumn(): Array<number> {
+        if (this.lstRefColumn == null) {
+            this.initRef();
+        }
         return this.lstRefColumn;
     }
 

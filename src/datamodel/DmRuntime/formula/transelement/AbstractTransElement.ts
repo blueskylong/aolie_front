@@ -18,16 +18,16 @@ export abstract class AbstractTransElement implements TransElement {
 
     isMatchCn(str): boolean {
         return str.indexOf(" " + this.elementCN + " ") !== -1
-            && !str.startsWith(this.elementCN)
-            && !str.endsWith(this.elementCN);
+            && !str.trim().startsWith(this.elementCN)
+            && !str.trim().endsWith(this.elementCN);
     }
 
     isMatchInner(str): boolean {
 
         //暂时不考虑引号内的问题
-        return str.indexOf(" " + this.elementInner + " ") !== -1
-            && !str.startsWith(this.elementInner)
-            && !str.endsWith(this.elementInner);
+        return str.indexOf(this.elementInner) !== -1
+            && !str.trim().startsWith(this.elementInner)
+            && !str.trim().endsWith(this.elementInner);
     }
 
     transToCn(curElement: string, transcenter?: TransCenter): string {
@@ -55,6 +55,31 @@ export abstract class AbstractTransElement implements TransElement {
 
     getExpressionCN() {
         return this.getName();
+    }
+
+    protected getValue(rowData) {
+        return this.elementInner;
+    }
+
+    /**
+     * 翻译成值表达式,
+     * @param curElement
+     * @param rowData
+     * @param schema
+     * @param transcenter
+     */
+    transToValue(curElement: string, rowData, schema?: Schema, transcenter?: TransCenter): string {
+        let eles = curElement.split(" " + this.elementInner + " ");
+
+        if (eles.length != 2) {
+            throw new Error(this.getName() + "条件不合法:需要二个元素进行比较");
+        }
+        return transcenter.transToValue(eles[0], rowData, schema, transcenter) + " " + this.getValue(rowData) + " " +
+            transcenter.transToValue(eles[1], rowData, schema, transcenter);
+    }
+
+    isOnlyForFilter(): boolean {
+        return true;
     }
 
 }

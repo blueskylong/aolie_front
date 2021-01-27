@@ -1,8 +1,5 @@
 import DmDesignBaseView from "./DmDesignBaseView";
-import {ColumnDto} from "../../datamodel/dto/ColumnDto";
 import {AttrChangeListener} from "./AttrChangeListener";
-import FormulaView from "./FormulaView";
-import {Component} from "../../blockui/uiruntime/Component";
 import {Column} from "../../datamodel/DmRuntime/Column";
 import {CommonUtils} from "../../common/CommonUtils";
 import EventBus from "./EventBus";
@@ -83,6 +80,11 @@ export default class ColumnView extends DmDesignBaseView<Column> implements Attr
             $element.find(".column-badge-left span").removeClass(ColumnView.UN_VISIBLE_CLASS);
         } else {
             $element.find(".column-badge-left span").addClass(ColumnView.UN_VISIBLE_CLASS);
+        }
+        if (this.properties.getLstFormulaDto() && this.properties.getLstFormulaDto().length > 0) {
+            $element.find(".column-badge-right .fa-calculator").removeClass(ColumnView.UN_VISIBLE_CLASS);
+        } else {
+            $element.find(".column-badge-right .fa-calculator").addClass(ColumnView.UN_VISIBLE_CLASS);
         }
 
     }

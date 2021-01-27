@@ -23,20 +23,25 @@ export class ConstParam implements TransElement {
 
     //所有的其它不匹配的,都算做常量
     isMatchCn(str): boolean {
-        return true;
+        let s = str.trim();
+        return (s.startsWith("'") && s.endsWith("'")) ||
+            (s.startsWith('"') && s.endsWith('"')) || CommonUtils.isNumber(s);
     }
 
     isMatchInner(str): boolean {
-        return true;
+        let s = str.trim();
+        return (s.startsWith("'") && s.endsWith("'")) ||
+            (s.startsWith('"') && s.endsWith('"')) || CommonUtils.isNumber(s);
     }
 
-    transToCn(curElement: string,  transcenter?: TransCenter): string {
-        console.log(this.getName()+"  matched!");
+    transToCn(curElement: string, transcenter?: TransCenter): string {
+        console.log(this.getName() + "  matched!");
         return curElement;
     }
 
-    transToInner(curElement: string,  schema: Schema, transcenter?: TransCenter): string {
-        console.log(this.getName()+"  matched!");
+    transToInner(curElement: string, schema: Schema, transcenter?: TransCenter): string {
+        console.log(this.getName() + "  matched!");
+        curElement = curElement.trim();
         if ((curElement.startsWith("'") && curElement.endsWith("'"))
             || (curElement.startsWith('"') && curElement.endsWith('"')))
             return curElement;
@@ -46,4 +51,11 @@ export class ConstParam implements TransElement {
         return "'" + curElement + "'"
     }
 
+    transToValue(curElement: string, rowData, schema?: Schema, transcenter?: TransCenter): string {
+        return this.transToInner(curElement, schema, transcenter);
+    }
+
+    isOnlyForFilter(): boolean {
+        return false;
+    }
 }

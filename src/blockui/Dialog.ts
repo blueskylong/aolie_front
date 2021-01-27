@@ -61,10 +61,6 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
         }
 
         this.$element.modal('hide');
-        if (typeof this.properties.destroyOnClose === "undefined" || typeof this.properties.destroyOnClose === null ||
-            this.properties.destroyOnClose) {
-            this.destroy();
-        }
 
     }
 
@@ -109,7 +105,7 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
 
     protected addEventHandler($element) {
         $element.on('hidden.bs.modal', () => {
-            if (typeof this.properties.destroyOnClose === "undefined" || typeof this.properties.destroyOnClose === null ||
+            if (this.properties.destroyOnClose == null ||
                 this.properties.destroyOnClose) {
                 this.destroy();
             }
@@ -170,7 +166,7 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
     protected appendButton(btn: HTMLElement | string, clickHandler: (event: ClickEvent) => void, $element: JQuery) {
         let $close = $element.find(Dialog.FOOTER_SELECTOR);
         if (typeof btn === "string") {
-            btn = $("<button type=\"button\" class=\"btn btn-default \">" + btn + "</button>").get(0);
+            btn = $("<button type=\"button\" class=\"btn btn-success \">" + btn + "</button>").get(0);
         }
         $close.prepend(btn);
         $(btn).on("click", (e) => {

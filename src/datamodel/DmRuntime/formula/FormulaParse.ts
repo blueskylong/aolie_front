@@ -1,5 +1,6 @@
-import {TransCenter, TransElement} from "./TransElement";
-import {Schema} from "../../Schema";
+import {TransCenter, TransElement} from "./transelement/TransElement";
+import {Schema} from "../Schema";
+
 
 /**
  * 公式或条件解析器(目前只做翻译,和部分的方法检查)
@@ -9,7 +10,14 @@ export class FormulaParse implements TransCenter {
 
     }
 
+    /**
+     * 全部的翻译器
+     */
     static arrElement = new Array<TransElement>();
+    /**
+     * 仅公式的翻译器
+     */
+    static arrFormulaElement = new Array<TransElement>();
 
     static getInstance(isFilter: boolean, schema: Schema) {
         return new FormulaParse(isFilter, schema);
@@ -29,6 +37,17 @@ export class FormulaParse implements TransCenter {
                 return -1;
             }
         });
+        if (!ele.isOnlyForFilter()) {
+            FormulaParse.arrFormulaElement.push(ele);
+        }
+        FormulaParse.arrFormulaElement.sort((a, b) => {
+            if (a.getOrder() >= b.getOrder()) {
+                return 1;
+            } else {
+                return -1;
+            }
+        });
+
     }
 
     static getTransElements() {
@@ -36,7 +55,8 @@ export class FormulaParse implements TransCenter {
     }
 
     transToCn(curElement: string): string {
-        for (let transElement of FormulaParse.getTransElements()) {
+
+        for (let transElement of this.getTranslator()) {
             if (transElement.isMatchInner(curElement)) {
                 return transElement.transToCn(curElement, this);
             }
@@ -45,7 +65,7 @@ export class FormulaParse implements TransCenter {
     }
 
     transToInner(curElement: string, schema?: Schema): string {
-        for (let transElement of FormulaParse.getTransElements()) {
+        for (let transElement of this.getTranslator()) {
             if (transElement.isMatchCn(curElement)) {
                 return transElement.transToInner(curElement, schema || this.schema, this);
             }
@@ -53,6 +73,22 @@ export class FormulaParse implements TransCenter {
         return curElement;
     }
 
+    private getTranslator() {
+        let arrTranslator = FormulaParse.arrElement;
+        if (!this.isFilter) {
+            arrTranslator = FormulaParse.arrFormulaElement;
+        }
+        return arrTranslator;
+    }
+
+    transToValue(curElement: string, rowData, schema?: Schema, transcenter?: TransCenter): string {
+        for (let transElement of this.getTranslator()) {
+            if (transElement.isMatchInner(curElement)) {
+                return transElement.transToValue(curElement, rowData, schema || this.schema, this);
+            }
+        }
+        return curElement;
+    }
 
 }
 
