@@ -20,7 +20,7 @@ export class FilterDlg<T extends FilterDlgProperty> extends Dialog<T> {
             return;
         }
         this.setSize([800, 600]);
-        this.filterEditor.setValue(value);
+        this.filterEditor.setFilterInner(value);
         this.addButton("检查", (e) => {
             this.filterEditor.check();
         });

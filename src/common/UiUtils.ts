@@ -15,10 +15,10 @@ export class UiUtils {
      * @param blockId
      */
     static getBlockViewDataUrl(blockId) {
-        return CommonUtils.getServerUrl("/data/findBlockData/" + blockId);
+        return "/dmdata/findBlockData/" + blockId;
     }
 
     static getBlockViewNoPageUrl(blockId) {
-        return CommonUtils.getServerUrl("/data/findBlockDataNoPage/" + blockId);
+        return "/dmdata/findBlockDataNoPage/" + blockId;
     }
 }

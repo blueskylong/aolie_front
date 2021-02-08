@@ -26,7 +26,7 @@ export class Toolbar<T extends ToolbarInfo> extends BaseUI<T> {
         super.afterComponentAssemble();
     }
 
-    protected initSubControllers() {
+    protected initSubControls() {
         if (this.properties.float) {
             this.$element.addClass("float-toolbar");
             let opt = {};

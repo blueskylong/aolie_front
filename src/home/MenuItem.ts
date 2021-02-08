@@ -57,6 +57,7 @@ export class MenuItem<T extends TreeNode<MenuDto>> extends BaseUI<T> {
         }
     }
 
+
     protected initEvent() {
         this.$element
             .find('a:first').on('click', (ev) => {
@@ -65,7 +66,7 @@ export class MenuItem<T extends TreeNode<MenuDto>> extends BaseUI<T> {
                     $li.toggleClass("opened");
                     if ($li.is(".opened")) {
                         if (this.itemType == MenuItem.TYPE_FIRST) {
-                            this.fireSelectChangeEvent(true, true);
+                            this.fireSelectChangeEvent(true, this.isSmall, false, false);
                             $li.addClass("opened");
                         }
                         $('ul:first', $li).slideDown();
@@ -75,11 +76,13 @@ export class MenuItem<T extends TreeNode<MenuDto>> extends BaseUI<T> {
                     }
                 } else {
                     //叶子菜单
-                    this.fireSelectChangeEvent(false, false, true);
+                    this.fireSelectChangeEvent(this.isSmall, this.isSmall, true);
                     $li.addClass("current-page");
+                    $li.addClass(this.getActiveClass());
+                    $li.parents("li").addClass(this.getActiveClass());
                 }
-                $li.addClass(this.getActiveClass());
-                $li.parents("li").addClass(this.getActiveClass());
+                // $li.addClass(this.getActiveClass());
+                // $li.parents("li").addClass(this.getActiveClass());
 
             }
         );
@@ -103,6 +106,11 @@ export class MenuItem<T extends TreeNode<MenuDto>> extends BaseUI<T> {
             this.$element.find('li.active ul').hide();
             this.$element.find('li.active').addClass('active-sm').removeClass('active');
 
+        }
+        if (this.lstSubMenuItem) {
+            for (let subItem of this.lstSubMenuItem) {
+                subItem.setShowSmall(isSmall);
+            }
         }
     }
 

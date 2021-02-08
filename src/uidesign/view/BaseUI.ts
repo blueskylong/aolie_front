@@ -88,7 +88,7 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
         if (!this.element) {
             this.element = this.createUI();
             this.$element = $(this.element);
-            this.initSubControllers();
+            this.initSubControls();
             this.initEvent();
             DomAssembleNotifier.getInstance().addWaitingUI(this);
         }
@@ -99,7 +99,7 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
         return this.element;
     }
 
-    protected initSubControllers() {
+    protected initSubControls() {
 
     }
 

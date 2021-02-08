@@ -28,7 +28,7 @@ export class SingleTableConstraintValidator implements IValidator {
             //计算表达式
             let valueExp = this.formulaParse.transToValue(expression, row, null, this.formulaParse);
             if (!eval(valueExp)) {
-                return cons.getConstraintDto().memo;
+                return cons.getConstraintDto().memo || "检查不通过";
             }
         }
         return null;

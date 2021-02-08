@@ -14,6 +14,25 @@ export class SidebarMenu<T extends Array<MenuDto>> extends BaseUI<T> {
         for (let menuItem of this.lstMenu) {
             menuItem.setShowSmall(isSmall);
         }
+        if (isSmall) {
+            this.$element.find('li ul').slideUp();
+        }
+
+        if (isSmall) {
+            this.$element.find(".active")
+                .removeClass("active").addClass("active-sm");
+        } else {
+            this.$element.find(".active-sm")
+                .removeClass("active-sm").addClass("active");
+        }
+    }
+
+    public getCurrentSelectMenu() {
+        let leafActive = this.$element.find(".leaf-menu.active-sm a,.leaf-menu.active a")
+        if (leafActive.length == 0) {
+            return null;
+        }
+        return leafActive.attr("href").substr(1);
     }
 
     protected createUI(): HTMLElement {
@@ -66,7 +85,10 @@ export class SidebarMenu<T extends Array<MenuDto>> extends BaseUI<T> {
         if (!this.CURRENT_URL) {
             return;
         }
-
+        //如果一样,就不再处理
+        if (this.CURRENT_URL == this.getCurrentSelectMenu()) {
+            return;
+        }
         let menu = this.$element.find(
             'a[href="#' + this.CURRENT_URL + '"]')
             .parent('li');
@@ -74,14 +96,14 @@ export class SidebarMenu<T extends Array<MenuDto>> extends BaseUI<T> {
         menu.addClass('current-page').addClass(this.getActiveClass());
         menu.parents('ul')
             .slideDown();
-        menu.parents("li").addClass(this.getActiveClass).addClass("opened");
+        menu.parents("li").addClass(this.getActiveClass()).addClass("opened");
         return menu;
     }
 
-    public getMenuInfo(menuId:number):MenuDto{
-        if(this.properties){
-            for(let menuDto of this.properties){
-                if(menuDto.menuId == menuId){
+    public getMenuInfo(menuId: number): MenuDto {
+        if (this.properties) {
+            for (let menuDto of this.properties) {
+                if (menuDto.menuId == menuId) {
                     return menuDto;
                 }
             }

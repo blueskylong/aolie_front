@@ -73,13 +73,15 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
             new RelationDlg<DialogInfo>({
                 title: "请选择表之间的关系", onOk: (value) => {
                     return this.onRelationOk()
-                }
+                },
+                destroyOnClose: false
             });
 
         this.selectTableDlg = new SelectTableDlg<DialogInfo>({
             title: "请选择要增加的表", onOk: (value) => {
                 return this.onSelectTable(value);
-            }
+            },
+            destroyOnClose:false
         });
     }
 
@@ -367,7 +369,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
     }
 
 
-    protected initSubControllers() {
+    protected initSubControls() {
         this.initJsplumb();
         this.handleResize();
         this.initTableAndRelation();

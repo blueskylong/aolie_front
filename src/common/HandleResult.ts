@@ -15,6 +15,8 @@ export class HandleResult {
      */
     err: string;
 
+    code: number ;
+
     /**
      * 数据变化记录数
      */

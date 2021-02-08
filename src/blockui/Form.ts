@@ -154,7 +154,7 @@ export class Form extends BaseComponent<BlockViewDto> {
         this._version = value;
     }
 
-    async initSubControllers() {
+    async initSubControls() {
         if (this.isLocal && !this.viewer) {
             return;
         }
@@ -264,7 +264,7 @@ export class Form extends BaseComponent<BlockViewDto> {
         }
         this.getViewUI();
         this.viewer = viewer;
-        this.initSubControllers();
+        this.initSubControls();
     }
 
     protected createUI(): HTMLElement {

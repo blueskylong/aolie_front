@@ -20,7 +20,7 @@ export default class TestFunc<T extends MenuInfo> extends MenuFunction<T> {
         return $ele.get(0);
     }
 
-    protected initSubControllers() {
+    protected initSubControls() {
         let lstComp = new Array<Component>();
         lstComp.push(Form.genSimpDto(
             Constants.ComponentType.text, "中方", 12, "name"));
@@ -59,7 +59,7 @@ export default class TestFunc<T extends MenuInfo> extends MenuFunction<T> {
         this.borderLayout.addComponent(BorderLayout.east, form);
 
         this.borderLayout.show();
-        super.initSubControllers();
+        super.initSubControls();
     }
 
     afterComponentAssemble(): void {

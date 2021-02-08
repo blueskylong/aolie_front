@@ -10,14 +10,18 @@ import {FilterDlg, FilterDlgProperty} from "./formula/FilterDlg";
 import {RegComponent} from "../../../decorator/decorator";
 import {Constants} from "../../../common/Constants";
 import {FormulaParse} from "../../../datamodel/DmRuntime/formula/FormulaParse";
+import {TextInput} from "./TextInput";
+import {Alert} from "./Alert";
 
 @RegComponent(Constants.ComponentType.filter)
-export class FilterInput<T extends Component> extends JQBaseComponent<T> {
+export class FilterInput<T extends Component> extends TextInput<T> {
     static schemaParamName = "schema";
     protected filter: string;
-    protected textArea: TextArea<T>;
+    // protected textArea: TextArea<T>;
     protected schema: Schema;
     protected filterDlg: FilterDlg<any>;
+
+    private buttonElement: JQuery;
 
 
     /**
@@ -25,43 +29,62 @@ export class FilterInput<T extends Component> extends JQBaseComponent<T> {
      */
     private needTrans = true;
 
-    protected createUI(): HTMLElement {
-        this.textArea = new TextArea(this.properties);
-        this.textArea.addValueChangeListener({
-            handleEvent: (eventType: string, data: any, source: any, extObject?: any) => {
-                this.doTrans();
-                this.fireValueChanged(this.properties.column.getColumnDto().fieldName, this.filter);
-            }
-        });
-        return this.textArea.getViewUI();
+    protected createEditor(id: string) {
+        return $("<textarea class='com-editor form-control' id='" + id
+            + "' />");
+    }
+
+    private showDlg() {
+        if (this.schema) {
+
+            this.filterDlg = new FilterDlg<FilterDlgProperty>({
+                title: this.isFilter() ? "条件设计" : "公式设计",
+                isFilter: this.isFilter(),
+                editable: this.editable,
+                schema: this.schema,
+                onOk: (filterCN) => {
+                    this.filter = this.filterDlg.getFilterInner();
+                    super.setValue(filterCN);
+                    this.fireValueChanged(this.properties.column.getColumnDto().fieldName, this.filter);
+                    return true;
+                },
+                //强制保存,则二个表达式一样
+                forceSave: (filterCN) => {
+                    this.filter = filterCN;
+                    super.setValue(filterCN);
+                    this.fireValueChanged(this.properties.column.getColumnDto().fieldName, this.filter);
+                }
+            });
+            this.filterDlg.show(this.getValue());
+        }
     }
 
     protected initEvent() {
         this.$element.on("dblclick", (e) => {
-            if (this.schema) {
-
-                this.filterDlg = new FilterDlg<FilterDlgProperty>({
-                    title: this.isFilter() ? "条件设计" : "公式设计",
-                    isFilter: this.isFilter(),
-                    editable: this.editable,
-                    schema: this.schema,
-                    onOk: (filterCN) => {
-                        this.setValue(this.filterDlg.getFilterInner());
-                        this.fireValueChanged(this.properties.column.getColumnDto().fieldName, this.filter);
-                        return true;
-                    },
-                    //强制保存,则二个表达式一样
-                    forceSave: (filterCN) => {
-
-                        this.setValue(filterCN);
-                        this.fireValueChanged(this.properties.column.getColumnDto().fieldName, this.filter);
-                    }
-                });
-                this.filterDlg.show(this.textArea.getValue());
-            }
+            this.showDlg();
 
         });
-        this.textArea.setEditable(false);
+
+        this.$element.on("mouseenter", (event) => {
+            if (!this.buttonElement) {
+                this.buttonElement = $("<div class='filter-btn fa fa-share-alt-square'></div>");
+                this.$element.append(this.buttonElement);
+                this.buttonElement.on("click", (event) => {
+                    this.showDlg();
+                });
+            }
+            this.buttonElement.show(500);
+
+        });
+        this.$element.on("mouseleave", (event) => {
+            this.buttonElement.hide(500);
+        });
+        // this.addValueChangeListener({
+        //     handleEvent: (eventType: string, data: any, source: any, extObject?: any) => {
+        //         this.doTrans();
+        //     }
+        // });
+        this.setEditable(false);
     }
 
     getRequireExtendDataName(): Array<string> {
@@ -75,6 +98,15 @@ export class FilterInput<T extends Component> extends JQBaseComponent<T> {
         }
     }
 
+    setEditable(editable: boolean) {
+        this.editable = editable;
+        this.editor.attr("readonly", "readonly")
+    }
+
+    setEnable(enable: boolean) {
+        this.enabled = enable;
+        this.editor.attr("readonly", "readonly")
+    }
 
     isNeedTrans(): boolean {
         return this.needTrans;
@@ -85,7 +117,7 @@ export class FilterInput<T extends Component> extends JQBaseComponent<T> {
     }
 
     private doTrans() {
-        let text = this.textArea.getValue();
+        let text = this.getValue();
         try {
             this.filter = text;
             if (CommonUtils.isEmpty(text)) {
@@ -101,10 +133,7 @@ export class FilterInput<T extends Component> extends JQBaseComponent<T> {
     }
 
     getValue(): any {
-
         return this.filter;
-
-
     }
 
     /**
@@ -116,16 +145,15 @@ export class FilterInput<T extends Component> extends JQBaseComponent<T> {
 
         this.filter = value;
         try {
-            if (this.filter) {
-                this.textArea.setValue(FormulaParse.getInstance(this.isFilter(),
-                    this.schema).transToCn(this.filter)
-                );
+            if (this.filter != null) {
+                super.setValue(FormulaParse.getInstance(this.isFilter(),
+                    this.schema).transToCn(this.filter));
             } else {
-                this.textArea.setValue(null);
+               super.setValue(null);
             }
         } catch (e) {
             console.log(e.message);
-            this.textArea.setValue(this.filter);
+            super.setValue(this.filter);
         }
     }
 

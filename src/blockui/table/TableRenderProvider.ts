@@ -75,7 +75,7 @@ export interface TableRenderProvider {
 
 export class ServerRenderProvider implements TableRenderProvider {
 
-    static ServerDataUrl = CommonUtils.getServerUrl("/data/findBlockData");
+    static ServerDataUrl = CommonUtils.getServerUrl("/dmdata/findBlockData");
     static $label = $("<label></label>");
     /**
      * 是否可以编辑
@@ -413,6 +413,7 @@ let DEFAULT_TABLE_CONFIG: FreeJqGrid.JqGridOptions = {
     pager: ".xx",//这里只是临时使用
     colModel: [],
     cellEdit: true,
+    ajaxGridOptions:{xhrFields:{withCredentials:true}},
     jsonReader: {
         root: "data",    // json中代表实际模型数据的入口
         page: "page.currentPage",    // json中代表当前页码的数据

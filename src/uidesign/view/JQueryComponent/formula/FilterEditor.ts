@@ -37,7 +37,7 @@ export class FilterEditor<T extends FilterEditorProperty> extends BaseComponent<
         return $ele.get(0);
     }
 
-    protected initSubControllers() {
+    protected initSubControls() {
         let componentInfo = Component.fromSimpleComponent({
             fieldName: "filter",
             title: "条件设计",
@@ -281,6 +281,15 @@ export class FilterEditor<T extends FilterEditorProperty> extends BaseComponent<
     getFilterInner() {
         return FormulaParse.getInstance(this.properties.isFilter,
             this.properties.schema).transToInner(this.getValue());
+    }
+
+    setFilterInner(value) {
+        try {
+            this.setValue(FormulaParse.getInstance(this.properties.isFilter,
+                this.properties.schema).transToCn(value));
+        } catch (e) {
+            this.setValue(value);
+        }
     }
 
     setValue(value: any, extendData?) {

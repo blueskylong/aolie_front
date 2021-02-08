@@ -47,7 +47,7 @@ export class Constraint {
         }
         let tableId: number;
         for (let colId of columnParams) {
-            tableId = SchemaFactory.getTableByColId(colId).getTableDto().tableId;
+            tableId = SchemaFactory.getColumnById(colId).getColumnDto().tableId;
             if (this.lstRefTable.indexOf(tableId) === -1) {
                 this.lstRefTable.push(tableId);
             }

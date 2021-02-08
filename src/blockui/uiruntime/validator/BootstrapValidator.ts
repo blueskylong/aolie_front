@@ -2,6 +2,9 @@ import {ValidatorCenter} from "./ValidatorCenter";
 import {Form} from "../../Form";
 import ValidationOptions = JQueryValidation.ValidationOptions;
 
+/**
+ * 套用Bootstrap验证器
+ */
 export class BootstrapValidator extends ValidatorCenter {
 
     bindForm(form: Form) {

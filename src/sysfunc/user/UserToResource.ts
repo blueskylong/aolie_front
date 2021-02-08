@@ -175,7 +175,7 @@ export class UserToResource<T extends PageDetailDto> extends BaseComponent<T> im
         }
     }
 
-    protected initSubControllers() {
+    protected initSubControls() {
         this.toolBar = new Toolbar<any>({float: false});
         this.$element.append(this.toolBar.getViewUI());
         //TODO 查询表数据,并显示

@@ -39,7 +39,7 @@ export default class PageUI<T extends PageUIInfo> extends BaseComponent<any> {
     }
 
 
-    async initSubControllers() {
+    async initSubControls() {
         if (!this.pageInfo) {
             this.pageInfo = await UiService.findPageInfo(this.properties.pageId) as any;
         }

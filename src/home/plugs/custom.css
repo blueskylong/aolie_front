@@ -229,8 +229,8 @@
     margin: 0;
 }
 
-.nav-sm span.fa,
-.nav-sm .menu_section h3 {
+.nav-sm #sidebar-menu span.fa,
+.nav-sm #sidebar-menu .menu_section h3 {
     display: none;
 }
 
@@ -248,12 +248,13 @@
 
 .info-number .badge {
     font-size: 10px;
-    font-weight: normal;
+    font-weight: bolder;
     line-height: 13px;
     padding: 2px 6px;
     position: absolute;
     right: -2px;
     top: -8px;
+    color: red;
 }
 
 @media (min-width: 480px) {
@@ -532,6 +533,11 @@ a:hover, a:focus {
 .dropdown-item {
     width: 100%;
     padding: 12px 20px;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background-color: rgba(30, 144, 255, 0.4);
 }
 
 .top_nav li a i {
@@ -894,7 +900,6 @@ ul.msg_list li a .message {
     box-shadow: none;
     display: none;
     float: left;
-    font-size: 12px;
     left: 0;
     list-style: none outside none;
     padding: 0;

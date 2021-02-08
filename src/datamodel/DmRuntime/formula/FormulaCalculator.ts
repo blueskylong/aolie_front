@@ -1,10 +1,8 @@
 import {Schema} from "../Schema";
 import {BlockViewer} from "../../../blockui/uiruntime/BlockViewer";
-import {Form} from "../../../blockui/Form";
 import {StringMap} from "../../../common/StringMap";
 import {FormulaInfo} from "../../../blockui/uiruntime/FormulaInfo";
 import {CommonUtils} from "../../../common/CommonUtils";
-import {FilterExpression} from "./FilterExpression";
 import {FormulaParse} from "./FormulaParse";
 import {FormulaTools} from "./FormulaTools";
 import {SchemaFactory} from "../../SchemaFactory";
@@ -47,7 +45,7 @@ export class FormulaCalculator {
         }
         //查看此字段没有相关的公式
         let lstFormula = this.getFieldFormulas(fieldId);
-        if (lstFormula == null || lstFormula.length > 1) {
+        if (lstFormula == null || lstFormula.length < 1) {
             return mapChangedField;
         }
         for (let formula of lstFormula) {
@@ -61,6 +59,7 @@ export class FormulaCalculator {
         return mapChangedField;
 
     }
+
 
     private getFieldFormulas(fieldId): Array<FormulaInfo> {
         return this.mapFieldToFormula.get(fieldId);

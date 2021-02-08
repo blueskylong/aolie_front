@@ -3,6 +3,7 @@ import {LoginUser} from "../sysfunc/user/LoginUser";
 import {MockServer} from "./MockServer";
 import {Constants} from "./Constants";
 import {DmConstants} from "../datamodel/DmConstants";
+import {App} from "../App/App";
 
 export class GlobalParams {
     /**
@@ -10,6 +11,17 @@ export class GlobalParams {
      */
     private static PARAMS: StringMap<SystemParam>;
     private static loginUser: LoginUser;
+
+    private static app: App;
+
+    public static getApp() {
+        return GlobalParams.app;
+    }
+
+    public static setApp(app: App) {
+        GlobalParams.app = app;
+    }
+
     /**
      * 默认的登录的数据版本
      */
@@ -20,14 +32,27 @@ export class GlobalParams {
     }
 
     static getLoginUser(): LoginUser {
-        if (!GlobalParams.loginUser) {
-            GlobalParams.loginUser = MockServer.getLoginUser();
-        }
+        // if (!GlobalParams.loginUser) {
+        //     GlobalParams.loginUser = MockServer.getLoginUser();
+        // }
         return GlobalParams.loginUser;
     }
 
     static setLoginUser(loginUser) {
         GlobalParams.loginUser = loginUser;
+        GlobalParams.initGlobalDefaultParam();
+    }
+
+    static logout() {
+        GlobalParams.loginUser = null;
+        GlobalParams.PARAMS = null;
+    }
+
+    /**
+     * 是否登录
+     */
+    static isLogin() {
+        return GlobalParams.loginUser != null;
     }
 
 
@@ -129,4 +154,4 @@ export class SystemParam {
     id: number;
 }
 
-GlobalParams.initGlobalDefaultParam();
+

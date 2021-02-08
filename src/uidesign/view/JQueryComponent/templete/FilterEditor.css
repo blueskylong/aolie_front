@@ -16,3 +16,16 @@
     height: 100% !important;
     width: 100% !important;
 }
+
+.filter-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 20px;
+    font-size: x-large;
+    cursor: pointer;
+    color: #1E90FF;
+}
+
+.filter-btn:hover {
+    color: #FF8C00;
+}

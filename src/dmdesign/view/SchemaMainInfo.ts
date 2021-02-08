@@ -26,7 +26,7 @@ export class SchemaMainInfo extends BorderLayout<BorderLayoutProperty> {
         return super.getViewUI();
     }
 
-    protected initSubControllers() {
+    protected initSubControls() {
         this.schemaTree = new JsTree<JsTreeInfo>({
             textField: "schemaName",
             rootName: "方案信息",

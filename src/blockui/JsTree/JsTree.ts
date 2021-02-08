@@ -108,7 +108,7 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
     }
 
 
-    protected initSubControllers() {
+    protected initSubControls() {
         this.createTree();
         this.bindEvent();
     }

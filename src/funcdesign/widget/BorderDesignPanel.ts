@@ -26,7 +26,7 @@ export class BorderDesignPanel extends BorderLayout<BorderLayoutProperty> {
         this.listener = listener;
     }
 
-    protected initSubControllers() {
+    protected initSubControls() {
         this.northComp = new DesignBox({color: {r: 3, g: 169, b: 244, a: 0.2}, name: BorderLayout.north});
         this.centerComp = new DesignBox({color: {r: 0, g: 188, b: 212, a: 0.2}, name: BorderLayout.center});
         this.westComp = new DesignBox({color: {r: 0, g: 150, b: 136, a: 0.2}, name: BorderLayout.west});
@@ -59,7 +59,7 @@ export class BorderDesignPanel extends BorderLayout<BorderLayoutProperty> {
             });
         }
         this.show();
-        super.initSubControllers();
+        super.initSubControls();
     }
 
     /**

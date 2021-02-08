@@ -27,7 +27,7 @@ export class ManagedFunc<T extends MenuInfo> extends MenuFunction<T> {
         return $(require("./templete/FunctionUI.html")).get(0);
     }
 
-    protected async initSubControllers() {
+    protected async initSubControls() {
         this.isValid = false;
         if (!this.properties.getMenuDto() || !this.properties.getMenuDto().pageId) {
             Logger.error("菜单没有指定页面信息");

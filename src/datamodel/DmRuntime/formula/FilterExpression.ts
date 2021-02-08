@@ -90,7 +90,7 @@ export class FilterExpression {
      * 如果是服务服务过滤,则取得服务名及参数名{{service1(param1,param2)}}
      */
     public getServiceNameAndParams(): Array<string> {
-        if (!this.isServiceFilter) {
+        if (!this.isServiceFilter()) {
             return null;
         }
         this.filter = this.filter.trim();

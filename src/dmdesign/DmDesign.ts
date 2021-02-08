@@ -53,7 +53,7 @@ export default class DmDesign<T extends MenuInfo> extends MenuFunction<T> {
         return $ele.get(0);
     }
 
-    protected initSubControllers() {
+    protected initSubControls() {
         this.$element.find(".split-pane")['splitPane']();
         this.addTabInfoUI(this.$element);
         this.addAttrUI(this.$element);

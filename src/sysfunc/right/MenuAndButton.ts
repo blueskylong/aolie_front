@@ -95,7 +95,7 @@ export class MenuAndButton<T> extends BaseComponent<T> {
     }
 
 
-    protected initSubControllers() {
+    protected initSubControls() {
 
         let treeInfo = {
             textField: "name",

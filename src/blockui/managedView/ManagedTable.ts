@@ -181,8 +181,8 @@ export class ManagedTable extends Table implements AutoManagedUI {
         this.manageCenter = listener;
     }
 
-    protected async initSubControllers() {
-        super.initSubControllers();
+    protected async initSubControls() {
+        super.initSubControls();
         this.properties.setExtFilterProvider({
             getExtFilter: (source: object, oldFilter: object) => {
                 return this.extFilter;

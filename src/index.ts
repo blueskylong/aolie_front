@@ -26,7 +26,8 @@ export * from "./datamodel/DmRuntime/formula/transelement"
 
 $.getJSON('./config.json', function (r) {
     NetRequest.axios = Axios.create({
-        baseURL: r.baseURL
+        baseURL: r.baseURL,
+        withCredentials: true
     });
 });
 

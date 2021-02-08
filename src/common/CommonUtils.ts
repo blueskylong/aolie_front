@@ -7,6 +7,7 @@ import {Alert} from "../uidesign/view/JQueryComponent/Alert";
 import {BeanFactory} from "../decorator/decorator";
 import {HandleResult} from "./HandleResult";
 import {StringMap} from "./StringMap";
+import {GlobalParams} from "./GlobalParams";
 
 export class CommonUtils {
     static ID_SER = -1;
@@ -70,7 +71,7 @@ export class CommonUtils {
     }
 
     static getServerUrl(subUrl) {
-        return "http://127.0.0.1:8080/" + (subUrl.indexOf("/") == 0 ? subUrl.substr(1) : subUrl);
+        return "http://localhost:8080/" + (subUrl.indexOf("/") == 0 ? subUrl.substr(1) : subUrl);
     }
 
     static readyDo(isReady: () => boolean, callback: () => void) {
@@ -151,6 +152,12 @@ export class CommonUtils {
                     if (CommonUtils.isHandleResult(result.data)) {
                         let handleResult = BeanFactory.populateBean(HandleResult, data);
                         if (!handleResult.getSuccess()) {
+                            if (handleResult.code == 401) {
+                                Alert.showMessage("请登录," + handleResult.err);
+                                GlobalParams.getApp().showLogin();
+                                return;
+                            }
+                            Alert.showMessage("操作失败:" + handleResult.err);
                             Logger.error(handleResult.err);
                         }
                         callBack(handleResult);
@@ -163,6 +170,16 @@ export class CommonUtils {
                 }
             }
             return;
+        } else if (result.status == 401) {
+            let data = result.data;
+            if (CommonUtils.isHandleResult(result.data)) {
+                Alert.showMessage(result.data.err);
+            } else {
+                Alert.showMessage("请登录");
+            }
+
+            GlobalParams.logout();
+            window.location = window.location;
         }
         CommonUtils.log(result.status, result.statusText, result.data);
 

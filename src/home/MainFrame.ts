@@ -14,6 +14,15 @@ import {GlobalParams} from "../common/GlobalParams";
 import {MenuDto} from "../sysfunc/menu/dto/MenuDto";
 import {SidebarMenu} from "./SidebarMenu";
 import {Logger} from "../common/Logger";
+import {
+    DropMenu,
+    DropMenuInfo,
+    DropMenuItem,
+    DropMenuItemInfo,
+    MessageDropMenu,
+    MessageDropMenuInfo,
+    MessageDropMenuItemInfo
+} from "./DropMenu";
 
 export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFrame {
     static cacheType = "menu";
@@ -26,8 +35,10 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
     private $navMenu: JQuery = null;
     private $footer: JQuery = null;
     private $toolbar: JQuery = null;
+    private $menuTitle: JQuery = null;
 
     private menuBar: SidebarMenu<any> = null;
+    private dropDownMenu: DropMenu<DropMenuInfo>;
 
 
     private lastFunc: MenuFunction<any>;
@@ -43,13 +54,72 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
         this.$navMenu = $ele.find('.nav_menu');
         this.$footer = $ele.find('footer');
         this.$toolbar = $ele.find(".toolbar");
+        this.$menuTitle = $ele.find(".current-menu-title");
 
         return $ele.get(0);
     }
 
-    protected initSubControllers() {
+    protected initSubControls() {
+        this.initUserOperator();
+        this.initMessages();
         this.showMenu();
     }
+
+    private initMessages() {
+        let lstItem = new Array<MessageDropMenuItemInfo>();
+        lstItem.push({
+            messageId: 1,
+            imageURL: "",
+            fromUser: "张明",
+            receiveTime: new Date(Date.now() - 1000 * 69),
+            message: "这是我发的一个消息",
+            handler: (messageId) => {
+                Alert.showMessage("显示信息" + messageId);
+            }
+        });
+
+        lstItem.push({
+            messageId: 2,
+            imageURL: "",
+            fromUser: "李浩然",
+            receiveTime: new Date(Date.now() - 1000 * 100),
+            message: "新年快乐",
+            handler: (messageId) => {
+                Alert.showMessage("显示信息" + messageId);
+            }
+        });
+
+        let messageDropMenu = new MessageDropMenu({
+            lstItem: lstItem, count: 10, showMore: () => {
+                Alert.showMessage("没有更多的消息");
+            }
+        });
+        $(messageDropMenu.getViewUI()).insertAfter($(this.dropDownMenu.getViewUI()));
+
+    }
+
+    private initUserOperator() {
+        let lstItem = new Array<DropMenuItemInfo>();
+
+        lstItem.push({
+            title: "修改资料", icons: "fa fa fa-pencil-square-o", clickHandler: (event) => {
+                Alert.showMessage("修改资料了");
+            }
+        });
+        lstItem.push({
+            title: "退出登录", icons: "fa fa-sign-out", clickHandler: (event) => {
+                GlobalParams.logout();
+                GlobalParams.getApp().showLogin();
+            }
+        });
+        this.dropDownMenu = new DropMenu<DropMenuInfo>({
+            userName: GlobalParams.getLoginUser().userName,
+            lstItem: lstItem,
+            userImg: null
+        });
+        $(this.dropDownMenu.getViewUI()).insertAfter(this.$toolbar);
+    }
+
 
     afterComponentAssemble(): void {
         this.setContentHeight();
@@ -97,8 +167,6 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
                 this.menuBar.setShowSmall(this.$root.hasClass('nav-sm'));
             }
         );
-
-
         window
             .onresize = () => {
             this.setContentHeight();
@@ -129,7 +197,6 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
             this.menuBar.locateMenu();
         }
         CommonUtils.showMask();
-
         if (this.lastFunc) {
             try {
                 if (!this.lastFunc.beforeClose()) {
@@ -144,11 +211,16 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
         this
             .lastFunc = null;
 
+        //如果没有指定菜单,则到主页
+        if (!menuId) {
+            this.showHomePage();
+            return;
+        }
         MenuService.findMenuInfo(menuId, (data) => {
             let funcName = "";
             let menuInfo: MenuInfo = CacheUtils.get(MainFrame.cacheType, CommonUtils.genKey(menuId, GlobalParams.loginVersion));
             if (menuInfo) {
-                this.createAndShow(menuInfo);
+                this.createAndShowFunc(menuInfo);
             } else {
                 //查询后创建
                 MenuService.findMenuInfo(menuId, (data) => {
@@ -158,7 +230,7 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
                     }
                     let menuInfo1 = BeanFactory.populateBean(MenuInfo, data);
                     CacheUtils.put(MainFrame.cacheType, menuId, menuInfo1);
-                    this.createAndShow(menuInfo1);
+                    this.createAndShowFunc(menuInfo1);
                 });
 
             }
@@ -169,26 +241,34 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
     }
 
 
-    protected createAndShow(menuInfo: MenuInfo) {
+    protected showHomePage() {
+        this.updateMenuText("首页");
+        this.$toolbar.children().remove();
+    }
+
+    protected createAndShowFunc(menuInfo: MenuInfo) {
 
         let funcName = menuInfo.getMenuDto().funcName;
-
         if (!funcName) {
             Alert.showMessage("指定的功能不存在");
             CommonUtils.hideMask();
             return;
         }
-        this.$element.find(".current-menu-title").text(menuInfo.getMenuDto().menuName);
+
         let funcClazz = ApplicationContext.getMenuFunc(funcName);
         let baseUi = <MenuFunction<any>>BeanFactory.createBean(funcClazz, [menuInfo]);
         this.lastFunc = baseUi;
-
+        this.updateMenuText(menuInfo.getMenuDto().menuName);
         this.lastFunc.addReadyListener(() => {
             this.initButtons();
             CommonUtils.hideMask();
         });
         this.$body.append(this.lastFunc.getViewUI());
         return <MenuFunction<any>>this.lastFunc;
+    }
+
+    private updateMenuText(title) {
+        this.$menuTitle.text(title);
     }
 
     private initButtons() {
@@ -221,6 +301,26 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
      */
     private updateButtonState() {
         //TODO
+    }
+
+    destroy(): boolean {
+
+        this.$root = null;
+        this.$menuToggle = null;
+        // private $sidebarMenu: JQuery = null;
+        this.$sidebarFooter = null;
+        this.$leftCol = null;
+        this.$body = null;
+        this.$navMenu = null;
+        this.$footer = null;
+        this.$toolbar = null;
+
+        this.menuBar.destroy();
+        if (this.lastFunc != null && !this.lastFunc.isDestroied()) {
+            this.lastFunc.destroy();
+        }
+        this.lastFunc = null;
+        return super.destroy();
     }
 }
 

@@ -17,7 +17,7 @@ import {StringMap} from "../../common/StringMap";
  * 此控件,会在原始的指针值上维护数据,可以直接使用传入的值 ,也可以使用getValue取得新组织的数据.
  */
 export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
-    static serverDataUrl = CommonUtils.getServerUrl("/data/findBlockData");
+    static serverDataUrl = "/dmdata/findBlockData";
     static CARD_CLASS = "form-card";
     static EMPTY_CLASS = "empty";
     protected viewer: BlockViewer = null;
@@ -72,7 +72,7 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
         return new CardList(blockDto);
     }
 
-    protected initSubControllers() {
+    protected initSubControls() {
         this.setShowSave(this.showSave, true);
         this.setRemoveable(this.removeAble, true);
         this.setShowHead(this.isShowHead, true);

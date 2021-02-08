@@ -7,4 +7,6 @@ export interface IMainFrame {
     getViewUI(): HTMLElement;
 
     afterComponentAssemble(): void;
+
+    destroy(): void;
 }

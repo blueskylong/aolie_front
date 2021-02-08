@@ -123,7 +123,7 @@ export class UiService {
      * @param callback
      */
     static saveRows(rows: Array<any>, dsId: number, callback: (result) => void) {
-        CommonUtils.handleResponse(NetRequest.axios.post("/data/saveRows/" + dsId, rows), callback);
+        CommonUtils.handleResponse(NetRequest.axios.post("/dmdata/saveRows/" + dsId, rows), callback);
     }
 
     /**
@@ -133,14 +133,21 @@ export class UiService {
      * @param callback
      */
     static deleteRowByIds(ids: Array<number>, dsId: number, callback: (result) => void) {
-        CommonUtils.handleResponse(NetRequest.axios.post("/data/deleteRowByIds/" + dsId, ids), callback);
+        CommonUtils.handleResponse(NetRequest.axios.post("/dmdata/deleteRowByIds/" + dsId, ids), callback);
     }
 
     /**
      * 更新层次编码
      */
     static updateLevel(mapIdToCode, viewId: number, callback: (result) => void) {
-        CommonUtils.handleResponse(NetRequest.axios.post("/data/updateLevel/" + viewId, mapIdToCode), callback);
+        CommonUtils.handleResponse(NetRequest.axios.post("/dmdata/updateLevel/" + viewId, mapIdToCode), callback);
+    }
+
+    /**
+     * 查询角色对应的其它资源信息
+     */
+    static findRoleRightOtherRelation(callback: (result) => void) {
+        CommonUtils.handleResponse(NetRequest.axios.get("/user/findRoleRightOtherRelation"), callback);
     }
 
     /**
@@ -151,7 +158,7 @@ export class UiService {
      */
 
     static findTableRow(dsId, rowId, callback: (result) => void) {
-        CommonUtils.handleResponse(NetRequest.axios.get("/data/findTableRow/" + dsId + "/" + rowId
+        CommonUtils.handleResponse(NetRequest.axios.get("/dmdata/findTableRow/" + dsId + "/" + rowId
         ), callback);
     }
 
@@ -163,7 +170,7 @@ export class UiService {
      */
 
     static findTableRows(dsId, filter, callback: (result) => void) {
-        CommonUtils.handleResponse(NetRequest.axios.post("/data/findTableRows/" + dsId, filter
+        CommonUtils.handleResponse(NetRequest.axios.post("/dmdata/findTableRows/" + dsId, filter
         ), callback);
     }
 

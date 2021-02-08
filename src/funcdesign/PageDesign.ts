@@ -54,7 +54,7 @@ export default class PageDesign<T extends MenuInfo> extends MenuFunction<T> {
     }
 
 
-    protected initSubControllers() {
+    protected initSubControls() {
         this.pageTree = new JsTree<JsTreeInfo>({
             textField: "pageName",
             idField: "pageId",

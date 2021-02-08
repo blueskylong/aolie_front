@@ -35,7 +35,7 @@ export class RoleToResource<T extends PageDetailDto> extends AbstractManagedCust
     private mapTree = new StringMap<ReferenceTree<any>>();
     private lastRoleId;
 
-    protected initSubControllers() {
+    protected initSubControls() {
         this.toolBar = new Toolbar<any>({float: false});
         this.$element.append(this.toolBar.getViewUI());
         this.menuBtn = new MenuAndButton<any>({});
@@ -51,7 +51,7 @@ export class RoleToResource<T extends PageDetailDto> extends AbstractManagedCust
             DmConstants.DefaultSchemaIDs.DEFAULT_SYS_SCHEMA)
             .getTableDto();
 
-        UiService.findTableRows(resourceTable.tableId, {}, (result: HandleResult) => {
+        UiService.findRoleRightOtherRelation((result: HandleResult) => {
             this.initTree(<Array<any>>result.data);
         });
     }
@@ -73,14 +73,8 @@ export class RoleToResource<T extends PageDetailDto> extends AbstractManagedCust
         }
         for (let row of lstData) {
             let rsId = row["rs_id"];
-            if (rsId == DmConstants.DefaultRsIds.menu ||
-                rsId == DmConstants.DefaultRsIds.menuButton ||
-                rsId == DmConstants.DefaultRsIds.role) {
-                continue;
-            }
             let refTree = ReferenceTree.getTreeInstance(row.resource_id, GlobalParams.loginVersion, true);
             this.$element.append(refTree.getViewUI());
-//            refTree.afterComponentAssemble();
             refTree.reload();
             refTree.setWidth(300);
             refTree.setHeight(500);
@@ -197,7 +191,6 @@ export class RoleToResource<T extends PageDetailDto> extends AbstractManagedCust
             }
         }));
     }
-
 
 
 }

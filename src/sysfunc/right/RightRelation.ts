@@ -195,7 +195,7 @@ export class RightRelation<T extends PageDetailDto> extends AbstractManagedCusto
     }
 
 
-    protected initSubControllers() {
+    protected initSubControls() {
         this.toolBar = new Toolbar<any>({float: false});
         this.$element.append(this.toolBar.getViewUI());
 

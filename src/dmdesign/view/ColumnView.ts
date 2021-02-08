@@ -3,14 +3,15 @@ import {AttrChangeListener} from "./AttrChangeListener";
 import {Column} from "../../datamodel/DmRuntime/Column";
 import {CommonUtils} from "../../common/CommonUtils";
 import EventBus from "./EventBus";
+import {Constants} from "../../common/Constants";
 
 
 export default class ColumnView extends DmDesignBaseView<Column> implements AttrChangeListener {
 
     public static isAddedContextMenu = false;
-    private static ATTR_KEY = "K";
-    private static ATTR_HAS_REF = "R";
-    private static ATTR_HAS_FORMULA = "F";
+
+
+    private static FIELD_TYPE_SHORT_NAME = null;
 
 
     public getId() {
@@ -103,7 +104,20 @@ export default class ColumnView extends DmDesignBaseView<Column> implements Attr
     }
 
     private getTypeShortName(type) {
-        return type.substr(0, 1).toUpperCase();
+        if (ColumnView.FIELD_TYPE_SHORT_NAME == null) {
+            ColumnView.FIELD_TYPE_SHORT_NAME = {};
+            ColumnView.FIELD_TYPE_SHORT_NAME[Constants.FieldType.decimal] = "浮";
+            ColumnView.FIELD_TYPE_SHORT_NAME[Constants.FieldType.int] = "整";
+            ColumnView.FIELD_TYPE_SHORT_NAME[Constants.FieldType.varchar] = "文";
+            ColumnView.FIELD_TYPE_SHORT_NAME[Constants.FieldType.binary] = "位";
+            ColumnView.FIELD_TYPE_SHORT_NAME[Constants.FieldType.datetime] = "日";
+            ColumnView.FIELD_TYPE_SHORT_NAME[Constants.FieldType.text] = "大";
+        }
+        let name = ColumnView.FIELD_TYPE_SHORT_NAME[type];
+        if (!name) {
+            return type;
+        }
+        return name;
     }
 
     attrChanged(attrName: string, value: any) {

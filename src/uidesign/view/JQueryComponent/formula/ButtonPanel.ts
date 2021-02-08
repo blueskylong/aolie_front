@@ -9,7 +9,7 @@ export class ButtonPanel<T extends ButtonPanelProperty> extends FlowLayout<T> {
     private logicPad: FlowLayout<any>;
     private mathEle = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', ".", "+", "-", "*", "/", "(", ")"];
 
-    protected initSubControllers() {
+    protected initSubControls() {
         this.mathPad = new FlowLayout({});
         this.addUI(this.mathPad);
         this.mathPad.setWidth(200);
@@ -70,7 +70,7 @@ class AcButton<T extends AcButtonProperty> extends BaseUI<T> {
         return ele.get(0);
     }
 
-    protected initSubControllers() {
+    protected initSubControls() {
         this.setHeight(this.properties.height);
         this.setWidth(this.properties.width);
     }

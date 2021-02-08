@@ -9,6 +9,7 @@ import {Logger} from "../common/Logger";
 import {TableColumnRelation} from "./DmRuntime/TableColumnRelation";
 import {Column} from "./DmRuntime/Column";
 import {DmConstants} from "./DmConstants";
+import {Alert} from "../uidesign/view/JQueryComponent/Alert";
 
 export class SchemaFactory {
     static schemaId = 2;
@@ -37,12 +38,19 @@ export class SchemaFactory {
         return SchemaFactory.CACHE_SCHEMA.get(CommonUtils.genKey(schemaId, version));
     }
 
-    init() {
+    init(callback: Function) {
         DmService.findSchemaIds((data) => {
+            if (!Array.isArray(data)) {
+                Alert.showMessage("查询数据失败");
+                return;
+            }
             if (data) {
                 for (let id of data) {
                     SchemaFactory.initOneSchema(id, GlobalParams.getLoginVersion());
                 }
+            }
+            if (callback) {
+                callback();
             }
         });
 

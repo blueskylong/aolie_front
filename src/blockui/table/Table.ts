@@ -532,7 +532,7 @@ export class Table extends BaseComponent<TableRenderProvider> {
         }
     }
 
-    protected async initSubControllers() {
+    protected async initSubControls() {
         this.hasShow = true;
         let option = await this.properties.getOptions(this);
         let multiSelect = option.multiselect;

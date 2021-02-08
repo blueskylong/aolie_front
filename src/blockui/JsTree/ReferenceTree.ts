@@ -37,7 +37,7 @@ export class ReferenceTree<T extends ReferenceTreeInfo> extends BaseComponent<T>
         }
         this.properties.refId = refId;
         this.clearShow();
-        await this.initSubControllers();
+        await this.initSubControls();
         if (onReady) {
             this.addReadyListener(onReady);
         }
@@ -49,11 +49,11 @@ export class ReferenceTree<T extends ReferenceTreeInfo> extends BaseComponent<T>
         this.$element.children().remove();
     }
 
-    async initSubControllers() {
+    async initSubControls() {
         if (this.properties.refId >= 0) {
-            if (!this.refDto) {
-                this.refDto = await UiService.getReferenceDto(this.properties.refId) as any;
-            }
+
+            this.refDto = await UiService.getReferenceDto(this.properties.refId) as any;
+
             if (!this.refDto) {
                 console.log("Reference " + this.properties.refId + " not exists!")
             }

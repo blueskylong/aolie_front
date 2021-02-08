@@ -39,7 +39,7 @@ export class TreeUI<T extends BlockViewDto> extends BaseComponent<T> {
         return this.jsTree;
     }
 
-    async initSubControllers() {
+    async initSubControls() {
         if (!this.viewer) {
             this.viewer = await UiService.getSchemaViewer(this.blockViewId) as any;
         }
