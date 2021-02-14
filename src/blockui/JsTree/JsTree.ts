@@ -61,7 +61,7 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
             }
         },
         "plugins": [
-            "contextmenu", "dnd", "search",
+            "dnd", "search",
             "state", "types"
         ]
     };
@@ -162,6 +162,9 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
     private createTree() {
         if (this.properties.multiSelect) {
             this.treeProps.plugins.push("checkbox")
+        }
+        if (this.properties.contenxtMenu) {
+            this.treeProps.plugins.push("contextmenu")
         }
         this.treeProps.dnd.onlyDroppable = false;
 
@@ -678,6 +681,7 @@ export interface JsTreeInfo {
     dnd?: DragAndDrop;
     rootId?: string;
     getFilter?: () => object;
+    contenxtMenu?: boolean;
 }
 
 export interface DragAndDrop {

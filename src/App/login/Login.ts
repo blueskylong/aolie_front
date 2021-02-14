@@ -22,11 +22,17 @@ export class Login<T extends LoginInfo> extends BaseUI<T> {
     protected initEvent() {
         this.$element.find(".btn-login").on("click", (e) => {
             if (this.$element.find("form").valid()) {
-                LoginService.login((result1) => {
-                    GlobalParams.setLoginUser(MockServer.getLoginUser());
-                    if (this.properties.afterLogin) {
-                        this.properties.afterLogin(this.properties.menuId);
+                LoginService.login({
+                    username: this.$accoutName.val(),
+                    password: this.$password.val()
+                }, (result1) => {
+                    if(result1.success){
+                        GlobalParams.setLoginUser(MockServer.getLoginUser());
+                        if (this.properties.afterLogin) {
+                            this.properties.afterLogin(this.properties.menuId);
+                        }
                     }
+
                 });
 
             }

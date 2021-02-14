@@ -55,6 +55,10 @@ export class DesignBox extends BaseUI<DesignBoxInfo> {
     }
 
     private bindEvent() {
+        this.$element.on("scroll", (event) => {
+            this.$masker.css("left", this.$element.scrollLeft());
+            this.$masker.css("top", this.$element.scrollTop());
+        });
         let $closeBtn = this.$element.find(".close-button");
         this.$element.on("mouseenter", (e) => {
             if (this.pageDetailDto) {
