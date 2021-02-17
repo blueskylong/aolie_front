@@ -12,6 +12,4 @@ export class LoginUser extends UserDto {
     setRoleDto(roleDto: RoleDto) {
         this.roleDto = roleDto;
     }
-
-
 }

@@ -136,6 +136,7 @@ export class CommonUtils {
             CommonUtils.handleResult(result, callBack);
         }).catch((e) => {
             CommonUtils.hideMask();
+            debugger;
             Alert.showMessage("访问服务器出现异常,操作失败!");
             CommonUtils.log(e.status, e.statusText, e.data);
         });

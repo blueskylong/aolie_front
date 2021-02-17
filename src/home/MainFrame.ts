@@ -14,15 +14,7 @@ import {GlobalParams} from "../common/GlobalParams";
 import {MenuDto} from "../sysfunc/menu/dto/MenuDto";
 import {SidebarMenu} from "./SidebarMenu";
 import {Logger} from "../common/Logger";
-import {
-    DropMenu,
-    DropMenuInfo,
-    DropMenuItem,
-    DropMenuItemInfo,
-    MessageDropMenu,
-    MessageDropMenuInfo,
-    MessageDropMenuItemInfo
-} from "./DropMenu";
+import {DropMenu, DropMenuInfo, DropMenuItemInfo, MessageDropMenu, MessageDropMenuItemInfo} from "./DropMenu";
 
 export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFrame {
     static cacheType = "menu";

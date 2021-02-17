@@ -66,7 +66,7 @@ export class MenuItem<T extends TreeNode<MenuDto>> extends BaseUI<T> {
                     $li.toggleClass("opened");
                     if ($li.is(".opened")) {
                         if (this.itemType == MenuItem.TYPE_FIRST) {
-                            this.fireSelectChangeEvent(true, this.isSmall, false, false);
+                            this.fireSelectChangeEvent(true, true, false, false);
                             $li.addClass("opened");
                         }
                         $('ul:first', $li).slideDown();
