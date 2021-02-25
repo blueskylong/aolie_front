@@ -797,13 +797,17 @@ a:hover, a:focus {
 }
 
 footer {
-    background: #fff;
+    background: #2A3F54;
     padding: 8px 20px;
     display: block;
     position: fixed;
     bottom: 0px;
+    color: white;
     width: 100%;
     left: 0px;
+}
+footer a{
+    color: white;
 }
 
 

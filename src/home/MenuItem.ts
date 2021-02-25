@@ -76,7 +76,7 @@ export class MenuItem<T extends TreeNode<MenuDto>> extends BaseUI<T> {
                     }
                 } else {
                     //叶子菜单
-                    this.fireSelectChangeEvent(this.isSmall, this.isSmall, true);
+                    this.fireSelectChangeEvent(this.isSmall, this.isSmall, true, true);
                     $li.addClass("current-page");
                     $li.addClass(this.getActiveClass());
                     $li.parents("li").addClass(this.getActiveClass());

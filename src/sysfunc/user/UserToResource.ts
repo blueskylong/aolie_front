@@ -15,10 +15,17 @@ import {CommonUtils} from "../../common/CommonUtils";
 import {UserService} from "./service/UserService";
 import {StringMap} from "../../common/StringMap";
 import {Constants} from "../../common/Constants";
+import {MenuAndButton} from "../right/MenuAndButton";
+import {SchemaFactory} from "../../datamodel/SchemaFactory";
+import {DmConstants} from "../../datamodel/DmConstants";
 
 @CustomUi()
 export class UserToResource<T extends PageDetailDto> extends BaseComponent<T> implements AutoManagedUI {
 
+    /**
+     * 菜单和按钮 资源单独处理
+     */
+    private menuBtn: MenuAndButton<any>;
     private lstTree = new Array<ReferenceTree<any>>();
     private mapTree = new StringMap<ReferenceTree<any>>();
     private lstResource: Array<object>;
@@ -32,9 +39,12 @@ export class UserToResource<T extends PageDetailDto> extends BaseComponent<T> im
     /**
      * 资源ID
      */
-    static USER_TO_RESOURCE_DS_ID = 4996398596377088;
-    static USER_DS_ID = 4958233176623708;
-    static RESOURCE_DS_ID = 4992135365380608;
+        // static USER_TO_RESOURCE_DS_ID = 4996398596377088;
+    static USER_TO_RESOURCE_TABLE = "aolie_s_user_right";
+    // static USER_DS_ID = 4958233176623708;
+    static USER_TABLE = "aolie_s_user";
+    // static RESOURCE_DS_ID = 4992135365380608;
+    static RESOURCE_TABLE = "aolie_s_right_resource";
 
     attrChanged(source: any, tableId: number, mapKeyAndValue: object, field: string, value: any) {
     }
@@ -72,6 +82,7 @@ export class UserToResource<T extends PageDetailDto> extends BaseComponent<T> im
                 tree.getTree().deselectAll();
             }
         }
+        this.menuBtn.clearSelection();
     }
 
     getPageDetail(): PageDetailDto {
@@ -79,7 +90,8 @@ export class UserToResource<T extends PageDetailDto> extends BaseComponent<T> im
     }
 
     getTableIds(): Array<number> {
-        return [UserToResource.USER_DS_ID];
+        return [SchemaFactory.getTableByTableName(UserToResource.USER_TABLE,
+            DmConstants.DefaultSchemaIDs.DEFAULT_SYS_SCHEMA).getTableDto().tableId];
     }
 
     getUiDataNum(): number {
@@ -93,7 +105,9 @@ export class UserToResource<T extends PageDetailDto> extends BaseComponent<T> im
         if (!buttons) {
             return;
         }
-        let btns = ManagedUITools.findRelationButtons(buttons, UserToResource.USER_TO_RESOURCE_DS_ID);
+        let btns = ManagedUITools.findRelationButtons(buttons,
+            SchemaFactory.getTableByTableName(UserToResource.USER_TO_RESOURCE_TABLE,
+                DmConstants.DefaultSchemaIDs.DEFAULT_SYS_SCHEMA).getTableDto().tableId);
         if (btns) {
             this.toolBar.addButtons(this.toButtonInfo(btns));
         }
@@ -147,6 +161,7 @@ export class UserToResource<T extends PageDetailDto> extends BaseComponent<T> im
                 result[key] = selectIds;
             }
         });
+        $.extend(result, this.menuBtn.getValue());
         UserService.saveUserRight(this.userId, result, (result2) => {
             if (result2.success) {
                 Alert.showMessage("保存成功!");
@@ -173,18 +188,26 @@ export class UserToResource<T extends PageDetailDto> extends BaseComponent<T> im
                 tree.setEnable(editable);
             }
         }
+        this.menuBtn.setEditable(editable);
     }
 
     protected initSubControls() {
         this.toolBar = new Toolbar<any>({float: false});
         this.$element.append(this.toolBar.getViewUI());
         //TODO 查询表数据,并显示
-        UiService.findTableRows(UserToResource.RESOURCE_DS_ID, {}, (result: HandleResult) => {
+        UiService.findTableRows(SchemaFactory.getTableByTableName(UserToResource.RESOURCE_TABLE,
+            DmConstants.DefaultSchemaIDs.DEFAULT_SYS_SCHEMA).getTableDto().tableId, {}, (result: HandleResult) => {
             this.initTree(<Array<any>>result.data);
         });
     }
 
     private initTree(lstData: Array<any>) {
+        this.menuBtn = new MenuAndButton<any>({});
+        this.menuBtn.addReadyListener(() => {
+            this.fireReadyEvent();
+            this.menuBtn.setEditable(this.properties.initState != Constants.UIState.view);
+        });
+        this.$element.append(this.menuBtn.getViewUI());
         this.lstResource = lstData;
         if (!lstData) {
             this.ready = true;
@@ -193,6 +216,11 @@ export class UserToResource<T extends PageDetailDto> extends BaseComponent<T> im
         }
         this.treeCount = lstData.length;
         for (let row of lstData) {
+            //过滤菜单和按钮资源
+            let resourceId = row.rs_id;
+            if (resourceId == DmConstants.DefaultRsIds.menu || resourceId == DmConstants.DefaultRsIds.menuButton) {
+                continue;
+            }
             let refTree = ReferenceTree.getTreeInstance(row.resource_id, GlobalParams.loginVersion, true);
             this.$element.append(refTree.getViewUI());
             refTree.reload();
@@ -215,10 +243,18 @@ export class UserToResource<T extends PageDetailDto> extends BaseComponent<T> im
         UserService.getUserRights(userId, (result: HandleResult) => {
             if (result.success) {
                 let mapData = result.data;
+                let btnIds: StringMap<any>, menuIds: StringMap<any>;
                 if (mapData) {
                     for (let rsId in mapData) {
-                        this.mapTree.get(rsId).getTree().selectNodeById(this.getIdArray(mapData[rsId]));
+                        if (rsId == DmConstants.DefaultRsIds.menuButton.toString()) {
+                            btnIds = this.getIdMap(mapData[rsId]);
+                        } else if (rsId == DmConstants.DefaultRsIds.menu.toString()) {
+                            menuIds = this.getIdMap(mapData[rsId]);
+                        } else {
+                            this.mapTree.get(rsId).getTree().selectNodeById(this.getIdArray(mapData[rsId]));
+                        }
                     }
+                    this.menuBtn.signTreeById(btnIds, menuIds);
                 }
             }
         });
@@ -228,6 +264,14 @@ export class UserToResource<T extends PageDetailDto> extends BaseComponent<T> im
         let result = new Array<any>();
         for (let row of lstData) {
             result.push(row["rs_detail_id"])
+        }
+        return result;
+    }
+
+    private getIdMap(lstData: Array<object>) {
+        let result = new StringMap<any>();
+        for (let row of lstData) {
+            result.set(row["rs_detail_id"], null);
         }
         return result;
     }

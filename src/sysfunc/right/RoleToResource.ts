@@ -1,13 +1,10 @@
 import {PageDetailDto} from "../../funcdesign/dto/PageDetailDto";
-import {BaseComponent} from "../../uidesign/view/BaseComponent";
-import {AutoManagedUI, IManageCenter} from "../../blockui/managedView/AutoManagedUI";
 import {MenuButtonDto} from "../menu/dto/MenuButtonDto";
 import {MenuAndButton} from "./MenuAndButton";
 import {Toolbar} from "../../uidesign/view/JQueryComponent/Toolbar";
 import {ManagedUITools} from "../../blockui/managedView/ManagedUITools";
 import {SchemaFactory} from "../../datamodel/SchemaFactory";
 import {DmConstants} from "../../datamodel/DmConstants";
-import {TableInfo} from "../../datamodel/DmRuntime/TableInfo";
 import TableDto from "../../datamodel/dto/TableDto";
 import {UiService} from "../../blockui/service/UiService";
 import {HandleResult} from "../../common/HandleResult";
@@ -22,6 +19,9 @@ import {UserRightService} from "./service/UserRightService";
 import {CommonUtils} from "../../common/CommonUtils";
 import {AbstractManagedCustomPanel} from "../../blockui/managedView/AbstractManagedCustomPanel";
 
+/**
+ * 角色授权下方的相关的权限资源,必须是对对应关系的
+ */
 @CustomUi()
 export class RoleToResource<T extends PageDetailDto> extends AbstractManagedCustomPanel<T> {
     public static RIGHT_RELATION_TABLE = "aolie_s_right_relation_detail";
@@ -57,6 +57,10 @@ export class RoleToResource<T extends PageDetailDto> extends AbstractManagedCust
     }
 
     setEditable(editable: boolean) {
+        if (this.manageCenter) {
+            this.manageCenter.stateChange(this, this.getTableIds()[0],
+                editable ? Constants.TableState.edit : Constants.TableState.view);
+        }
         this.menuBtn.setEditable(editable);
         if (this.lstTree) {
             for (let tree of this.lstTree) {
@@ -104,7 +108,7 @@ export class RoleToResource<T extends PageDetailDto> extends AbstractManagedCust
     private initSelection(roleId) {
         try {
             CommonUtils.showMask();
-            this.menuBtn.setValue(roleId);
+            this.menuBtn.setRole(roleId);
             if (this.lstTree && this.lstTree.length > 0) {
                 this.mapTree.forEach((key, tree, map) => {
                     UserRightService.findRsDetail(DmConstants.DefaultRsIds.role,
@@ -112,7 +116,6 @@ export class RoleToResource<T extends PageDetailDto> extends AbstractManagedCust
                             this.signTree(tree, result.data);
                         });
                 });
-
             }
         } finally {
             CommonUtils.hideMask();
@@ -153,16 +156,24 @@ export class RoleToResource<T extends PageDetailDto> extends AbstractManagedCust
     protected componentButtonClicked(event: JQuery.ClickEvent<any, any, any, any>, menuBtnDto: MenuButtonDto, data) {
         //编辑
         if (menuBtnDto.tableOpertype === Constants.TableOperatorType.edit) {
-            this.menuBtn.setEditable(true);
-            this.setTreeEnable(false);
+            if (this.editable) {
+                return;
+            }
+            this.setEditable(true);
+
         } else if (menuBtnDto.tableOpertype === Constants.TableOperatorType.cancel) {
+            if (!this.editable) {
+                return;
+            }
             //取消
-            this.menuBtn.setEditable(false);
-            this.initSelection(this.lastRoleId)
-            this.setTreeEnable(false);
+            this.initSelection(this.lastRoleId);
+            this.setEditable(false);
 
         } else if (menuBtnDto.tableOpertype === Constants.TableOperatorType.saveMulti ||
             menuBtnDto.tableOpertype === Constants.TableOperatorType.saveSingle) {
+            if (!this.editable) {
+                return;
+            }
             if (!this.lastRoleId) {
                 return;
             }
@@ -186,6 +197,7 @@ export class RoleToResource<T extends PageDetailDto> extends AbstractManagedCust
         UserService.saveRightRelationDetails(DmConstants.DefaultRsIds.role, this.lastRoleId, data, (result => {
             if (result.success) {
                 Alert.showMessage("保存成功");
+                this.setEditable(false);
             } else {
                 Alert.showMessage("保存失败:" + result.err);
             }

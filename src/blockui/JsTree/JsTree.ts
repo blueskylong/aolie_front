@@ -476,6 +476,7 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
             for (let row of data) {
                 map.set(row[codeField], row[idField]);
             }
+            //按编码排序
             data.sort((row1, row2) => {
                 if (row1[codeField] > row2[codeField]) {
                     return 1;

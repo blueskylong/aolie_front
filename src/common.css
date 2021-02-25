@@ -7,7 +7,8 @@ body {
 }
 
 .split-pane-divider {
-    background-color: rgba(19, 104, 64, 0.6);
+    background-color: #2A3F54;
+    opacity: 0.5;
 }
 
 html {
@@ -27,6 +28,7 @@ html {
 
 .bootstrap-select[class*="col-"] .dropdown-toggle[disabled] {
     background-color: #e9ecef;
+
     border: 1px solid #ced4da;
     opacity: 1;
 }
@@ -99,6 +101,7 @@ html {
     height: 100%;
     width: 100%;
 }
+
 .ui-jqgrid.ui-jqgrid-bootstrap .frozen-bdiv.ui-jqgrid-bdiv .ui-jqgrid-btable {
     background-color: inherit;
 }
@@ -114,3 +117,4 @@ html {
         height: 15px
     }
 }
+

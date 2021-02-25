@@ -24,10 +24,11 @@ export class Stars {
         canvas.attr("height", Stars.maxHeight);
         Stars.ctx.lineWidth = 0.3;
         Stars.ctx.strokeStyle = RandomColor.genRandomColor(150);
-
-
         Stars.stars = Stars.createStars(Stars.maxWidth, Stars.maxHeight);
         requestAnimationFrame(Stars.animateDots);
+
+        //生成流星
+        SuperStar.start(canvas);
     }
 
     static positionChanged(x, y) {
@@ -169,6 +170,165 @@ class Star {
     }
 }
 
+/**
+ * 流星
+ */
+class SuperStar {
+    static COLORS = [];
+    static SCALES = [0.4, 0.6, 0.8, 1.0, 1.2, 1.4];
+    //最大的数量
+    private static maxCount = 5;
+    //流星总数
+    private static count = 0;
+    //唯一码,用完加一
+    private static index = 1;
+    private static cssStartIndex = document.styleSheets[0].cssRules.length;
+    //最大长度
+    private maxDistance = 0;
+    //角度
+    private angle: number;
+    //大小 //暂时统一大小
+    private size: number;
+    //颜色
+    private rgbaColor: string;
+    private rgbColor: string;
+    //速度,持续时间
+    private speed: number;
+    private $element: JQuery;
+    //起始高度,默认都是顶部开始
+    private top = 0;
+    //起始左坐标
+    private left: number;
+    //每一步行走路程
+    private stepX: number;
+    private stepY: number;
+    //帧样式的名称
+    private frameName: string;
+
+
+    public static start($container: JQuery) {
+        SuperStar.initColor();
+        let sleep = SuperStar.random(200, 20000);
+        if (SuperStar.count <= SuperStar.maxCount) {
+            new SuperStar().start($container);
+        }
+
+        setTimeout(() => {
+            SuperStar.start($container);
+        }, sleep);
+        return;
+
+    }
+
+    private static initColor() {
+        if (!this.COLORS && this.COLORS.length > 0) {
+            return;
+        }
+        this.COLORS = ["255,0,0",
+            "255,255,0",
+            "218,112,214",
+            "255,69,0"];
+        // for (let i = 0; i <= 100; i++) {
+        //     this.COLORS.push("255,255,255");
+        // }
+    }
+
+    private initParams() {
+        SuperStar.count++;
+        this.$element = $('<div class="superstar" ></div>')
+        let viewWidth = $(document.body).width();
+        this.top = SuperStar.random(0, 100);
+        //二边各突出200像素
+        this.left = SuperStar.random(200, viewWidth - 200);
+        //如果在右半边开始,则向左下坠,
+        if (this.left > viewWidth / 2) {
+            this.angle = -1 * SuperStar.random(30, 90);
+        } else {
+            this.angle = -1 * SuperStar.random(90, 150);
+        }
+        let col = SuperStar.COLORS[SuperStar.random(0, SuperStar.COLORS.length - 1)]
+        this.rgbaColor = "rgba(" + col + "," + (SuperStar.random(3, 8) / 10) + ")";
+        this.rgbColor = "rgb(" + col + ")";
+        this.speed = SuperStar.random(5, 10);
+        this.maxDistance = Math.abs($(document.body).height() / Math.sin(-this.angle * (Math.PI / 180))) / 1.5 + 200;
+        //每一步走的路
+        let step = Math.round(this.maxDistance / 5);
+        this.stepX = Math.round(step * Math.cos(-this.angle * (Math.PI / 180)));
+        this.stepY = Math.abs(Math.round(step * Math.sin(-this.angle * (Math.PI / 180))));
+        // console.log(JSON.stringify(this));
+        // console.log(this.createFrame());
+    }
+
+    private show(canvas: JQuery) {
+        canvas.parent().append(this.$element);
+        let cssStyle = document.styleSheets[0];
+        cssStyle.insertRule(this.createFrame(), cssStyle.cssRules.length);
+        this.$element.attr("id", this.frameName);
+        //增加样式
+        this.$element.css("top", this.top);
+        this.$element.css("background-color", this.rgbColor);
+        this.$element.css("left", this.left);
+        this.$element.css("animation", this.frameName
+            + " " + this.speed + "s linear");
+        this.$element.css("-webkit-animation", this.frameName
+            + " " + this.speed + "s linear");
+        this.$element.css("box-shadow", " 0 0 5px 5px " + this.rgbaColor);
+
+
+        this.$element.append("<Style>#" + this.frameName + ":after {" +
+            "border-color: transparent transparent transparent " + this.rgbaColor + ";" +
+            "transform: rotate(" + this.angle + "deg) translate3d(1px, "
+            + Math.min(Math.floor((-this.angle - 60) / 25) + 4, 5) + "px, 0);" +
+            // "box-shadow: 0 0 1px 0 " + this.rgbaColor + ";" +
+            "}</Style>");
+        setTimeout(() => {
+            this.destroy();
+        }, this.speed * 1000);
+    }
+
+    /**
+     * 生成活动帧
+     */
+    private createFrame(): string {
+        this.frameName = "superstar" + "_" + SuperStar.index++;
+        let str = "@keyframes " + this.frameName + "{";
+
+        for (let i = 0; i < 6; i++) {
+            str += i * 20 + "% {opacity:" + i * 0.2 + ";transform: scale(" + SuperStar.SCALES[i] + ") " +
+                "translate3d(" + -this.stepX * i +
+                "px, " + this.stepY * i + "px, 0);}  "
+        }
+        str += "}";
+        return str;
+
+    }
+
+    start(canvas: JQuery) {
+        this.initParams();
+        this.show(canvas);
+    }
+
+    private static random(min, max) {
+        return parseInt(Math.random() * (max - min + 1) + min);
+    }
+
+    private destroy() {
+        this.$element.remove();
+        SuperStar.count--;
+        let cssStyle = document.styleSheets[0];
+
+        let len = cssStyle.cssRules.length;
+        for (let i = len - 1; i > -0; i--) {
+            let rule = cssStyle.cssRules.item(i);
+            if (rule instanceof CSSKeyframesRule) {
+                if (rule.name === this.frameName) {
+                    cssStyle.removeRule(i);
+                    return;
+                }
+            }
+        }
+    }
+}
 
 class RandomColor {
     private r: number;
@@ -184,7 +344,6 @@ class RandomColor {
         color.b = Stars.randomInt(min);
         return color;
     }
-
     public getR() {
         return this.r;
     }
@@ -200,4 +359,6 @@ class RandomColor {
     getColorString() {
         return 'rgba(' + this.r + ',' + this.g + ',' + this.b + ', 0.7)';
     }
+
+
 }

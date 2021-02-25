@@ -8,12 +8,20 @@ import "./templates/rigth.css";
 import {CommonUtils} from "../../common/CommonUtils";
 
 export class MenuAndButton<T> extends BaseComponent<T> {
+    //节点类型--菜单
+    public static TYPE_MENU = 1;
+    //节点类型--按钮
+    public static TYPE_BUTTON = 2;
 
 
     private menuButtonTree: JsTree<any>;
 
     protected createUI(): HTMLElement {
         return $(require("./templates/MenuAndButton.html")).get(0);
+    }
+
+    clearSelection() {
+        this.menuButtonTree.getJsTree().deselect_all();
     }
 
     /**
@@ -29,8 +37,9 @@ export class MenuAndButton<T> extends BaseComponent<T> {
             return result;
         }
         for (let node of lstSelectData) {
-            if (node.data["type"] == 1) {
-                lstMenuId.push(node.data["id"]);
+            //如果是菜单
+            if (node.data["type"] == MenuAndButton.TYPE_MENU) {
+                lstMenuId.push(node.data["realid"]);
             } else {
                 lstButton.push(node.data["id"]);
             }
@@ -42,25 +51,53 @@ export class MenuAndButton<T> extends BaseComponent<T> {
 
     }
 
+
     /**
-     * 这里转换成设置角色
-     * @param value
-     * @param extendData
+     * 选择的角色发生变化,查询角色对应权限
+     * @param roleId
      */
-    setValue(value: any, extendData?) {
+    setRole(roleId: number) {
         this.menuButtonTree.getJsTree().deselect_all();
-        if (value) {
+        if (roleId) {
             UserRightService.findRsDetail(DmConstants.DefaultRsIds.role,
-                DmConstants.DefaultRsIds.menuButton, value, (resultButton) => {
+                DmConstants.DefaultRsIds.menuButton, roleId, (resultButton) => {
 
                     UserRightService.findRsDetail(DmConstants.DefaultRsIds.role,
-                        DmConstants.DefaultRsIds.menu, value, (resultMenu) => {
+                        DmConstants.DefaultRsIds.menu, roleId, (resultMenu) => {
                             this.signTree(resultButton.data as any, resultMenu.data as any);
                         });
                 });
 
         }
+    }
 
+    /**
+     * 给定按钮和菜单ID,执行选择操作
+     * @param mapBtnIds
+     * @param mapMenuIds
+     */
+    signTreeById(mapBtnIds: StringMap<any>, mapMenuIds: StringMap<any>) {
+        if (mapBtnIds == null) {
+            mapBtnIds = new StringMap<any>();
+        }
+        if (mapMenuIds == null) {
+            mapMenuIds = new StringMap<any>();
+        }
+        this.menuButtonTree.getJsTree().deselect_all();
+        let lstData = this.menuButtonTree.getJsTree().get_json(null, {flat: true});
+        for (let node of lstData) {
+            if (!this.menuButtonTree.getJsTree().is_leaf(node)) {
+                continue;
+            }
+            //如果选择的是菜单
+            if (node.data["type"] == MenuAndButton.TYPE_MENU && mapMenuIds.has(node.data["realid"])) {
+                this.menuButtonTree.selectNode(node);
+            } else if (node.data["type"] == MenuAndButton.TYPE_BUTTON && mapBtnIds.has(node.data["id"])) {
+                //如果选择的是按钮
+                this.menuButtonTree.selectNode(node);
+            }
+
+        }
     }
 
     private signTree(lstButton: Array<Object>, lstMenu: Array<Object>) {
@@ -79,18 +116,7 @@ export class MenuAndButton<T> extends BaseComponent<T> {
                 mapMenuId.set(row["idTarget"], null);
             }
         }
-        let lstData = this.menuButtonTree.getJsTree().get_json(null, {flat: true});
-        for (let node of lstData) {
-            if (!this.menuButtonTree.getJsTree().is_leaf(node)) {
-                continue;
-            }
-            if (node.data["type"] == 1 && mapMenuId.has(node.data["id"])) {
-                this.menuButtonTree.selectNode(node);
-            } else if (node.data["type"] == 2 && mapBtnId.has(node.data["id"])) {
-                this.menuButtonTree.selectNode(node);
-            }
-
-        }
+        this.signTreeById(mapBtnId, mapMenuId);
 
     }
 

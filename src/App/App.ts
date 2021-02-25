@@ -6,11 +6,22 @@ import {SchemaFactory} from "../datamodel/SchemaFactory";
 import BaseUI from "../uidesign/view/BaseUI";
 import {Login} from "./login/Login";
 import {GlobalParams} from "../common/GlobalParams";
+import {LoginService} from "./login/service/LoginService";
 
 export class App {
+    //设置超时时间： 20分钟
+    private static timeToLogout = 20 * 60 * 1000;
+    //开始计时时间
+    private startTime = new Date().getTime();
+    //当前时间
+    private endTime = new Date().getTime();
+    //功能显示面板
     private mainFrame: IMainFrame;
+    //登录
     private login: BaseUI<any>;
+    //最后显示的功能
     private lastFunc: MenuFunction<any>;
+    //是否放弃处理变动事件
     private maskChange = false;
 
     start() {
@@ -52,6 +63,7 @@ export class App {
                 this.showLogin(e.newURL.substr(e.newURL.lastIndexOf("#") + 1) as number);
             }
         };
+        this.startCounter();
 
     }
 
@@ -115,6 +127,39 @@ export class App {
                 this.showMainFrame(menuId);
             }
         });
+    }
+
+    /**
+     * 计时退出登录
+     */
+    private startCounter() {
+        $(document).on("mousemove", (e) => {
+            this.startTime = new Date().getTime(); //鼠标移入重置停留的时间
+        });
+        setInterval(() => {
+            this.checkLoginOutTime();
+        }, 20000);
+
+    }
+
+
+    /**
+     * 检查是不是超时
+     */
+    private checkLoginOutTime() {
+        this.endTime = new Date().getTime();
+        if (this.endTime - this.startTime > App.timeToLogout) {
+            this.logout();
+        }
+    }
+
+    private logout() {
+        this.startTime = new Date().getTime();
+        if (GlobalParams.isLogin()) {
+            GlobalParams.logout();
+            LoginService.logout();
+            this.showLogin();
+        }
     }
 
 

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body style="background-color: black">
+<div class="login-ui">
+    <div class="star"></div>
+    <div class="star pink"></div>
+    <div class="star blue"></div>
+</div>
+
+</body>
+<style>
+
+    .login-ui .star {
+        display: block;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #FFF;
+        top: 100px;
+        left: 500px;
+        position: relative;
+        animation: star-ani 20s linear ;
+        -webkit-animation: star-ani 10s linear ;
+        box-shadow: 0 0 5px 5px rgba(255, 255, 255, .3);
+        opacity: 0;
+        z-index: 2;
+    }
+
+    .login-ui .star:after {
+        content: '';
+        display: block;
+        top: 0px;
+        left: 4px;
+        border: 0px solid #fff;
+        border-width: 0px 90px 4px 90px;
+        border-color: transparent transparent transparent rgba(255, 255, 255, .3);
+        transform: rotate(-45deg) translate3d(1px, 3px, 0);
+        box-shadow: 0 0 1px 0 rgba(255, 255, 255, .1);
+        transform-origin: 0% 100%;
+    }
+
+    .login-ui .pink {
+        top: 100px;
+        left: 800px;
+        background: #fff;
+        color: pink;
+
+    }
+
+    .login-ui .pink:after {
+        border-color: transparent transparent transparent red;
+
+    }
+
+    .login-ui .blue {
+        top: 120px;
+        left: 1200px;
+
+    }
+
+    .login-ui .blue:after {
+        border-color: transparent transparent transparent #fff;
+    }
+
+    @keyframes star-ani {
+        0% {
+            opacity: 0;
+            transform: scale(0) translate3d(0, 0, 0);
+        }
+        20% {
+            opacity: 0.8;
+            transform: scale(2.2) translate3d(-100px, 100px, 0px);
+        }
+        40% {
+            opacity: 0.8;
+            transform: scale(2.4) translate3d(-300px, 300px, 0px);
+        }
+        60% {
+            opacity: 0.8;
+            transform: scale(2.6) translate3d(-500px, 500px, 0px);
+        }
+        80% {
+            opacity: 1;
+            transform: scale(2.5) translate3d(-700px, 700px, 0px);
+        }
+        100% {
+            opacity: 1;
+            transform: scale(2.8) translate3d(-900px, 900px, 0px);
+        }
+    }
+</style>
+<script>
+    var st = document.styleSheets[0];
+    let index = st.insertRule("@keyframes spin1 { 0% { transform: rotate(225deg); } 50% { transform: rotate(225deg); } 100% { transform: rotate(405deg); } }");
+    console.log(st)
+    st.removeRule(index);
+    console.log(st)
+</script>
+</html>

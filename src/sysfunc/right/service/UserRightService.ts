@@ -1,6 +1,10 @@
 import {HandleResult} from "../../../common/HandleResult";
 import {CommonUtils} from "../../../common/CommonUtils";
 import {NetRequest} from "../../../common/NetRequest";
+import {RightRelation} from "../RightRelation";
+import {RightRelationDto} from "./RightRelationDto";
+import {BeanFactory} from "../../../decorator/decorator";
+import {RightResourceDto} from "./RightResourceDto";
 
 export class UserRightService {
     public static URL_ROOT = "/user";
@@ -52,4 +56,30 @@ export class UserRightService {
             NetRequest.axios.post(UserRightService.URL_ROOT + "/findRightResources", lstId)
             , callback);
     };
+
+    /**
+     * 查询所有权限关系
+     *
+     * @return
+     */
+    static findAllRightSourceDto(version: string, callback: (data: Array<RightResourceDto>) => void) {
+        NetRequest.axios.get(UserRightService.URL_ROOT + "/findAllRightSourceDto/" + version)
+            .then((result) => {
+                callback(BeanFactory.populateBeans(RightResourceDto, result.data));
+            });
+
+    }
+
+    /**
+     * 查询所有权限关系
+     *
+     * @return
+     */
+     static findAllRelationDto(version: string, callback: (data: Array<RightRelationDto>) => void) {
+        NetRequest.axios.get(UserRightService.URL_ROOT + "/findAllRelationDto/" + version)
+            .then((result) => {
+                callback(BeanFactory.populateBeans(RightRelationDto, result.data));
+            })
+
+    }
 }

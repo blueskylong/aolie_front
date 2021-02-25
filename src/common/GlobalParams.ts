@@ -22,6 +22,7 @@ export class GlobalParams {
         GlobalParams.app = app;
     }
 
+
     /**
      * 默认的登录的数据版本
      */

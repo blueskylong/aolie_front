@@ -10,6 +10,8 @@
 .login-ui {
     background: url("../image/background.jpg") no-repeat;
     background-size: 100% 100%;
+    position: absolute;
+    overflow: hidden;
 }
 
 
@@ -105,9 +107,84 @@
     color: #ffffff;
 }
 
+.login-ui .superstar {
+    display: block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #FFF;
+    /*top: 100px;*/
+    /*left: 500px;*/
+    position: absolute;
+    /*animation: star-ani 8s linear infinite;*/
+    /*-webkit-animation:star-ani 10s linear infinite;*/
+    /*box-shadow: 0 0 5px 5px rgba(255, 255, 255, .3);*/
+    opacity: 0;
+    z-index: 2;
+}
 
+.login-ui .superstar:after {
+    content: '';
+    display: block;
+    top: 0px;
+    left: 4px;
+    border: 0px solid;
+    border-width: 0px 90px 4px 90px;
+    border-color: transparent transparent transparent rgba(255, 255, 255, .3);
+    /*transform: rotate(-45deg) translate3d(1px, 3px, 0);*/
+    box-shadow: 0 0 0px 0 rgba(255, 255, 255, .1);
+    transform-origin: 0% 100%;
+}
 
-
-
-
-
+/*@keyframes star-ani {*/
+/*    0% {*/
+/*        opacity: 0;*/
+/*        transform: scale(0) translate3d(0, 0, 0);*/
+/*    }*/
+/*    20%{*/
+/*        opacity: 0.8;*/
+/*        transform: scale(0.2) translate3d(-100px, 100px, 100px);*/
+/*    }*/
+/*    40% {*/
+/*        opacity: 0.8;*/
+/*        transform: scale(0.4) translate3d(-300px, 300px, 300px);*/
+/*    }*/
+/*    60% {*/
+/*        opacity: 0.8;*/
+/*        transform: scale(0.6) translate3d(-500px, 500px, 500px);*/
+/*    }*/
+/*    80% {*/
+/*        opacity: 1;*/
+/*        transform: scale(1) translate3d(-700px, 700px, 700px);*/
+/*    }*/
+/*    100% {*/
+/*        opacity: 1;*/
+/*        transform: scale(1.2) translate3d(-900px, 900px, 900px);*/
+/*    }*/
+/*}*/
+@keyframes superstar_71 {
+    0% {
+        opacity: 0;
+        transform: scale(1.6) translate3d(0px, 0px, 0);
+    }
+    20% {
+        opacity: 0.2;
+        transform: scale(1.6) translate3d(-24px, 279px, 0);
+    }
+    40% {
+        opacity: 0.4;
+        transform: scale(1.6) translate3d(-48px, 558px, 0);
+    }
+    60% {
+        opacity: 0.6000000000000001;
+        transform: scale(1.6) translate3d(-72px, 837px, 0);
+    }
+    80% {
+        opacity: 0.8;
+        transform: scale(1.6) translate3d(-96px, 1116px, 0);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1.6) translate3d(-120px, 1395px, 0);
+    }
+}

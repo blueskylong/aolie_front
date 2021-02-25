@@ -18,6 +18,8 @@ import "./sysfunc/user/UserToResource"
 import "./sysfunc/right/RoleToResource"
 import "./sysfunc/right/RightRelation"
 
+import "./sysfunc/right/RightRelationFunc";
+
 
 export class FunctionReg {
 }

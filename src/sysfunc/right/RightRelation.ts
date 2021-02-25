@@ -72,6 +72,8 @@ export class RightRelation<T extends PageDetailDto> extends AbstractManagedCusto
         this.lastRrid = mapKeyAndValue["rr_id"];
         let rsIdFrom = row["rs_id_from"];
         let rsIdTo = row["rs_id_to"];
+        this.treeFrom.getTree().deselectAll(true);
+        this.treeTo.getTree().deselectAll(true);
         UserRightService.findRightResources([rsIdFrom, rsIdTo], (handleResult => {
             if (handleResult.success) {
                 let rows = handleResult.data;
@@ -109,6 +111,7 @@ export class RightRelation<T extends PageDetailDto> extends AbstractManagedCusto
         }
         this.treeFrom.getTree().getJsTree().deselect_all();
         this.treeTo.getTree().getJsTree().deselect_all();
+        this.mapValue = new StringMap<Array<string>>();
         UserRightService.findRightRelationDetail(this.lastRrid, -1, (handleResult) => {
             if (handleResult.success) {
                 this.initMapData(handleResult.data as any);
@@ -118,6 +121,9 @@ export class RightRelation<T extends PageDetailDto> extends AbstractManagedCusto
     }
 
     private writebackData() {
+        if (!this.editable) {
+            return;
+        }
         if (this.lastIdFrom && this.lastRrid) {
             let lstSelectId = this.treeTo.getTree().getSelectedId(true);
             if (!lstSelectId || lstSelectId.length < 1) {
@@ -171,7 +177,7 @@ export class RightRelation<T extends PageDetailDto> extends AbstractManagedCusto
             if (result.success) {
                 Alert.showMessage("保存成功");
                 this.setEditable(false);
-                this.manageCenter.stateChange(this, this.getTableIds()[0], Constants.TableOperatorType.view);
+                this.manageCenter.stateChange(this, this.getTableIds()[0], Constants.TableState.view);
             }
         });
     }

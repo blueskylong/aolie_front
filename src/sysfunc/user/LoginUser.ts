@@ -1,7 +1,7 @@
 import {UserDto} from "./UserDto";
 import {RoleDto} from "../right/RoleDto";
 
-export class LoginUser extends UserDto {
+export class LoginUser extends UserDto  {
     //登录角色
     protected roleDto: RoleDto;
 

@@ -131,12 +131,16 @@ export class CommonUtils {
         return offsetLeft;
     }
 
-    static handleResponse(promise: Promise<any>, callBack?: (data) => void) {
+    static handleResponse(promise: Promise<any>, callBack?: (data: HandleResult | any) => void) {
         promise.then((result) => {
             CommonUtils.handleResult(result, callBack);
         }).catch((e) => {
             CommonUtils.hideMask();
-            debugger;
+            if (e.message == "Request failed with status code 401") {
+                Alert.showMessage("登录信息过期,请重新登录");
+                GlobalParams.getApp().showLogin();
+                return;
+            }
             Alert.showMessage("访问服务器出现异常,操作失败!");
             CommonUtils.log(e.status, e.statusText, e.data);
         });
@@ -160,6 +164,7 @@ export class CommonUtils {
                             }
                             Alert.showMessage("操作失败:" + handleResult.err);
                             Logger.error(handleResult.err);
+                            return;
                         }
                         callBack(handleResult);
                         return;

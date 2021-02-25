@@ -22,15 +22,15 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
 
     public show(value?: any, size?) {
         $("body").append(this.getViewUI());
-        if (size) {
-            this.setSize(size);
+        if (size || this.properties.size) {
+            this.setSize(size || this.properties.size);
         }
 
         this.beforeShow(value);
         this.importValue = value;
         this.$element.modal({backdrop: "static"});
         this.$element.modal('show');
-        if (!this.hasInited) {
+        if (!this.hasInited && (this.properties.draggable ==null||this.properties.draggable)) {
             jsPlumb.jsPlumb.getInstance({} as any).draggable(this.$element);
         }
 
@@ -44,12 +44,22 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
     }
 
     setSize(size) {
-        if (Array.isArray(size)) {
-            this.$element.find(".modal-dialog").width(size[0]);
-            this.$element.find(".modal-body").height(size[1]);
-            this.$element.find(".modal-dialog").addClass(Dialog.SIZE.x_large);
+        if (this.$element) {
+            if (Array.isArray(size)) {
+                this.$element.find(".modal-dialog").width(size[0]);
+                this.$element.find(".modal-body").height(size[1]);
+                this.$element.find(".modal-dialog").addClass(Dialog.SIZE.x_large);
+            } else {
+                this.$element.find(".modal-dialog").addClass(size);
+            }
         } else {
-            this.$element.find(".modal-dialog").addClass(size);
+            if (Array.isArray(size)) {
+                this.properties.width = size[0];
+                this.properties.height = size[1];
+            } else {
+                this.properties.size = size;
+            }
+
         }
     }
 
@@ -174,13 +184,27 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
         })
     }
 
+    setBodyContent(html: HTMLElement) {
+        if (this.$element) {
+            this.$element.find(".modal-body").append(html);
+        } else {
+            this.properties.content = html;
+        }
+
+    }
+
 
     protected getBody(): HTMLElement {
         if (this.properties.content) {
-            return $("<label>" + this.properties.content + "</label>").get(0);
-        } else {
-            return null;
+            if (typeof this.properties.content === "string") {
+                return $("<label>" + this.properties.content + "</label>").get(0);
+            } else {
+                return this.properties.content;
+            }
+
         }
+        return null;
+
     }
 
     static showConfirm(message, onOk) {
@@ -202,8 +226,10 @@ export interface DialogInfo {
     title: string,
     width?: number;
     height?: number;
+    size?: string;
     beforeClose?: () => boolean;
     onOk?: (...items) => boolean;
-    content?: string;
+    content?: string | HTMLElement;
     destroyOnClose?: boolean;
+    draggable?:boolean;
 }

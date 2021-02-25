@@ -56,8 +56,7 @@ export class SidebarMenu<T extends Array<MenuDto>> extends BaseUI<T> {
             if (isNeedRemoveCurrentClass) {
                 this.$element.find('li').removeClass('current-page');
             }
-
-        }
+        };
 
         for (let node of menuNodes) {
             menuItem = new MenuItem(node);
@@ -76,7 +75,7 @@ export class SidebarMenu<T extends Array<MenuDto>> extends BaseUI<T> {
     }
 
     locateMenu(): JQuery {
-        this.$element.find(".current-page").removeClass("current-page");
+
         let urls = window.location.href.split('#');
         if (urls.length == 1) {
             return;
@@ -89,6 +88,7 @@ export class SidebarMenu<T extends Array<MenuDto>> extends BaseUI<T> {
         if (this.CURRENT_URL == this.getCurrentSelectMenu()) {
             return;
         }
+        this.$element.find(".current-page").removeClass("current-page");
         let menu = this.$element.find(
             'a[href="#' + this.CURRENT_URL + '"]')
             .parent('li');
