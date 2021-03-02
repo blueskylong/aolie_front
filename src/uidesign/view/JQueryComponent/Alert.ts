@@ -1,4 +1,6 @@
 import BaseUI from "../BaseUI";
+import * as coco from "coco-message";
+import {Constants} from "../../../common/Constants";
 
 export class Alert<T extends AlertInfo> extends BaseUI<T> {
     static type = {
@@ -39,11 +41,27 @@ export class Alert<T extends AlertInfo> extends BaseUI<T> {
 
     static showMessage(info: AlertInfo | string) {
         if (typeof info === "string") {
-            alert(info);
-        } else
-            alert(info.message)
+            coco.error(info);
+            // alert(info);
+        } else {
+            if (info.type === this.type.warning) {
+                coco.warning(info.message)
+            } else if (info.type === this.type.danger) {
+                coco.error(info.message);
+            } else if (info.type === this.type.success) {
+                coco.success(info.message);
+            } else {
+                coco.info(info.message);
+            }
+        }
+
     }
 }
+
+coco.config({
+    //配置全局参数
+    duration: 3000,
+});
 
 export interface AlertInfo {
     message: string,

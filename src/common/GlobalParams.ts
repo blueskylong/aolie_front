@@ -65,7 +65,7 @@ export class GlobalParams {
             "GLOBAL_LOGIN_VERSION": GlobalParams.getLoginVersion(),
             "GLOBAL_USER_ID": user.getUserId(), "GLOBAL_USER_NAME": user.getUserName(),
             "GLOBAL_USER_CODE": user.getAccountCode(),
-            "GLOBAL_LOGIN_ROLE_CODE": user.getRoleDto().roleType
+            "GLOBAL_LOGIN_ROLE_CODE": user.getRoleDto() ? user.getRoleDto().roleType : "-1"
         }
     }
 

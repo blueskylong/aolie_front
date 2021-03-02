@@ -134,7 +134,6 @@ export default class BlockDesign<T extends MenuInfo> extends MenuFunction<T> {
     private getSelectDsDlg() {
         this.selectDsDlg = new SelectDsDlg({
             title: "请选择数据表",
-            height: 200,
             onOk: (items) => {
                 this.selectedTable = items;
                 if (items && items.length > 0) {

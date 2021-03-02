@@ -29,11 +29,13 @@ export class SelectDsDlg extends Dialog<DialogInfo> {
             }
         };
         this.tree = new JsTree<JsTreeInfo>(treeInfo);
+
         return this.tree.getViewUI();
     }
 
     protected beforeShow(value?: any) {
-        //       this.tree.afterComponentAssemble();
+        this.tree.setWidth(500);
+        this.tree.setHeight(400);
     }
 
     getValue() {
