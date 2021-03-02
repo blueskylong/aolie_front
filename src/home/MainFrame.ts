@@ -105,7 +105,7 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
             }
         });
         this.dropDownMenu = new DropMenu<DropMenuInfo>({
-            userName: GlobalParams.getLoginUser().userName,
+            userName: GlobalParams.getLoginUser().getUserName(),
             lstItem: lstItem,
             userImg: null
         });
@@ -223,6 +223,7 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
                     let menuInfo1 = BeanFactory.populateBean(MenuInfo, data);
                     CacheUtils.put(MainFrame.cacheType, menuId, menuInfo1);
                     this.createAndShowFunc(menuInfo1);
+
                 });
 
             }
@@ -256,6 +257,7 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
             CommonUtils.hideMask();
         });
         this.$body.append(this.lastFunc.getViewUI());
+
         return <MenuFunction<any>>this.lastFunc;
     }
 

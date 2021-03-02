@@ -9,6 +9,10 @@ import ClickEvent = JQuery.ClickEvent;
 
 
 export abstract class BaseComponent<T> extends BaseUI<T> {
+    /**
+     * 绝对位置布局
+     */
+    public static FIX_POSITION_CLASS = "fix-position";
     protected changeEventHandler: Array<GeneralEventListener> = new Array<GeneralEventListener>();
     protected editable = true;
     protected enabled = true;

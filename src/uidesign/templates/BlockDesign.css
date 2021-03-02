@@ -6,7 +6,8 @@
 .block-design .center-and-east-container {
     width: 80%;
 }
-.split-pane.vertical-percent > .split-pane-component:first-child.west-panel{
+
+.split-pane.vertical-percent > .split-pane-component:first-child.west-panel {
     right: 80%;
 }
 
@@ -43,7 +44,8 @@
 .block-design .ds-tree {
     height: 50%;
 }
-.split-pane.horizontal-percent > .split-pane-component:first-child.block-tree{
+
+.split-pane.horizontal-percent > .split-pane-component:first-child.block-tree {
     bottom: 50%;
     margin-bottom: 5px;
     min-height: 5em;
@@ -62,11 +64,11 @@
 
 .design-component .masker {
     position: absolute;
-    z-index: 100;
+    z-index: 50;
     width: 100%;
     height: 100%;
     left: 0px;
-    top: -7px;
+    top: -1px;
 }
 
 .design-component .masker:hover {
@@ -79,10 +81,16 @@
     cursor: default;
 }
 
-.design-component .masker.active {
+.form-body .design-component .masker.active {
     border: solid 1px green;
     border-radius: 5px;
 }
+
+.fix-position .design-component .masker {
+    border: dashed 1px darkgray;
+    border-radius: 5px;
+}
+
 .split-pane.vertical-percent > .split-pane-component:first-child.component-tree {
     right: 80%;
     margin-right: 5px;
@@ -91,10 +99,21 @@
 .design-panel .design-body {
     width: 80%;
 }
-.design-panel .divider-left-right{
+
+.design-panel .divider-left-right {
     right: 80%;
     width: 5px;
 }
-th.selected{
+
+th.selected {
     background-color: #5cb112;
 }
+
+.fix-position {
+    position: absolute;
+}
+
+.design-panel .form-body {
+    border: dashed darkgray 1px;
+}
+

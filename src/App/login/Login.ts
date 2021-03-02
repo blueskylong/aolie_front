@@ -3,8 +3,9 @@ import "./template/login.css"
 import {Stars} from "./Stars";
 import {Alert} from "../../uidesign/view/JQueryComponent/Alert";
 import {GlobalParams} from "../../common/GlobalParams";
-import {MockServer} from "../../common/MockServer";
 import {LoginService} from "./service/LoginService";
+import {BeanFactory} from "../../decorator/decorator";
+import {LoginUser} from "../../sysfunc/user/LoginUser";
 
 export class Login<T extends LoginInfo> extends BaseUI<T> {
     private $accoutName: JQuery;
@@ -26,8 +27,8 @@ export class Login<T extends LoginInfo> extends BaseUI<T> {
                     username: this.$accoutName.val(),
                     password: this.$password.val()
                 }, (result1) => {
-                    if(result1.success){
-                        GlobalParams.setLoginUser(MockServer.getLoginUser());
+                    if (result1.success) {
+                        GlobalParams.setLoginUser(BeanFactory.populateBean(LoginUser, result1.data.principal));
                         if (this.properties.afterLogin) {
                             this.properties.afterLogin(this.properties.menuId);
                         }

@@ -9,6 +9,7 @@ export class SelectDsDlg extends Dialog<DialogInfo> {
 
     setSchemaId(schemaId) {
         this.schemaId = schemaId;
+        return this;
     }
 
     protected getBody(): HTMLElement {
@@ -32,7 +33,7 @@ export class SelectDsDlg extends Dialog<DialogInfo> {
     }
 
     protected beforeShow(value?: any) {
- //       this.tree.afterComponentAssemble();
+        //       this.tree.afterComponentAssemble();
     }
 
     getValue() {

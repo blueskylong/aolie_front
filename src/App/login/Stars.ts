@@ -228,9 +228,9 @@ class SuperStar {
             "255,255,0",
             "218,112,214",
             "255,69,0"];
-        // for (let i = 0; i <= 100; i++) {
-        //     this.COLORS.push("255,255,255");
-        // }
+        for (let i = 0; i <= 100; i++) {
+            this.COLORS.push("255,255,255");
+        }
     }
 
     private initParams() {

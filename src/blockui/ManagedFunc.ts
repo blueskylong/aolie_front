@@ -7,10 +7,7 @@ import {MenuButtonDto} from "../sysfunc/menu/dto/MenuButtonDto";
 import {MenuInfo} from "../sysfunc/menu/dto/MenuInfo";
 import {MenuFunction} from "./MenuFunction";
 import {Alert} from "../uidesign/view/JQueryComponent/Alert";
-import {ButtonInfo} from "../uidesign/view/JQueryComponent/Toolbar";
-import {UiService} from "./service/UiService";
 import {ManagedUITools} from "./managedView/ManagedUITools";
-import {CommonUtils} from "../common/CommonUtils";
 
 /**
  * 设计出来的自动管理的功能

@@ -18,7 +18,7 @@ export class ManagedDlg<T extends ManagedDialogInfo> extends Dialog<T> {
 
     protected getBody(): HTMLElement {
         this.initUI();
-        return $("<div class ='sub-ui'></div>").get(0);
+        return $("<div class ='sub-ui' style='overflow:auto'></div>").get(0);
     }
 
     private async initUI() {
@@ -36,6 +36,7 @@ export class ManagedDlg<T extends ManagedDialogInfo> extends Dialog<T> {
             Alert.showMessage("数据表没有指定默认的展示界面");
         }
         this.$element.find(".sub-ui").append(this.ui.getViewUI());
+
 
         this.ui.addReadyListener(() => {
             this.doOperation();

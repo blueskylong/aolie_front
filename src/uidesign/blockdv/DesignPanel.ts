@@ -19,6 +19,7 @@ import {TreeNode, TreeNodeFactory} from "../../common/TreeNode";
 import {BlockViewDto} from "../dto/BlockViewDto";
 import {DesignTable} from "./DesignTable";
 import {JQueryGeneralComponentGenerator} from "../view/JQueryComponent/JQueryGeneralComponentGenerator";
+import {Form} from "../../blockui/Form";
 
 export class DesignPanel<T> extends BaseUI<T> {
 
@@ -39,6 +40,11 @@ export class DesignPanel<T> extends BaseUI<T> {
     private isShowForm = true;
     private dTable: DesignTable;
     private dropHandler: (event, data) => void;
+    private layoutType = Constants.PositionLayoutType.bootstrapLayout;
+    //记录面板的宽度和高度,如果是负数,则不记录
+    private width = -1;
+    private height = -1;
+
 
     private lvlProvider: CodeLevelProvider = CodeLevelProvider.getDefaultCodePro();
 
@@ -180,11 +186,12 @@ export class DesignPanel<T> extends BaseUI<T> {
         }
     }
 
-    showAsForm() {
-        if (this.isShowForm) {
+    showAsForm(layoutType = Constants.PositionLayoutType.bootstrapLayout) {
+        if (this.isShowForm && this.layoutType == layoutType) {
             return;
         }
         this.clear(false);
+        this.layoutType = layoutType;
         this.showForm();
     }
 
@@ -197,6 +204,16 @@ export class DesignPanel<T> extends BaseUI<T> {
     }
 
     valueChanged(propertyName, value) {
+        if (propertyName == "rowSpan") {
+            this.height = value;
+            this.handleContainerSize();
+            return;
+        }
+        if (propertyName == "colSpan") {
+            this.width = value;
+            this.handleContainerSize();
+            return;
+        }
         if (propertyName === "title") {
             this.compTree.changeCurrentNodeText(value);
         }
@@ -249,21 +266,33 @@ export class DesignPanel<T> extends BaseUI<T> {
         } else {
             this.blockViewer.lstComponent.push(component);
         }
-        if (!this.isInitDrag) {
+        if (!this.isInitDrag && !this.isFixLayout()) {
             this.$compBody['dragsort']({
                 dragEnd: (item) => {
-                    this.resortComponentByPanel();
+                    if (item) {
+                        this.resortComponentByPanel();
+                    }
                     return true;
                 }
             });
             this.isInitDrag = true;
         }
+        if (this.isFixLayout()) {
+            this.$compBody['dragsort']("destroy");
+            this.isInitDrag = false;
+        }
+
+
         return newCom;
+    }
+
+    private isFixLayout() {
+        return this.layoutType == Constants.PositionLayoutType.absoluteLayout;
     }
 
     private resortComponentByPanel() {
         let newLstComp = [];
-        this.lstComponentDto = []
+        this.lstComponentDto = [];
         let codeProvider = new CodeLevelProvider();
         codeProvider.setCurCode("000");
         if (this.lstDesignComponent.length > 0) {
@@ -340,11 +369,16 @@ export class DesignPanel<T> extends BaseUI<T> {
         compDto.columnId = colDto.columnId;
         compDto.componentId = CommonUtils.genId();
         compDto.titleSpan = 3;
-        compDto.horSpan = 4;
-        compDto.verSpan = 1;
+        compDto.horSpan = this.isFixLayout() ? 240 : 4;
+        compDto.verSpan = this.isFixLayout() ? 30 : 1;
+        if (this.isFixLayout()) {
+            compDto.posTop = 100;
+            compDto.posLeft = 300;
+        }
         compDto.versionCode = this.blockViewer.blockViewDto.versionCode;
         compDto.blockViewId = this.blockViewer.blockViewDto.blockViewId;
         compDto.componentId = CommonUtils.genId();
+        comp.setLayoutType(this.layoutType);
         comp.setComponentDto(compDto);
         return comp;
     }
@@ -384,6 +418,7 @@ export class DesignPanel<T> extends BaseUI<T> {
         component.getDtoInfo().getComponentDto().lvlCode = curCode;
         //这里需要恢复扩展信息,也就是到得一次信息后,需要刷新,设置面板才可以正常显示
         component.getDtoInfo().getComponentDto().horSpan = component.getHorSpan();
+        component.getDtoInfo().getComponentDto().verSpan = component.getVerSpan();
         result.push(component.getDtoInfo());
         if (rowData.children) {
             codeLevelProvider.goSub();
@@ -457,6 +492,7 @@ export class DesignPanel<T> extends BaseUI<T> {
         }
         if (blockId) {
             this.blockViewer = await UiService.getSchemaViewerDirect(blockId) as BlockViewer;
+            this.layoutType = this.blockViewer.getBlockViewDto().layoutType;
             this.showComponent();
         } else {
             this.blockViewer = null;
@@ -477,6 +513,8 @@ export class DesignPanel<T> extends BaseUI<T> {
         this.clear();
         this.lstComponentDto = [];
         if (this.blockViewer) {
+            this.width = this.blockViewer.getBlockViewDto().colSpan;
+            this.height = this.blockViewer.getBlockViewDto().rowSpan;
             if (this.blockViewer.getBlockViewDto().defaultShowType == Constants.DispType.table) {
                 this.showTable();
             } else {
@@ -489,6 +527,13 @@ export class DesignPanel<T> extends BaseUI<T> {
     }
 
     private showTable() {
+        this.$element.find(".form-body").resizable({
+            stop: (e) => {
+                this.height = this.$element.find(".form-body").height();
+                this.width = this.$element.find(".form-body").width();
+                this.$element.setGridWidth(this.width);
+            }
+        });
         this.isShowForm = false;
         this.blockViewer.getBlockViewDto().defaultShowType = Constants.DispType.table;
         this.dTable = new DesignTable(this.blockViewer);
@@ -517,6 +562,8 @@ export class DesignPanel<T> extends BaseUI<T> {
                 this.lstComponentDto.push(comp.getComponentDto());
             }
         }
+        this.handleContainerSize();
+
     }
 
     private findComponentDto(compId) {
@@ -531,14 +578,59 @@ export class DesignPanel<T> extends BaseUI<T> {
     }
 
     private showForm() {
+
+        this.$element.find(".form-body").resizable({
+            stop: (e) => {
+                this.height = this.$element.find(".form-body").height();
+                this.width = this.$element.find(".form-body").width();
+                this.fireEvent(EventBus.VALUE_CHANGE_EVENT, {height: this.height, width: this.width});
+            }
+        });
         //这里设置只会影响设计界面的显示方式,不会写入到后台
         this.blockViewer.getBlockViewDto().defaultShowType = Constants.DispType.form;
         this.isShowForm = true;
-        let comNodes = TreeNodeFactory.genTreeNode(this.blockViewer.getLstComponent(), "componentDto", "lvlCode");
-        if (comNodes) {
-            for (let node of comNodes) {
-                this.createSubComponents(null, node);
+        if (this.layoutType == Constants.PositionLayoutType.absoluteLayout) {
+            this.$compBody.addClass(Form.FIX_POSITION_CLASS);
+        } else {
+            this.$compBody.removeClass(Form.FIX_POSITION_CLASS);
+        }
+        if (this.blockViewer.getLstComponent()) {
+            this.blockViewer.getLstComponent().forEach(el => {
+                el.setLayoutType(this.layoutType);
+            });
+            let comNodes = TreeNodeFactory.genTreeNode(this.blockViewer.getLstComponent(), "componentDto", "lvlCode");
+
+            if (comNodes) {
+                for (let node of comNodes) {
+                    this.createSubComponents(null, node);
+                }
             }
+        }
+        this.handleContainerSize();
+
+    }
+
+    private handleContainerSize() {
+        let num = this.width;
+        if (num > 12) {
+            this.$element.find(".form-body").css("width", num);
+        } else if (num > 0) {
+            this.$element.find(".form-body").addClass("col-md-" + num);
+            this.$element.find(".form-body").css("width", "auto");
+        } else {
+            this.$element.find(".form-body").css("width", "auto");
+        }
+        num = this.height;
+        if (num > 12) {
+            this.$element.find(".form-body").css("height", num);
+        } else if (num > 0) {
+            this.$element.find(".form-body").css("height", DesignPanel.rowHeight * num)
+
+        } else {
+            this.$element.find(".form-body").css("height", "auto");
+        }
+        if (!this.isShowForm) {
+            this.$element.setGridWidth(this.$element.find(".form-body").width());
         }
     }
 
@@ -564,8 +656,26 @@ export class DesignPanel<T> extends BaseUI<T> {
         let newCom = new DesignComponent(component);
         this.lstDesignComponent.push(newCom);
         parent.addSubControl(newCom);
-        newCom.afterComponentAssemble();
+        // newCom.afterComponentAssemble();
         return newCom;
+    }
+
+    setLayoutType(layoutType) {
+        if (this.layoutType == layoutType) {
+            return;
+        }
+        this.layoutType = layoutType;
+        this.updateLayout();
+    }
+
+    private updateLayout() {
+        if (!this.isShowForm) {
+            return;
+        }
+        this.blockViewer.lstComponent = this.getData();
+        this.clear(false);
+        this.showForm();
+
     }
 
     /**

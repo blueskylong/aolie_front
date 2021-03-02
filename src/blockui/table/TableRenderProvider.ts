@@ -10,6 +10,8 @@ import {Component} from "../uiruntime/Component";
 import FormatterOptions = FreeJqGrid.FormatterOptions;
 import {Alert} from "../../uidesign/view/JQueryComponent/Alert";
 import {Constants} from "../../common/Constants";
+import {StringMap} from "../../common/StringMap";
+import {ReferenceData} from "../../datamodel/dto/ReferenceData";
 
 /**
  * 表体渲染接口,这个针对jqTable.
@@ -68,7 +70,14 @@ export interface TableRenderProvider {
     setExtFilterProvider(extFilterProvider: ExtFilterProvider);
 
 
-    setOperatorProvider(pro: (grid, rows, state) => string);
+    /**
+     * 设置操作列按钮生成提供器
+     * @param pro
+     * colAndRowInfo:包含列信息,和行信息  FormatterOptions
+     * ROW行数据
+     * STATE 状态  action?: "edit" | "add"
+     */
+    setOperatorProvider(pro: (colAndRowInfo: FormatterOptions, row, state) => string);
 
 }
 
@@ -85,9 +94,9 @@ export class ServerRenderProvider implements TableRenderProvider {
     protected viewer: BlockViewer;
     protected tableOption: FreeJqGrid.JqGridOptions;
     protected isReady = false;
-    private operatorProvider: (grid, rows, state) => string;
+    private operatorProvider: (colAndRowInfo, row, state) => string;
 
-    setOperatorProvider(pro: (grid, rows, state) => string) {
+    setOperatorProvider(pro: (colAndRowInfo, row, state) => string) {
         this.operatorProvider = pro;
     }
 
@@ -206,6 +215,11 @@ export class ServerRenderProvider implements TableRenderProvider {
             //增加一个操作列
             this.lstColumn.push(this.createOperatorColModel());
             for (let node of comNodes) {
+                //这里需要先初始化选项数据
+                if (node.data.getColumn().getColumnDto().refId && Constants.ComponentType.select ==
+                    node.data.getComponentDto().dispType) {
+                    await UiService.getReferenceData(node.data.getColumn().getColumnDto().refId);
+                }
                 if (this.viewer.blockViewDto.fieldToCamel == 1) {
                     node.data.column.getColumnDto().fieldName
                         = CommonUtils.toCamel(node.data.column.getColumnDto().fieldName);
@@ -231,9 +245,9 @@ export class ServerRenderProvider implements TableRenderProvider {
             label: "操作",
             edittype: "button",
             frozen: true,
-            formatter: (grid, rows, state) => {
+            formatter: (cellval, opts, row, act) => {
                 if (this.operatorProvider) {
-                    return this.operatorProvider(grid, rows, state);
+                    return this.operatorProvider(opts, row, act);
                 }
                 return "";
             }
@@ -251,7 +265,8 @@ export class ServerRenderProvider implements TableRenderProvider {
     }
 
     private createColModel(com: Component): ColumnModel {
-        return {
+
+        let options: ColumnModel = {
             name: com.column.getColumnDto().fieldName,
             index: com.column.getColumnDto().fieldName,
             width: com.componentDto.width ? com.componentDto.width : 200,
@@ -261,23 +276,19 @@ export class ServerRenderProvider implements TableRenderProvider {
             label: com.componentDto.title,
             id: com.componentDto.componentId,
             editable: true,
-            formatter: (cellValue: any, options: FormatterOptions
-                , rowObject: any, action?: "edit" | "add") => {
-                let value = CommonUtils.isEmpty(cellValue) ? "" : cellValue;
-                if (!this.isEditable) {
-                    options.colModel.classes = null;
-                    return value;
-                }
-                if (!this.isCellEditable(options.rowId, options.pos, cellValue)) {
-                    options.colModel.classes = "readonly_cell";
-                    return value;
-                } else {
-                    options.colModel.classes = null;
-                    return value;
-                }
-            },
             edittype: com.componentDto.dispType as any
+        };
+        if (Constants.ComponentType.checkbox == com.getComponentDto().dispType) {
+            options.formatter = "checkbox";
+            options.edittype = "checkbox";
+            options.align = "center";
+        } else if (Constants.ComponentType.select == com.getComponentDto().dispType) {
+            options.formatter = "select";
+            options.edittype = "select";
+            new SelectionColumnFormatter(com.getColumn().getColumnDto().refId, options);
         }
+        return options;
+
 
     }
 
@@ -383,7 +394,6 @@ export interface ExtFilterProvider {
     getExtFilter(source: object, oldFilter: object): object;
 }
 
-
 let DEFAULT_TABLE_CONFIG: FreeJqGrid.JqGridOptions = {
     guiStyle: "bootstrapPrimary",
     datatype: 'local',
@@ -413,7 +423,7 @@ let DEFAULT_TABLE_CONFIG: FreeJqGrid.JqGridOptions = {
     pager: ".xx",//这里只是临时使用
     colModel: [],
     cellEdit: true,
-    ajaxGridOptions:{xhrFields:{withCredentials:true}},
+    ajaxGridOptions: {xhrFields: {withCredentials: true}},
     jsonReader: {
         root: "data",    // json中代表实际模型数据的入口
         page: "page.currentPage",    // json中代表当前页码的数据
@@ -432,4 +442,23 @@ let DEFAULT_TABLE_CONFIG: FreeJqGrid.JqGridOptions = {
 
 
 };
+
+export class SelectionColumnFormatter {
+    private strSelection = "";
+
+    constructor(private refId, private colModel: ColumnModel) {
+        this.initData();
+    }
+
+    async initData() {
+        let lstData = <Array<ReferenceData>>await UiService.getReferenceData(this.refId);
+        if (lstData != null) {
+            lstData.forEach(row => {
+                this.strSelection += row.id + ":" + row.name + ";";
+            });
+            this.colModel.editoptions = {"value": this.strSelection};
+        }
+    }
+
+}
 

@@ -24,6 +24,7 @@ export class BlockViewDto extends BaseDto {
     fieldToCamel: number;
     title: string;
     showHead: number;
-    lvlCode:string;
+    lvlCode: string;
+    layoutType: number;
 
 }

@@ -17,7 +17,19 @@ export class Component {
 
     isConvertToCamel = false;
 
+    //这是一个虚拟值,是由社图主信息提供
+    private layoutType = Constants.PositionLayoutType.bootstrapLayout;
+
+
     constructor() {
+    }
+
+    public setLayoutType(layoutType){
+        this.layoutType =layoutType;
+    }
+
+    public getLayoutType(){
+        return this.layoutType;
     }
 
     getComponentDto(): ComponentDto {
@@ -55,7 +67,7 @@ export class Component {
     /**
      * 是不是数字列
      */
-    public isNumberColumn():boolean {
+    public isNumberColumn(): boolean {
         return this.column.isNumberColumn();
     }
 

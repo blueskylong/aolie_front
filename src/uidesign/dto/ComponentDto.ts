@@ -90,7 +90,10 @@ export class ComponentDto extends BaseDto {
     /**
      * 如果是树状显示,在树上的作用,如标题,ID,编码等,查看 Constants.TreeRole常量定义
      */
-    public treeRole:number;
+    public treeRole: number;
+
+    public posTop: number;
+    public posLeft: number;
 
 
 }

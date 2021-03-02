@@ -6,9 +6,11 @@ import 'bootstrap/dist/css/bootstrap.css';
 import 'split-pane';
 import "jquery-contextmenu/dist/jquery.contextMenu";
 import "jquery-contextmenu/dist/jquery.contextMenu.css";
+import "jquery-contextmenu/dist/jquery.ui.position.min";
+import "jqueryui/jquery-ui"
+import "jqueryui/jquery-ui.css"
 import "babel-polyfill";
 import "font-awesome/css/font-awesome.min.css";
-import "jquery-contextmenu/dist/jquery.ui.position.min";
 import "bootstrap-select/dist/js/bootstrap-select.min.js";
 import "bootstrap-select/dist/css/bootstrap-select.css";
 import {NetRequest} from "./common/NetRequest";

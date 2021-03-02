@@ -24,6 +24,7 @@ OrangeRed	橙红色	#FF4500	255,69,0
 
 .btn-toolbar .button-icon {
     font-size: large;
+    color: #1E90FF;
 }
 
 .btn-toolbar .toolbar-button {
@@ -193,3 +194,5 @@ form .com-editor.error, form .com-editor.error ~ button.btn.dropdown-toggle {
 form label.error {
     color: red;
 }
+
+

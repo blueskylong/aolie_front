@@ -21,7 +21,7 @@ export class DesignTable extends Table {
         this.selectChangeListener = listener;
     }
 
-    async showTable(): Promise<void> {
+    onUiReady() {
 
         this.getJqTable().on("jqGridResizeStop", ((eventObject, width, index) => {
             let columnArray = this.$element.jqGrid("getGridParam", "colModel");

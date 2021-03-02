@@ -1,12 +1,12 @@
 import BaseUI from "../BaseUI";
-import * as jsPlumb from "jsplumb";
-import ClickEvent = JQuery.ClickEvent;
 import {DragEventCallbackOptions} from "jsplumb";
+import ClickEvent = JQuery.ClickEvent;
+import DraggableEventUIParams = JQueryUI.DraggableEventUIParams;
 
 export class Toolbar<T extends ToolbarInfo> extends BaseUI<T> {
     private lstButton = new Array<ToolbarButton<any>>();
     private doubleClickHandler: Function;
-    private toolbarDragHandler: Function;
+    private toolbarDragHandler: (event, ui: DraggableEventUIParams) => void;
 
     protected createUI(): HTMLElement {
         return $(require("./templete/Toolbar.html")).get(0);
@@ -31,11 +31,15 @@ export class Toolbar<T extends ToolbarInfo> extends BaseUI<T> {
             this.$element.addClass("float-toolbar");
             let opt = {};
             opt['stop'] = (params: DragEventCallbackOptions) => {
-                if (this.toolbarDragHandler) {
-                    this.toolbarDragHandler(params);
-                }
+
             };
-            jsPlumb.jsPlumb.getInstance().draggable(this.$element.get(0), opt);
+            this.$element.draggable({
+                stop: (params, uiparam) => {
+                    if (this.toolbarDragHandler) {
+                        this.toolbarDragHandler(params, uiparam);
+                    }
+                }
+            });
         } else {
             this.$element.css("position", "inherit");
         }
@@ -45,7 +49,7 @@ export class Toolbar<T extends ToolbarInfo> extends BaseUI<T> {
         this.doubleClickHandler = doubleClickHandler;
     }
 
-    setToolbarDragedListener(toolbarDragHandler: Function) {
+    setToolbarDragedListener(toolbarDragHandler: (event, ui: DraggableEventUIParams) => void) {
         this.toolbarDragHandler = toolbarDragHandler;
     }
 
@@ -58,7 +62,7 @@ export class Toolbar<T extends ToolbarInfo> extends BaseUI<T> {
         let button = new ToolbarButton(btnInfo);
         this.lstButton.push(button);
         this.$element.append(button.getViewUI());
-  //      button.afterComponentAssemble();
+        //      button.afterComponentAssemble();
 
     }
 
@@ -97,6 +101,7 @@ export class Toolbar<T extends ToolbarInfo> extends BaseUI<T> {
 
 
     setPosition(left, top) {
+        this.$element.css("position", "absolute");
         this.$element.css("left", left);
         this.$element.css("top", top);
     }
@@ -119,6 +124,7 @@ export class ToolbarButton<T extends ButtonInfo> extends BaseUI<T> {
         }
         if (this.properties.hint) {
             $dom.attr("title", this.properties.hint);
+            $dom.attr("data-tip", this.properties.hint);
         }
         return $dom.get(0);
     }

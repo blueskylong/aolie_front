@@ -13,8 +13,8 @@ export class Constants {
         varchar: "1",
         decimal: "4",
         datetime: "10",
-        text:"20",
-        binary:"30"
+        text: "20",
+        binary: "30"
 
     };
 
@@ -24,7 +24,7 @@ export class Constants {
         tree: 3,
         card: 4,
         refTree: 5,
-        custom:9//自定义面板
+        custom: 9//自定义面板
     };
 
     static ComponentType = {
@@ -47,6 +47,7 @@ export class Constants {
         filter: "78",
         formula: "80"
     };
+
 
     static Icons = {
         add: "fa fa-plus-circle",
@@ -149,6 +150,16 @@ export class Constants {
     static UIDataNum = {
         one: 1,
         multi: 2
+    };
+    /**
+     * 面板的位置布局方式
+     */
+    static PositionLayoutType = {
+        /**
+         * bootstrap12列布局
+         */
+        bootstrapLayout: 1,
+        absoluteLayout: 2
     }
 
 }

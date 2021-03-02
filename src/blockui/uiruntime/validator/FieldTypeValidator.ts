@@ -1,6 +1,5 @@
 import {IValidator} from "../IValidator";
 import {BlockViewer} from "../BlockViewer";
-import {StringMap} from "../../../common/StringMap";
 import {Component} from "../Component";
 import {RegValidator} from "../../../decorator/decorator";
 import {CommonUtils} from "../../../common/CommonUtils";
@@ -15,12 +14,17 @@ export class FieldTypeValidator implements IValidator {
         if (!value) {
             return null;
         }
+
         if (!isNaN(value)) {
             return null;
         }
         if (!CommonUtils.isNumber(value)) {
-            return "请输入有效的数字";
+            //checkbox需要转换一次值
+            if (!CommonUtils.isNumber(row[fieldName])) {
+                return "请输入有效的数字";
+            }
         }
+        return null;
 
     }
 

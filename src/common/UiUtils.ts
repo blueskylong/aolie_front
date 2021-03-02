@@ -21,4 +21,19 @@ export class UiUtils {
     static getBlockViewNoPageUrl(blockId) {
         return "/dmdata/findBlockDataNoPage/" + blockId;
     }
+
+    static getWindowWidth() {
+        let pageWidth = window.innerWidth;
+
+        if (typeof pageWidth != "number") {
+            //标准模式
+            if (document.compatMode == "CSS1Compat") {
+                pageWidth = document.documentElement.clientWidth;
+                //怪异模式
+            } else {
+                pageWidth = document.body.clientWidth;
+            }
+        }
+        return pageWidth;
+    }
 }

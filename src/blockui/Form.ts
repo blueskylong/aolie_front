@@ -24,6 +24,7 @@ import {FormulaCalculator} from "../datamodel/DmRuntime/formula/FormulaCalculato
 
 
 export class Form extends BaseComponent<BlockViewDto> {
+
     /**
      * 字段名对应控件
      */
@@ -169,12 +170,14 @@ export class Form extends BaseComponent<BlockViewDto> {
         }
         this.properties = this.viewer.blockViewDto;
         let comNodes = TreeNodeFactory.genTreeNode(this.lstComponent, "componentDto", "lvlCode");
+        let layoutType = this.properties.layoutType;
         for (let node of comNodes) {
             if (this.properties.fieldToCamel == 1) {
                 node.data.column.getColumnDto().fieldName
                     = CommonUtils.toCamel(node.data.column.getColumnDto().fieldName);
                 node.data.isConvertToCamel = true;
             }
+            node.data.setLayoutType(layoutType);
             this.createSubComponents(this.$formBody.get(0), node);
         }
         this.updateSize();
@@ -201,9 +204,10 @@ export class Form extends BaseComponent<BlockViewDto> {
             } else {
                 this.$element.css("width", this.properties.colSpan);
             }
-            if (this.properties.rowSpan) {
-                this.$element.css("height", this.properties.rowSpan);
-            }
+
+        }
+        if (this.properties.rowSpan) {
+            this.$element.css("height", this.properties.rowSpan);
         }
     }
 
@@ -233,9 +237,9 @@ export class Form extends BaseComponent<BlockViewDto> {
         this.toolbar.setPosition(this.toolDefaultPos[0], this.toolDefaultPos[1]);
 
         this.toolbarHasPosition = true;
-        this.toolbar.setToolbarDragedListener((args) => {
-            if (Math.abs(args.pos[0] - this.toolDefaultPos[0]) < 200
-                && Math.abs(args.pos[1] - this.toolDefaultPos[1]) < 20) {
+        this.toolbar.setToolbarDragedListener((args, uiparam) => {
+            if (Math.abs(uiparam.position.left - this.toolDefaultPos[0]) < 200
+                && Math.abs(uiparam.position.top - this.toolDefaultPos[1]) < 20) {
                 this.toolbarHasPosition = true;
             } else {
                 this.toolbarHasPosition = false;

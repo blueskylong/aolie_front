@@ -1,6 +1,5 @@
 import {StringMap} from "./StringMap";
 import {LoginUser} from "../sysfunc/user/LoginUser";
-import {MockServer} from "./MockServer";
 import {Constants} from "./Constants";
 import {DmConstants} from "../datamodel/DmConstants";
 import {App} from "../App/App";
@@ -64,8 +63,8 @@ export class GlobalParams {
         let user = GlobalParams.getLoginUser();
         return {
             "GLOBAL_LOGIN_VERSION": GlobalParams.getLoginVersion(),
-            "GLOBAL_USER_ID": user.userId, "GLOBAL_USER_NAME": user.userName,
-            "GLOBAL_USER_CODE": user.accountCode,
+            "GLOBAL_USER_ID": user.getUserId(), "GLOBAL_USER_NAME": user.getUserName(),
+            "GLOBAL_USER_CODE": user.getAccountCode(),
             "GLOBAL_LOGIN_ROLE_CODE": user.getRoleDto().roleType
         }
     }
@@ -120,17 +119,17 @@ export class GlobalParams {
         let user = GlobalParams.getLoginUser();
         //增加人员
         GlobalParams.PARAMS.set(DmConstants.GlobalParamsIds.userId + "",
-            new SystemParam("登录用户ID", Constants.FieldType.int, user.userId + "", DmConstants.GlobalParamsIds.userId));
+            new SystemParam("登录用户ID", Constants.FieldType.int, user.getUserId() + "", DmConstants.GlobalParamsIds.userId));
         GlobalParams.PARAMS.set(DmConstants.GlobalParamsIds.roleId + "",
-            new SystemParam("登录角色ID", Constants.FieldType.int, user.getRoleDto().roleId + "", DmConstants.GlobalParamsIds.roleId));
+            new SystemParam("登录角色ID", Constants.FieldType.int, user.getRoleDto() == null ? null : user.getRoleDto().roleId + "", DmConstants.GlobalParamsIds.roleId));
         GlobalParams.PARAMS.set(DmConstants.GlobalParamsIds.version + "",
             new SystemParam("版本号", Constants.FieldType.varchar, user.versionCode + "", DmConstants.GlobalParamsIds.version));
         GlobalParams.PARAMS.set(DmConstants.GlobalParamsIds.userName + "",
-            new SystemParam("登录用户名", Constants.FieldType.varchar, user.userName + "", DmConstants.GlobalParamsIds.userName));
+            new SystemParam("登录用户名", Constants.FieldType.varchar, user.getUserName() + "", DmConstants.GlobalParamsIds.userName));
         GlobalParams.PARAMS.set(DmConstants.GlobalParamsIds.userBelong + '',
-            new SystemParam("登录用户所属机构", Constants.FieldType.int, user.userId + "", DmConstants.GlobalParamsIds.userBelong));
+            new SystemParam("登录用户所属机构", Constants.FieldType.int, user.getUserId() + "", DmConstants.GlobalParamsIds.userBelong));
         GlobalParams.PARAMS.set(DmConstants.GlobalParamsIds.userAccount + '',
-            new SystemParam("登录帐号", Constants.FieldType.varchar, user.accountCode + "", DmConstants.GlobalParamsIds.userAccount));
+            new SystemParam("登录帐号", Constants.FieldType.varchar, user.getAccountCode() + "", DmConstants.GlobalParamsIds.userAccount));
         //TODO 需要远程加载系统选项
 
     }

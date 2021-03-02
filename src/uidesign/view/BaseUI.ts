@@ -2,6 +2,8 @@ import {GeneralEventListener} from "../../blockui/event/GeneralEventListener";
 import {StringMap} from "../../common/StringMap";
 
 export default abstract class BaseUI<T> implements GeneralEventListener {
+
+    public static rowHeight = 45;
     protected static UN_VISIBLE_CLASS = "un-visible";
     protected static HIDDEN_CLASS = "hidden";
     protected properties: T;
@@ -29,7 +31,7 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
         this.initTime = new Date().getTime();
     }
 
-    protected addListener(type, listener: GeneralEventListener) {
+    public addListener(type, listener: GeneralEventListener) {
         if (!type) {
             return;
         }
@@ -303,6 +305,7 @@ class DomAssembleNotifier {
 
     }
 }
+
 
 
 // var greeter = Object.create(window["Greeter"].prototype);

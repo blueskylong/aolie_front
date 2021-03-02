@@ -722,7 +722,14 @@ export class Table extends BaseComponent<TableRenderProvider> {
 }
 
 (function ($) {
+    //修改默认的图标
     let editCell = $.fn.jqGrid['editCell'];
+    $.jgrid.icons.glyph.checkbox.checked="fa fa-check";
+    $.jgrid.icons.glyph.checkbox.unchecked="fa fa-times";
+    $.jgrid.icons.glyph.pager.first="fa fa-angle-double-left";
+    $.jgrid.icons.glyph.pager.last="fa fa-angle-double-right";
+    $.jgrid.icons.glyph.pager.prev="fa fa-angle-left";
+    $.jgrid.icons.glyph.pager.next="fa fa-angle-right";
     $.fn.jqGrid['editCell'] = function (iRow: number, iCol: number, ed?: boolean) {
         if (!this.get(0).p.renderProvider.isCellEditable(iRow, iCol)) {
             return;

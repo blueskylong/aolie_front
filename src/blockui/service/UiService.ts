@@ -6,6 +6,7 @@ import {StringMap} from "../../common/StringMap";
 import {CommonUtils} from "../../common/CommonUtils";
 import {ReferenceDto} from "../../datamodel/dto/ReferenceDto";
 import {PageInfo} from "../../funcdesign/dto/PageInfo";
+import {Logger} from "../../common/Logger";
 
 export class UiService {
     private static URL_ROOT = "/ui";
@@ -69,18 +70,22 @@ export class UiService {
      * @param version
      */
     static async getReferenceData(refId: number) {
-        let key = UiService.PREFIX_KEY_REFERENCE_DATE + refId;
-        if (UiService.CACHE.has(key)) {
-            return UiService.CACHE.get(key) as any;
-        }
-        let result = await NetRequest.axios.get(this.URL_ROOT + "/findReferenceData/" + refId);
-        if (result && result.data) {
-            let lstResult = new Array<ReferenceData>();
-            for (let row of result.data) {
-                lstResult.push(BeanFactory.populateBean(ReferenceData, row));
+        if (refId != null) {
+            let key = UiService.PREFIX_KEY_REFERENCE_DATE + refId;
+            if (UiService.CACHE.has(key)) {
+                return UiService.CACHE.get(key) as any;
             }
-            UiService.CACHE.set(key, lstResult);
-            return lstResult;
+            let result = await NetRequest.axios.get(this.URL_ROOT + "/findReferenceData/" + refId);
+            if (result && result.data) {
+                let lstResult = new Array<ReferenceData>();
+                for (let row of result.data) {
+                    lstResult.push(BeanFactory.populateBean(ReferenceData, row));
+                }
+                UiService.CACHE.set(key, lstResult);
+                return lstResult;
+            }
+        } else {
+            Logger.error("没有指定引用的ID");
         }
         return null;
     }

@@ -4,6 +4,7 @@ import {Constants} from "../../../common/Constants";
 import {Component} from "../../../blockui/uiruntime/Component";
 import {CommonUtils} from "../../../common/CommonUtils";
 import {RegComponent} from "../../../decorator/decorator";
+
 @RegComponent(Constants.ComponentType.text)
 export class TextInput<T extends Component> extends JQBaseComponent<T> {
     private static TEMPLATE = require("./templete/BaseInput.html");
@@ -19,13 +20,14 @@ export class TextInput<T extends Component> extends JQBaseComponent<T> {
     }
 
     protected loadTemplate(): string {
-        return Constants.TitlePosition.right == this.properties.componentDto.titlePosition ? TextInput.TEMPLATE_RIGHT : TextInput.TEMPLATE;
+        return Constants.TitlePosition.right == this.properties.componentDto.titlePosition
+            ? TextInput.TEMPLATE_RIGHT : TextInput.TEMPLATE;
 
     }
 
     protected handleExt($ele?: JQuery) {
         let $dom = $ele ? $ele : this.$element;
-        let id = 'ID_' + this.properties.componentDto.componentId + "" + Math.round(Math.random() * 10000000);
+        let id = 'ID_' + this.properties.componentDto.componentId + "" + $.hashCode();
         this.handleContainer($dom);
         this.handleTitle($dom, id);
         this.handleEditor($dom, id);
@@ -36,6 +38,19 @@ export class TextInput<T extends Component> extends JQBaseComponent<T> {
     }
 
     protected handleContainer($dom: JQuery) {
+        //如果是绝对定位,则数字表示直接的宽和高
+        if (this.properties.getLayoutType() == Constants.PositionLayoutType.absoluteLayout) {
+            $dom.addClass(TextInput.FIX_POSITION_CLASS);
+            $dom.css("top",
+                this.properties.getComponentDto().posTop ? this.properties.getComponentDto().posTop : 100);
+            $dom.css("left",
+                this.properties.getComponentDto().posLeft ? this.properties.getComponentDto().posLeft : 100);
+            $dom.css("height",
+                this.properties.getComponentDto().verSpan ? this.properties.getComponentDto().verSpan : 30);
+            $dom.css("width",
+                this.properties.getComponentDto().horSpan ? this.properties.getComponentDto().horSpan : 200);
+            return;
+        }
         //设置高度和宽度
         if (this.properties.componentDto.horSpan <= 12) {//小于12.表示用bootstrap的列布局
             $dom.addClass("col-md-" + this.properties.componentDto.horSpan);
@@ -44,12 +59,13 @@ export class TextInput<T extends Component> extends JQBaseComponent<T> {
         } else if (this.properties.componentDto.horSpan < 0) {//小于0表示填充所有空间
             AutoFit.addAutoFitComponent($dom.get(0), true, false);
         }
-        if (this.properties.componentDto.verSpan <= 12) {//小于12.表示占用几行
-            $dom.attr("rows", this.properties.componentDto.verSpan);
+        if (this.properties.componentDto.verSpan <= 12 && this.properties.componentDto.verSpan > 0) {//小于12.表示占用几行
+            // $dom.attr("height", this.properties.componentDto.verSpan * TextInput.rowHeight);
         } else if (this.properties.componentDto.verSpan > 12) {//大于12 ,则直接使用像素
             $dom.height(this.properties.componentDto.verSpan);
-        } else if (this.properties.componentDto.horSpan < 0) {//小于0表示填充所有空间
-            AutoFit.addAutoFitComponent($dom.get(0), false, true);
+        } else if (this.properties.componentDto.verSpan <= 0) {//小于0表示填充所有空间
+            $dom.css("height", "100%");
+            // AutoFit.addAutoFitComponent($dom.get(0), false, true);
         }
 
     }

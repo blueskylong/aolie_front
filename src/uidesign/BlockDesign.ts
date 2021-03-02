@@ -21,6 +21,7 @@ import {MenuInfo} from "../sysfunc/menu/dto/MenuInfo";
 import {MenuFunction} from "../blockui/MenuFunction";
 import {MenuButtonDto} from "../sysfunc/menu/dto/MenuButtonDto";
 import {DmConstants} from "../datamodel/DmConstants";
+import {EndErrorLine} from "tslint/lib/verify/lines";
 
 @MenuFunc()
 export default class BlockDesign<T extends MenuInfo> extends MenuFunction<T> {
@@ -47,19 +48,7 @@ export default class BlockDesign<T extends MenuInfo> extends MenuFunction<T> {
     private confirmDlg: Dialog<DialogInfo>;
 
     protected createUI(): HTMLElement {
-        this.selectDsDlg = new SelectDsDlg({
-            title: "请选择数据表",
-            height: 200,
-            onOk: (items) => {
-                this.selectedTable = items;
-                if (items && items.length > 0) {
-                    DesignUiService.findTablesAndFields(items, (data) => {
-                        this.updateTree(data)
-                    });
-                }
-                return true;
-            }
-        });
+
         this.blockDlg = new InputDlg({
             title: "增加视图",
             inputTitle: "视图名称",
@@ -140,7 +129,23 @@ export default class BlockDesign<T extends MenuInfo> extends MenuFunction<T> {
 
     private updateTree(data) {
         this.dsTree.setValue(data);
+    }
 
+    private getSelectDsDlg() {
+        this.selectDsDlg = new SelectDsDlg({
+            title: "请选择数据表",
+            height: 200,
+            onOk: (items) => {
+                this.selectedTable = items;
+                if (items && items.length > 0) {
+                    DesignUiService.findTablesAndFields(items, (data) => {
+                        this.updateTree(data)
+                    });
+                }
+                return true;
+            }
+        });
+        return this.selectDsDlg;
     }
 
     private addView(viewName) {
@@ -154,12 +159,8 @@ export default class BlockDesign<T extends MenuInfo> extends MenuFunction<T> {
         }
         DesignUiService.genNewBlockViewer(viewName, this.schemaId, parentId, (newId) => {
             this.blockTree.getJsTree().refresh(false, true);
-
             this.blockTree.selectNodeById(newId);
-
-
         });
-
     }
 
     afterComponentAssemble(): void {
@@ -170,8 +171,7 @@ export default class BlockDesign<T extends MenuInfo> extends MenuFunction<T> {
     private bindEvent() {
         this.$element.find(".split-pane")['splitPane']();
         this.$element.find(".btnSelectDs").on("click", (e) => {
-            this.selectDsDlg.setSchemaId(this.schemaId);
-            this.selectDsDlg.show(this.selectedTable);
+            this.getSelectDsDlg().setSchemaId(this.schemaId).show(this.selectedTable);
         });
         this.blockTree.addDropListener({
             handleEvent: (eventType: string, data: any, source: any, extObject?: any) => {
@@ -204,6 +204,15 @@ export default class BlockDesign<T extends MenuInfo> extends MenuFunction<T> {
             }
         });
         this.designPanel.setSelectListener(this);
+        this.designPanel.addListener(EventBus.VALUE_CHANGE_EVENT, {
+            //这里的数据是高度和宽度
+            handleEvent: (eventType: string, data: any, source: any, extObject?: any) => {
+                if (this.lastBlockId > 0) {
+                    this.fBlock.setFieldValue("rowSpan", data["height"]);
+                    this.fBlock.setFieldValue("colSpan", data["width"]);
+                }
+            }
+        });
         this.fBlock.addValueChangeListener({
             handleEvent: (eventType: string, field: any, value: any, extObject?: any) => {
                 if (field == "defaultShowType") {
@@ -212,6 +221,10 @@ export default class BlockDesign<T extends MenuInfo> extends MenuFunction<T> {
                     } else {
                         this.designPanel.showAsForm();
                     }
+                } else if (field == "layoutType") {
+                    this.designPanel.setLayoutType(value);
+                } else if (field == "colSpan" || field == "rowSpan") {
+                    this.designPanel.valueChanged(field, value);
                 }
             }
         });
@@ -251,8 +264,6 @@ export default class BlockDesign<T extends MenuInfo> extends MenuFunction<T> {
             });
         }
         return true;
-
-
     }
 
     private makeLevel(codePro: CodeLevelProvider, node, obj) {
@@ -328,8 +339,6 @@ export default class BlockDesign<T extends MenuInfo> extends MenuFunction<T> {
             Alert.showMessage({message: "此视图下已存在子节点,请先删除!"});
             return;
         }
-
-
         this.confirmDlg = new Dialog<DialogInfo>({
             title: "确认",
             content: "确定删除此视图吗?",
@@ -343,8 +352,6 @@ export default class BlockDesign<T extends MenuInfo> extends MenuFunction<T> {
             }
         });
         this.confirmDlg.show();
-
-
     }
 
     public clearAttrShow() {

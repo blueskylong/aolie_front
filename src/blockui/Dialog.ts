@@ -1,6 +1,7 @@
 import BaseUI from "../uidesign/view/BaseUI";
-import * as jsPlumb from "jsplumb";
 import ClickEvent = JQuery.ClickEvent;
+import {CommonUtils} from "../common/CommonUtils";
+import {UiUtils} from "../common/UiUtils";
 
 export class Dialog<T extends DialogInfo> extends BaseUI<T> {
 
@@ -30,8 +31,8 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
         this.importValue = value;
         this.$element.modal({backdrop: "static"});
         this.$element.modal('show');
-        if (!this.hasInited && (this.properties.draggable ==null||this.properties.draggable)) {
-            jsPlumb.jsPlumb.getInstance({} as any).draggable(this.$element);
+        if (!this.hasInited && (this.properties.draggable == null || this.properties.draggable)) {
+            this.$element.draggable();
         }
 
         this.afterShow();
@@ -183,7 +184,6 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
             clickHandler(e);
         })
     }
-
     setBodyContent(html: HTMLElement) {
         if (this.$element) {
             this.$element.find(".modal-body").append(html);
@@ -231,5 +231,5 @@ export interface DialogInfo {
     onOk?: (...items) => boolean;
     content?: string | HTMLElement;
     destroyOnClose?: boolean;
-    draggable?:boolean;
+    draggable?: boolean;
 }
