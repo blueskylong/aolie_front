@@ -181,7 +181,7 @@ export class ManagedTreeUI<T extends BlockViewDto> extends TreeUI<T> implements 
 
     onUiDataReady(): void {
         //分析数据源信息
-        ManagedUITools.initReferAndDsId(this.viewer.lstComponent, this.dsIds, this.refCols);
+        ManagedUITools.initReferAndDsId(this.viewer.getLstComponent(), this.dsIds, this.refCols);
         this.jsTree.addSelectListener({
             handleEvent: (eventType: string, row: object, table: object, extObject?: any) => {
                 if (!this.manageCenter || this.dsIds.length != 1) {//只有单一数据源时,才做处理
@@ -331,7 +331,8 @@ export class ManagedTreeUI<T extends BlockViewDto> extends TreeUI<T> implements 
             if (this.getTree().isRoot(node)) {
                 levelCode = codeLevelProvider.getNext();
             } else {
-                levelCode = codeLevelProvider.setCurCode(node.id).getSubNext();
+                levelCode = codeLevelProvider.setCurCode(this.jsTree.getNodeCode(node))
+                    .getSubNext();
             }
         }
         obj[this.jsTree.getDtoInfo().codeField] = levelCode;

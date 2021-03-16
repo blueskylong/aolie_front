@@ -94,9 +94,9 @@ export class ServerRenderProvider implements TableRenderProvider {
     protected viewer: BlockViewer;
     protected tableOption: FreeJqGrid.JqGridOptions;
     protected isReady = false;
-    private operatorProvider: (colAndRowInfo, row, state) => string;
+    private operatorProvider: (colAndRowInfo: FormatterOptions, row, state) => string;
 
-    setOperatorProvider(pro: (colAndRowInfo, row, state) => string) {
+    setOperatorProvider(pro: (colAndRowInfo: FormatterOptions, row, state) => string) {
         this.operatorProvider = pro;
     }
 
@@ -205,12 +205,12 @@ export class ServerRenderProvider implements TableRenderProvider {
     protected async init() {
         await this.findViewerInfo(this.blockId);
         if (this.viewer) {
-            let lstComponent = this.viewer.lstComponent;
+            let lstComponent = this.viewer.getLstComponent();
             if (!lstComponent || lstComponent.length == 0) {
                 lstComponent = [];
                 return;
             }
-            let blockDto = this.viewer.blockViewDto;
+            let blockDto = this.viewer.getBlockViewDto();
             let comNodes = TreeNodeFactory.genTreeNode(lstComponent, "componentDto", "lvlCode");
             //增加一个操作列
             this.lstColumn.push(this.createOperatorColModel());
@@ -220,7 +220,7 @@ export class ServerRenderProvider implements TableRenderProvider {
                     node.data.getComponentDto().dispType) {
                     await UiService.getReferenceData(node.data.getColumn().getColumnDto().refId);
                 }
-                if (this.viewer.blockViewDto.fieldToCamel == 1) {
+                if (this.viewer.getBlockViewDto().fieldToCamel == 1) {
                     node.data.column.getColumnDto().fieldName
                         = CommonUtils.toCamel(node.data.column.getColumnDto().fieldName);
                 }
@@ -245,7 +245,7 @@ export class ServerRenderProvider implements TableRenderProvider {
             label: "操作",
             edittype: "button",
             frozen: true,
-            formatter: (cellval, opts, row, act) => {
+            formatter: (cellval, opts: FormatterOptions, row, act) => {
                 if (this.operatorProvider) {
                     return this.operatorProvider(opts, row, act);
                 }

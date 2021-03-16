@@ -32,7 +32,7 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
         this.$element.modal({backdrop: "static"});
         this.$element.modal('show');
         if (!this.hasInited && (this.properties.draggable == null || this.properties.draggable)) {
-            this.$element.draggable();
+            this.$element.find(".modal-dialog").draggable();
         }
 
         this.afterShow();
@@ -184,6 +184,7 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
             clickHandler(e);
         })
     }
+
     setBodyContent(html: HTMLElement) {
         if (this.$element) {
             this.$element.find(".modal-body").append(html);
@@ -205,6 +206,15 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
         }
         return null;
 
+    }
+
+    setContent(content?: string | HTMLElement) {
+        this.properties.content = content;
+        let sub = this.getBody();
+        if (this.$element && sub) {
+            this.$element.find(".modal-body").children().remove();
+            this.$element.find(".modal-body").append(sub);
+        }
     }
 
     static showConfirm(message, onOk) {

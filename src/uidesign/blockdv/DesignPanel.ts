@@ -190,6 +190,7 @@ export class DesignPanel<T> extends BaseUI<T> {
         if (this.isShowForm && this.layoutType == layoutType) {
             return;
         }
+        this.blockViewer.setLstComponent(this.getData());
         this.clear(false);
         this.layoutType = layoutType;
         this.showForm();
@@ -199,6 +200,7 @@ export class DesignPanel<T> extends BaseUI<T> {
         if (!this.isShowForm) {
             return;
         }
+        this.blockViewer.setLstComponent(this.getData());
         this.clear(false);
         this.showTable();
     }
@@ -264,7 +266,7 @@ export class DesignPanel<T> extends BaseUI<T> {
             this.$compBody.append(newCom.getViewUI());
 //            newCom.afterComponentAssemble();
         } else {
-            this.blockViewer.lstComponent.push(component);
+            this.blockViewer.getLstComponent().push(component);
         }
         if (!this.isInitDrag && !this.isFixLayout()) {
             this.$compBody['dragsort']({
@@ -375,8 +377,8 @@ export class DesignPanel<T> extends BaseUI<T> {
             compDto.posTop = 100;
             compDto.posLeft = 300;
         }
-        compDto.versionCode = this.blockViewer.blockViewDto.versionCode;
-        compDto.blockViewId = this.blockViewer.blockViewDto.blockViewId;
+        compDto.versionCode = this.blockViewer.getBlockViewDto().versionCode;
+        compDto.blockViewId = this.blockViewer.getBlockViewDto().blockViewId;
         compDto.componentId = CommonUtils.genId();
         comp.setLayoutType(this.layoutType);
         comp.setComponentDto(compDto);
@@ -441,7 +443,7 @@ export class DesignPanel<T> extends BaseUI<T> {
     }
 
     doSave(viewInfo: BlockViewDto, onSuccess: () => void) {
-        this.blockViewer.lstComponent = this.getData();
+        this.blockViewer.setLstComponent(this.getData());
         this.blockViewer.setBlockViewDto(viewInfo);
 
         DesignUiService.saveBlockViewer(this.blockViewer, (err) => {
@@ -536,6 +538,7 @@ export class DesignPanel<T> extends BaseUI<T> {
         });
         this.isShowForm = false;
         this.blockViewer.getBlockViewDto().defaultShowType = Constants.DispType.table;
+        this.blockViewer.getBlockViewDto()
         this.dTable = new DesignTable(this.blockViewer);
         this.dTable.addSelectChangeListener({
             handleEvent: (eventType: string, comID: any, value: any, extObject?: any) => {
@@ -672,7 +675,7 @@ export class DesignPanel<T> extends BaseUI<T> {
         if (!this.isShowForm) {
             return;
         }
-        this.blockViewer.lstComponent = this.getData();
+        this.blockViewer.setLstComponent(this.getData());
         this.clear(false);
         this.showForm();
 

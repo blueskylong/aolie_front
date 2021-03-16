@@ -78,7 +78,7 @@ export class FormulaCalculator {
         //比较一下此值有没有变化,如果变化了,则要将此变化进一步递归下去
         let column = SchemaFactory.getColumnById(formula.getFormulaDto().columnId, formula.getFormulaDto().versionCode);
         let fieldName = column.getColumnDto().fieldName;
-        if (!!this.viewerInfo.blockViewDto.fieldToCamel) {
+        if (!!this.viewerInfo.getBlockViewDto().fieldToCamel) {
             //目标字段
             fieldName = CommonUtils.toCamel(fieldName);
         }

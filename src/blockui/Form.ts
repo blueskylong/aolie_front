@@ -163,12 +163,12 @@ export class Form extends BaseComponent<BlockViewDto> {
             this.viewer = await UiService.getSchemaViewer(this.blockViewId) as any;
         }
         this.formulaCalculator = FormulaCalculator.getInstance(this.viewer);
-        this.lstComponent = this.viewer.lstComponent;
+        this.lstComponent = this.viewer.getLstComponent();
         if (!this.lstComponent || this.lstComponent.length == 0) {
             this.lstComponent = [];
             return;
         }
-        this.properties = this.viewer.blockViewDto;
+        this.properties = this.viewer.getBlockViewDto();
         let comNodes = TreeNodeFactory.genTreeNode(this.lstComponent, "componentDto", "lvlCode");
         let layoutType = this.properties.layoutType;
         for (let node of comNodes) {

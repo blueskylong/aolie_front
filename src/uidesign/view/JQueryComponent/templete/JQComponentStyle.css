@@ -31,6 +31,10 @@ OrangeRed	橙红色	#FF4500	255,69,0
     cursor: pointer;
 }
 
+.base-comp lable.com-editor {
+    text-align: left;
+}
+
 .btn-toolbar {
     position: absolute;
     padding-right: 15px;
@@ -120,6 +124,7 @@ OrangeRed	橙红色	#FF4500	255,69,0
 }
 
 .modal-body {
+    min-width: 400px;
     /*overflow: auto;*/
 }
 

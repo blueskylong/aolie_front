@@ -12,6 +12,7 @@ import {Column} from "../../datamodel/DmRuntime/Column";
 import {BeanFactory} from "../../decorator/decorator";
 import {Alert} from "../../uidesign/view/JQueryComponent/Alert";
 import {Constants} from "../../common/Constants";
+import {StringMap} from "../../common/StringMap";
 
 
 export default class TableView extends DmDesignBaseView<TableInfo> implements AttrChangeListener {
@@ -59,13 +60,14 @@ export default class TableView extends DmDesignBaseView<TableInfo> implements At
 
     private createSubControl() {
         this.addColumns(this.$element.find(".table-body .list-group").get(0));
-        this.notifySubComplete();
         if (!TableView.isAddedContextMenu) {
             $.contextMenu({
                 selector: '.table-view',
                 callback: (key, options) => {
                     if (key === "delete") {
-                        this.confirmDlg.show();
+                        this.confirmDlg.setContent("确定要删除表[" +
+                            TableView.activeTableView.properties.getTableDto().title + "]吗?"),
+                            this.confirmDlg.show();
                     } else if (key === "sync") {
                         this.syncTable();
                     }
@@ -84,9 +86,12 @@ export default class TableView extends DmDesignBaseView<TableInfo> implements At
 
         this.confirmDlg = new Dialog<DialogInfo>({
             title: "消息",
+            destroyOnClose: false,
             content: "确定要删除表[" + this.properties.getTableDto().title + "]吗?",
             onOk: () => {
-                EventBus.fireEvent(EventBus.TABLE_REMOVE, this);
+                if (TableView.activeTableView) {
+                    EventBus.fireEvent(EventBus.TABLE_REMOVE, TableView.activeTableView);
+                }
                 return true;
             }
         });
@@ -108,24 +113,86 @@ export default class TableView extends DmDesignBaseView<TableInfo> implements At
             return;
         }
         DmDesignService.getSyncTableCols(this.properties.getTableDto().tableId, (data) => {
-            let columns = this.updateCols(BeanFactory.populateBeans(ColumnDto, data));
-            this.properties.setLstColumn(columns);
-            this.addColumns(this.$element.find(".table-body .list-group").get(0));
+            let columns = this.splitCols(BeanFactory.populateBeans(ColumnDto, data));
+            let toDelete = <Array<ColumnView>>columns[0];
+            let toAdd = <Array<ColumnDto>>columns[1];
+            if (toDelete != null && toDelete.length > 0) {
+                toDelete.forEach(colView => {
+                    this.deleteCol(colView);
+                })
+            }
+            if (toAdd != null && toAdd.length > 0) {
+                toAdd.forEach(colDto => {
+                    this.addColumnView(colDto);
+                });
+            }
         });
 
     }
 
-    private updateCols(lstDtos: Array<ColumnDto>) {
-        let lstNewColumn = new Array<Column>();
-        if (lstDtos) {
-            for (let dto of lstDtos) {
-                lstNewColumn.push(this.findColumnByDto(dto));
-            }
-        }
-        return lstNewColumn;
+    private deleteCol(col: ColumnView) {
+        let number = this.lstColumn.indexOf(col);
+        this.lstColumn.splice(number, 1);
+        this.properties.getLstColumn().splice(number, 1);
+        col.destroy();
     }
 
-    private findColumnByDto(columnDto: ColumnDto) {
+    /**
+     * 取得列设计控件
+     * @param colId
+     */
+    private findColView(colId) {
+        if (this.lstColumn != null) {
+            for (let colView of this.lstColumn) {
+                if (colView.getDtoInfo().getColumnDto().columnId == colId) {
+                    return colView;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 比较当前列和数据库中查询出来的列,找到需要删除和增加的列
+     * @param lstNewDtos
+     */
+    private splitCols(lstNewDtos: Array<ColumnDto>) {
+        let toDeleteColumn: Array<ColumnView> = [];
+        let toAddColumn: Array<ColumnDto> = [];
+        let mapNewCols = this.toMap(lstNewDtos);
+        this.lstColumn.forEach(el => {
+            let key = el.getDtoInfo().getColumnDto().columnId + "";
+            if (!mapNewCols.has(key)) {
+                toDeleteColumn.push(el);
+            }
+            mapNewCols.delete(key);
+        });
+        if (mapNewCols.getSize() != 0) {
+            mapNewCols.forEach(((key, value, map) => {
+                toAddColumn.push(value);
+            }))
+        }
+        return [toDeleteColumn, toAddColumn];
+    }
+
+    private toMap(lstNewDtos: Array<ColumnDto>): StringMap<ColumnDto> {
+        if (lstNewDtos != null) {
+            let result = new StringMap<ColumnDto>();
+            lstNewDtos.forEach(el => {
+                if (!el.columnId) {
+                    el.columnId = CommonUtils.genId();
+                }
+                result.set(el.columnId + "", el);
+            });
+            return result;
+
+        }
+        return new StringMap();
+
+    }
+
+
+    private findColumnByDto(columnDto: ColumnDto): Column {
         let lstColumn = this.properties.getLstColumn();
         if (!lstColumn) {
             return null;
@@ -136,10 +203,8 @@ export default class TableView extends DmDesignBaseView<TableInfo> implements At
                 return column;
             }
         }
-        let column = new Column();
-        columnDto.columnId = CommonUtils.genId();
-        column.setColumnDto(columnDto);
-        return column;
+        return null;
+
     }
 
     adjustProfile() {
@@ -185,13 +250,23 @@ export default class TableView extends DmDesignBaseView<TableInfo> implements At
         let that = this;
         EventBus.addListener(EventBus.ADD_COLUMN, {
             handleEvent(eventType: string, data: any, source: object, extObject?: any) {
-                if (data.tableId === that.properties.getTableDto().tableId) {
+                let columnId = data.columnId;
+                if (that.findColumn(columnId)) {
                     that.addColumn();
+                }
+            }
+        });
+        EventBus.addListener(EventBus.DELETE_COLUMN, {
+            handleEvent(eventType: string, data: any, source: object, extObject?: any) {
+                let columnView = that.findColumn(data.columnId);
+                if (columnView) {
+                    that.deleteCol(columnView);
                 }
             }
         });
         this.regResizeEvent();
     }
+
 
     private resortColumn() {
         let newArray = new Array<ColumnView>();
@@ -221,13 +296,6 @@ export default class TableView extends DmDesignBaseView<TableInfo> implements At
         this.properties.getTableDto()[attrName] = value;
     }
 
-    notifySubComplete() {
-        if (this.lstColumn && this.lstColumn.length > 0) {
-            for (let columnView of this.lstColumn) {
- //               columnView.afterComponentAssemble();
-            }
-        }
-    }
 
     destroy(): boolean {
         if (this.lstColumn && this.lstColumn.length > 0) {
@@ -249,6 +317,10 @@ export default class TableView extends DmDesignBaseView<TableInfo> implements At
         dto.fieldName = "unNamed";
         dto.fieldType = Constants.FieldType.varchar;
         dto.length = 100;
+        this.addColumnView(dto);
+    }
+
+    private addColumnView(dto: ColumnDto) {
         let col = new Column();
         col.setColumnDto(dto);
         let view = new ColumnView(col);
@@ -323,7 +395,6 @@ export default class TableView extends DmDesignBaseView<TableInfo> implements At
                 element.append(columnView.getViewUI());
             }
         }
-
     }
 
     public columnAttrChanged(columnId: number, attrName: string, value: any): boolean {

@@ -41,7 +41,7 @@ export class Alert<T extends AlertInfo> extends BaseUI<T> {
 
     static showMessage(info: AlertInfo | string) {
         if (typeof info === "string") {
-            coco.error(info);
+            coco.success(info);
             // alert(info);
         } else {
             if (info.type === this.type.warning) {

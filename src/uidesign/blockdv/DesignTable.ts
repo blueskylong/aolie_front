@@ -14,7 +14,9 @@ export class DesignTable extends Table {
     private currentColId: any;
 
     constructor(viewer: BlockViewer) {
-        super(new LocalRenderProvider(viewer));
+        let localPro = new LocalRenderProvider(viewer);
+        localPro.setAllowLoadData(false);
+        super(localPro);
     }
 
     addSelectChangeListener(listener: GeneralEventListener) {

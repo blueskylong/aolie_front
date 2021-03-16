@@ -18,7 +18,9 @@ export class ManagedDlg<T extends ManagedDialogInfo> extends Dialog<T> {
 
     protected getBody(): HTMLElement {
         this.initUI();
-        return $("<div class ='sub-ui' style='overflow:auto'></div>").get(0);
+        //style='overflow:auto' 加上后,里面的选择框只会显示在很小的区域
+        return $("<div class ='sub-ui' ></div>").get(0);
+
     }
 
     private async initUI() {

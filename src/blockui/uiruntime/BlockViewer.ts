@@ -5,11 +5,11 @@ import {CommonUtils} from "../../common/CommonUtils";
 
 export class BlockViewer {
 
-    blockViewDto: BlockViewDto;
+    private blockViewDto: BlockViewDto;
     /**
      * 字段显示信息列表
      */
-    lstComponent: Array<Component>;
+    private lstComponent: Array<Component>;
 
     getBlockViewDto(): BlockViewDto {
         return this.blockViewDto;
@@ -21,6 +21,9 @@ export class BlockViewer {
     }
 
     getLstComponent(): Array<Component> {
+        if (!(this.lstComponent != null)) {
+            this.lstComponent = new Array<Component>();
+        }
         return this.lstComponent;
     }
 
@@ -29,7 +32,7 @@ export class BlockViewer {
         this.lstComponent = value;
     }
 
-    findFieldIdByName(fieldName):number {
+    findFieldIdByName(fieldName): number {
         if (fieldName == null || !this.getLstComponent()) {
             return null;
         }

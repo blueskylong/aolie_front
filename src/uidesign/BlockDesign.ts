@@ -53,6 +53,7 @@ export default class BlockDesign<T extends MenuInfo> extends MenuFunction<T> {
             title: "增加视图",
             inputTitle: "视图名称",
             isCanEmpty: false,
+            destroyOnClose: false,
             onOk: (items) => {
                 this.addView(this.blockDlg.getValue());
                 return true;
@@ -286,7 +287,7 @@ export default class BlockDesign<T extends MenuInfo> extends MenuFunction<T> {
     }
 
     doAdd() {
-        this.blockDlg.show();
+        this.blockDlg.show(null);
     }
 
     refresh() {
@@ -321,6 +322,7 @@ export default class BlockDesign<T extends MenuInfo> extends MenuFunction<T> {
         this.designPanel.destroy();
         this.dsTree.destroy();
         this.blockTree.destroy();
+        $.contextMenu("destroy");
         return super.destroy();
     }
 

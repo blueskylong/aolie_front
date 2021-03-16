@@ -112,7 +112,7 @@ export class CardList<T extends BlockViewDto> extends BaseComponent<T> {
 
     async initViewer() {
         this.viewer = await UiService.getSchemaViewer(this.properties.blockViewId);
-        this.properties = this.viewer.blockViewDto as any;
+        this.properties = this.viewer.getBlockViewDto() as any;
     }
 
     getValue(): any {

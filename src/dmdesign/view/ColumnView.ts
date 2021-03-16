@@ -31,9 +31,13 @@ export default class ColumnView extends DmDesignBaseView<Column> implements Attr
                 console.log("----------------------> add column context");
                 $.contextMenu({
                     selector: '.column-body',
-                    callback: (key, options) => {
+                    //因为这个菜单,只可以写一个类别,所以加载一次后,就不能再加载
+                    callback: function (key, options) {
                         if (key === "add") {
-                            EventBus.fireEvent(EventBus.ADD_COLUMN, {tableId: this.properties.getColumnDto().tableId}, null);
+                            EventBus.fireEvent(EventBus.ADD_COLUMN,
+                                {columnId: this.attr("column-id")}, null);
+                        } else if (key == "delete") {
+                            EventBus.fireEvent(EventBus.DELETE_COLUMN, {columnId: this.attr("column-id")}, null);
                         }
                     },
                     items: {
@@ -53,6 +57,7 @@ export default class ColumnView extends DmDesignBaseView<Column> implements Attr
         let id = this.getId();
         element.attr("id", id);
         element.attr("data-id", id);
+        element.attr("column-id", this.properties.getColumnDto().columnId);
 
         this.updateTitle(element);
         this.updateBadge(element);

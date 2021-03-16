@@ -43,12 +43,12 @@ export class TreeUI<T extends BlockViewDto> extends BaseComponent<T> {
         if (!this.viewer) {
             this.viewer = await UiService.getSchemaViewer(this.blockViewId) as any;
         }
-        this.lstComponent = this.viewer.lstComponent;
+        this.lstComponent = this.viewer.getLstComponent();
         if (!this.lstComponent || this.lstComponent.length == 0) {
             this.lstComponent = [];
             return;
         }
-        this.properties = this.viewer.blockViewDto as any;
+        this.properties = this.viewer.getBlockViewDto() as any;
         this.treeInfo = this.genTreeInfo(this.lstComponent);
         this.treeInfo.rootName = this.properties.title || "所有数据";
         this.treeInfo.showSearch = true;

@@ -7,7 +7,6 @@ import {GeneralEventListener} from "../event/GeneralEventListener";
 import {StringMap} from "../../common/StringMap";
 import {CodeLevelProvider} from "../../common/CodeLevelProvider";
 import {ButtonInfo} from "../../uidesign/view/JQueryComponent/Toolbar";
-import {HandleResult} from "../../common/HandleResult";
 
 export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
     static VIRTURE_ROOT_ID = "xxxxxxxxxxx";

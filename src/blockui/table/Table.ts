@@ -7,6 +7,7 @@ import {GeneralEventListener} from "../event/GeneralEventListener";
 import {Constants} from "../../common/Constants";
 import {ButtonInfo} from "../../uidesign/view/JQueryComponent/Toolbar";
 import {BaseComponent} from "../../uidesign/view/BaseComponent";
+import FormatterOptions = FreeJqGrid.FormatterOptions;
 
 
 export class Table extends BaseComponent<TableRenderProvider> {
@@ -507,8 +508,8 @@ export class Table extends BaseComponent<TableRenderProvider> {
     setColOperatorButtons(btns: Array<ButtonInfo>) {
         if (btns && btns.length > 0) {
             this.colBtns = btns;
-            this.properties.setOperatorProvider((grid, row, state) => {
-                return Table.createColButtonString(btns, row);
+            this.properties.setOperatorProvider((colAndRowInfo: FormatterOptions, row, state) => {
+                return Table.createColButtonString(btns, colAndRowInfo, row);
             });
             this.$element.setColWidth(2, btns.length * 30, false);
             this.showOperatorCol();
@@ -631,7 +632,7 @@ export class Table extends BaseComponent<TableRenderProvider> {
         return super.destroy();
     }
 
-    protected static createColButtonString(btns: Array<ButtonInfo>, row) {
+    protected static createColButtonString(btns: Array<ButtonInfo>, colAndRowInfo: FormatterOptions, row) {
         let $toolar = $("<div class='table-col-toolbar'></div>");
         let $btn = null;
         for (let btn of btns) {
@@ -641,7 +642,7 @@ export class Table extends BaseComponent<TableRenderProvider> {
                 + "</span>");
             if (btn.clickHandler) {
                 $btn.attr("id", btn.id);
-                $btn.attr("row-id", row.rowId);
+                $btn.attr("row-id", colAndRowInfo.rowId);
             }
             $toolar.append($btn);
         }
@@ -697,7 +698,7 @@ export class Table extends BaseComponent<TableRenderProvider> {
      * 不显示隐藏
      */
     hideUnVisibleCol() {
-        if (this.properties.getBlockInfo()) {
+        if (this.properties.getBlockInfo() && this.properties.getBlockInfo().getLstComponent()) {
             for (let com of this.properties.getBlockInfo().getLstComponent()) {
                 if (com.componentDto.dispType === Constants.ComponentType.hidden) {
                     this.$element.hideCol(com.column.getColumnDto().fieldName, {notSkipFrozen: true});
@@ -710,7 +711,7 @@ export class Table extends BaseComponent<TableRenderProvider> {
      * 显示隐藏
      */
     showUnVisibleCol() {
-        if (this.properties.getBlockInfo()) {
+        if (this.properties.getBlockInfo() && this.properties.getBlockInfo().getLstComponent()) {
             for (let com of this.properties.getBlockInfo().getLstComponent()) {
                 if (com.componentDto.dispType === Constants.ComponentType.hidden) {
                     this.$element.showCol(com.column.getColumnDto().fieldName, {notSkipFrozen: true});
@@ -724,12 +725,12 @@ export class Table extends BaseComponent<TableRenderProvider> {
 (function ($) {
     //修改默认的图标
     let editCell = $.fn.jqGrid['editCell'];
-    $.jgrid.icons.glyph.checkbox.checked="fa fa-check";
-    $.jgrid.icons.glyph.checkbox.unchecked="fa fa-times";
-    $.jgrid.icons.glyph.pager.first="fa fa-angle-double-left";
-    $.jgrid.icons.glyph.pager.last="fa fa-angle-double-right";
-    $.jgrid.icons.glyph.pager.prev="fa fa-angle-left";
-    $.jgrid.icons.glyph.pager.next="fa fa-angle-right";
+    $.jgrid.icons.glyph.checkbox.checked = "fa fa-check";
+    $.jgrid.icons.glyph.checkbox.unchecked = "fa fa-times";
+    $.jgrid.icons.glyph.pager.first = "fa fa-angle-double-left";
+    $.jgrid.icons.glyph.pager.last = "fa fa-angle-double-right";
+    $.jgrid.icons.glyph.pager.prev = "fa fa-angle-left";
+    $.jgrid.icons.glyph.pager.next = "fa fa-angle-right";
     $.fn.jqGrid['editCell'] = function (iRow: number, iCol: number, ed?: boolean) {
         if (!this.get(0).p.renderProvider.isCellEditable(iRow, iCol)) {
             return;

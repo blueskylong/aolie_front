@@ -134,8 +134,9 @@ export class ManagedForm extends Form implements AutoManagedUI {
 
     onUiDataReady(): void {
         //分析数据源信息
-        if (this.viewer.lstComponent) {
-            for (let component of this.viewer.lstComponent) {
+        let lstComponent = this.viewer.getLstComponent();
+        if (lstComponent != null && lstComponent.length > 0) {
+            for (let component of lstComponent) {
                 if (this.dsIds.indexOf(component.getColumn().getColumnDto().tableId) == -1) {
                     this.dsIds.push(component.getColumn().getColumnDto().tableId);
                 }
