@@ -3,7 +3,7 @@
  * 表单只响应本级数据源的变化
  */
 import {Form} from "../Form";
-import {AutoManagedUI, IManageCenter, ManagedEventListener} from "./AutoManagedUI";
+import {AutoManagedUI, EventInterceptor, IManageCenter, ManagedEventListener} from "./AutoManagedUI";
 import {BlockViewDto} from "../../uidesign/dto/BlockViewDto";
 import {GlobalParams} from "../../common/GlobalParams";
 import {StringMap} from "../../common/StringMap";
@@ -26,6 +26,8 @@ export class ManagedForm extends Form implements AutoManagedUI {
     private getDefaultValue: () => any;
 
     private lastSelectValue: any;
+
+    protected mapInterceptor: StringMap<Array<EventInterceptor>> = new StringMap<Array<EventInterceptor>>();
 
     attrChanged(source: any, tableId, mapKeyAndValue, field, value) {
         if (source == this) {
@@ -198,9 +200,9 @@ export class ManagedForm extends Form implements AutoManagedUI {
      * 取得可以处理的类型
      */
     protected getCanHandleButtonType() {
-        return [Constants.TableOperatorType.edit,
-            Constants.TableOperatorType.saveSingle,
-            Constants.TableOperatorType.cancel];
+        return [Constants.DsOperatorType.edit,
+            Constants.DsOperatorType.saveSingle,
+            Constants.DsOperatorType.cancel];
     }
 
 
@@ -212,14 +214,14 @@ export class ManagedForm extends Form implements AutoManagedUI {
      */
     protected componentButtonClicked(event: ClickEvent, menuBtnDto: MenuButtonDto, data) {
         //如果是取消
-        if (menuBtnDto.tableOpertype === Constants.TableOperatorType.cancel) {
+        if (menuBtnDto.tableOpertype === Constants.DsOperatorType.cancel) {
             if (this.doCancel()) {
                 this.manageCenter.stateChange(this, this.dsIds[0], Constants.TableState.view);
             }
 
-        } else if (menuBtnDto.tableOpertype === Constants.TableOperatorType.saveSingle) {
+        } else if (menuBtnDto.tableOpertype === Constants.DsOperatorType.saveSingle) {
             this.doSave();
-        } else if (menuBtnDto.tableOpertype === Constants.TableOperatorType.edit) {
+        } else if (menuBtnDto.tableOpertype === Constants.DsOperatorType.edit) {
             if (this.doEdit(this.lastSelectValue)) {
                 this.manageCenter.stateChange(this, this.dsIds[0], Constants.TableState.edit);
             }
@@ -311,12 +313,14 @@ export class ManagedForm extends Form implements AutoManagedUI {
         if (this.dsIds[0] != buttonInfo.relationTableid) {
             return false;
         }
+
+
         this.lastSelectValue = this.getValue();
         //可接受增加.修改,操作
-        if (buttonInfo.tableOpertype == Constants.TableOperatorType.add) {
+        if (buttonInfo.tableOpertype == Constants.DsOperatorType.add) {
             this.doAdd(data);
             return true;
-        } else if (buttonInfo.tableOpertype == Constants.TableOperatorType.edit) {
+        } else if (buttonInfo.tableOpertype == Constants.DsOperatorType.edit) {
             return this.doEdit(this.lastSelectValue);
         }
         return false;
@@ -382,5 +386,40 @@ export class ManagedForm extends Form implements AutoManagedUI {
         }
         return true;
 
+    }
+
+    /**
+     * 增加事件拦截器
+     * @param operType
+     * @param interceptor
+     */
+    addEventInterceptor(operType: number | string, interceptor: EventInterceptor) {
+        let lstInter = this.mapInterceptor.get(operType + "");
+        if (!lstInter) {
+            lstInter = new Array<EventInterceptor>();
+            this.mapInterceptor.set(operType + "", lstInter);
+        }
+        lstInter.push(interceptor);
+    }
+
+    private doPreButtonClick(operType, data): boolean {
+        let lstInter = this.mapInterceptor.get(operType + "");
+        if (lstInter) {
+            for (let inter of lstInter) {
+                if (inter.beforeHandle && !inter.beforeHandle(operType + "", this.dsIds[0], data, this)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private doAfterButtonClick(operType, data): void {
+        let lstInter = this.mapInterceptor.get(operType + "");
+        if (lstInter) {
+            for (let inter of lstInter) {
+                inter.afterHandle && inter.afterHandle(operType + "", this.dsIds[0], data, this);
+            }
+        }
     }
 }

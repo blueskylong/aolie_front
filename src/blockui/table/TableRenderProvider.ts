@@ -94,10 +94,17 @@ export class ServerRenderProvider implements TableRenderProvider {
     protected viewer: BlockViewer;
     protected tableOption: FreeJqGrid.JqGridOptions;
     protected isReady = false;
+    //手动插入的列
+    protected lstExtCol: Array<ColumnModel>;
     private operatorProvider: (colAndRowInfo: FormatterOptions, row, state) => string;
 
     setOperatorProvider(pro: (colAndRowInfo: FormatterOptions, row, state) => string) {
         this.operatorProvider = pro;
+    }
+
+
+    setLstExtCol(lstColModel: Array<ColumnModel>) {
+        this.lstExtCol = lstColModel;
     }
 
     /**
@@ -233,6 +240,9 @@ export class ServerRenderProvider implements TableRenderProvider {
                     this.lstColumn.push(this.createColModel(node.data));
                 }
             }
+            if (this.lstExtCol) {
+                this.lstColumn.push(...this.lstExtCol);
+            }
         }
     }
 
@@ -241,10 +251,10 @@ export class ServerRenderProvider implements TableRenderProvider {
         return {
             name: Table.OPERATE_COL_ID,
             search: false,
-            width: 50,
+            width: 100,
             label: "操作",
             edittype: "button",
-            frozen: true,
+            frozen: false,
             formatter: (cellval, opts: FormatterOptions, row, act) => {
                 if (this.operatorProvider) {
                     return this.operatorProvider(opts, row, act);

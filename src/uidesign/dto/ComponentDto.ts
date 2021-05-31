@@ -66,6 +66,10 @@ export class ComponentDto extends BaseDto {
      */
     public extStyle: string;
     /**
+     * 其它个性的属性扩展,使用JSON的格式,在生成时会合并到创建属性中
+     */
+    public extAttr: string;
+    /**
      * 分组类型
      */
     public groupType: number;

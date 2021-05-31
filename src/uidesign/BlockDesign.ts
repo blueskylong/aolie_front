@@ -21,7 +21,6 @@ import {MenuInfo} from "../sysfunc/menu/dto/MenuInfo";
 import {MenuFunction} from "../blockui/MenuFunction";
 import {MenuButtonDto} from "../sysfunc/menu/dto/MenuButtonDto";
 import {DmConstants} from "../datamodel/DmConstants";
-import {EndErrorLine} from "tslint/lib/verify/lines";
 
 @MenuFunc()
 export default class BlockDesign<T extends MenuInfo> extends MenuFunction<T> {

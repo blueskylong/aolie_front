@@ -8,6 +8,7 @@ import {MenuInfo} from "../sysfunc/menu/dto/MenuInfo";
 import {MenuFunction} from "./MenuFunction";
 import {Alert} from "../uidesign/view/JQueryComponent/Alert";
 import {ManagedUITools} from "./managedView/ManagedUITools";
+import {AutoManagedUI} from "./managedView/AutoManagedUI";
 
 /**
  * 设计出来的自动管理的功能
@@ -44,16 +45,23 @@ export class ManagedFunc<T extends MenuInfo> extends MenuFunction<T> {
         this.$element.append(this.page.getViewUI());
         this.page.addReadyListener((source) => {
             this.managedUiCenter.registerManagedUI(this.page.getSubManagedUI());
-
             this.fireReadyEvent();
         });
         this.isValid = true;
-
-
     }
 
     private distributeButtons() {
         this.managedUiCenter.distributeButtons(this.properties.getLstBtns());
+    }
+
+    /**
+     * 根据编码查询页面元素
+     * @param controlCode
+     */
+    findSubUI(controlCode: string): AutoManagedUI {
+        if (this.page) {
+            return this.page.findSubUI(controlCode);
+        }
     }
 
     getButton(): Array<MenuButtonDto> {

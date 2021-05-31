@@ -3,7 +3,7 @@
  * 表单只响应本级数据源的变化
  */
 import {Table} from "../table/Table";
-import {AutoManagedUI, IManageCenter} from "./AutoManagedUI";
+import {AutoManagedUI, EventInterceptor, IEventHandler, IManageCenter} from "./AutoManagedUI";
 import {StringMap} from "../../common/StringMap";
 import {Column} from "../../datamodel/DmRuntime/Column";
 import {Constants} from "../../common/Constants";
@@ -18,8 +18,10 @@ import {UiService} from "../service/UiService";
 import {SchemaFactory} from "../../datamodel/SchemaFactory";
 import {HandleResult} from "../../common/HandleResult";
 import {GeneralEventListener} from "../event/GeneralEventListener";
-import ClickEvent = JQuery.ClickEvent;
 import {Alert} from "../../uidesign/view/JQueryComponent/Alert";
+import ClickEvent = JQuery.ClickEvent;
+import ColumnModel = FreeJqGrid.ColumnModel;
+import {BlockViewer} from "../uiruntime/BlockViewer";
 
 
 export class ManagedTable extends Table implements AutoManagedUI {
@@ -27,16 +29,36 @@ export class ManagedTable extends Table implements AutoManagedUI {
     protected refCols = new StringMap<Array<Column>>();
     protected manageCenter: IManageCenter;
     protected pageDetail: PageDetailDto;
-
     protected extFilter = {};
     protected extFilterTemp = {};
     private lstUseBtn = new Array<MenuButtonDto>();
     private lstToolBtn = new Array<MenuButtonDto>();
+    /**
+     * 额外按钮事件处理插件
+     */
+    private static mapEventHandler = new StringMap<IEventHandler>();
+    /**
+     * 额外表格完成时执行机会
+     */
+    private static lstGlobalReadyListener: Array<(table: ManagedTable) => void> = [];
+    /**
+     *额外列处理
+     */
+    private static lstExtColProvider: Array<(blockInfo: BlockViewer) => Array<ColumnModel>> = [];
+    protected mapInterceptor: StringMap<Array<EventInterceptor>> = new StringMap<Array<EventInterceptor>>();
+
+    private firstReady = false;
 
     static getManagedInstance(renderPro: TableRenderProvider, pageDetail: PageDetailDto) {
         let table = new ManagedTable(renderPro);
         table.pageDetail = pageDetail;
         table.addReadyListener(() => {
+            if (!table.firstReady) {
+                table.firstReady = true;
+                for (let callback of ManagedTable.lstGlobalReadyListener) {
+                    callback(table);
+                }
+            }
             if (table.getPageDetail() && table.getPageDetail().loadOnshow) {
                 table.reload();
             }
@@ -49,7 +71,30 @@ export class ManagedTable extends Table implements AutoManagedUI {
                     }
                     table.manageCenter.dsSelectChanged(table, table.dsIds[0], ManagedUITools.getDsKeyValue(table.dsIds[0], row), row);
                 }
-            })
+            });
+            table.addDblClickLister({
+                handleEvent: (eventType: string, data: any, source: any, extObject?: any) => {
+                    if (!table.enabled) {
+                        return;
+                    }
+                    if (table.hasBtn(Constants.DsOperatorType.edit)) {
+                        if (!table.doPreButtonClick(Constants.DsOperatorType.edit, data)) {
+                            return;
+                        }
+                        table.doView(true, data);
+                        return;
+                    }
+                    if (table.hasBtn(Constants.DsOperatorType.view)) {
+                        if (!table.doPreButtonClick(Constants.DsOperatorType.view, data)) {
+                            return;
+                        }
+                        table.doView(false, data);
+                        return;
+                    }
+
+                }
+            });
+
         });
         return table;
     }
@@ -70,25 +115,6 @@ export class ManagedTable extends Table implements AutoManagedUI {
             row[field] = value;
             this.setRowData(rowId, row);
         }
-    }
-
-    onUiReady() {
-        this.addDblClickLister({
-            handleEvent: (eventType: string, data: any, source: any, extObject?: any) => {
-                if (!this.enabled) {
-                    return;
-                }
-                if (this.hasBtn(Constants.TableOperatorType.edit)) {
-                    this.doView(true, data);
-                    return;
-                }
-                if (this.hasBtn(Constants.TableOperatorType.view)) {
-                    this.doView(false, data);
-                    return;
-                }
-
-            }
-        });
     }
 
 
@@ -117,6 +143,17 @@ export class ManagedTable extends Table implements AutoManagedUI {
                 this.reload();
             })
         }
+    }
+
+    protected getExtColModel(): Array<FreeJqGrid.ColumnModel> {
+        let extCols = new Array<ColumnModel>();
+        if (ManagedTable.lstExtColProvider.length > 0) {
+            let cols = ManagedTable.findExtCol(this.properties.getBlockInfo());
+            if (cols) {
+                extCols.push(...cols);
+            }
+        }
+        return extCols;
     }
 
     dsSelectChanged(source: any, tableId, mapKeyAndValue, row?) {
@@ -218,15 +255,21 @@ export class ManagedTable extends Table implements AutoManagedUI {
         //这里可以做得更好点,在表格的按钮区显示"增加"这一类的统一按钮
         for (let btn of btns) {
             //这里是控件要求
-            if (btn.tableOpertype === Constants.TableOperatorType.delete
-                || btn.tableOpertype === Constants.TableOperatorType.edit
-                || (btn.tableOpertype !== Constants.TableOperatorType.add && !btn.forOne)) {
+            if (btn.tableOpertype === Constants.DsOperatorType.delete
+                || btn.tableOpertype === Constants.DsOperatorType.edit
+                || btn.tableOpertype === Constants.DsOperatorType.custom1
+                || btn.tableOpertype === Constants.DsOperatorType.custom2
+                || btn.tableOpertype === Constants.DsOperatorType.custom3
+                || btn.tableOpertype === Constants.DsOperatorType.custom4
+                || ManagedTable.mapEventHandler.has(btn.tableOpertype)) {
                 btn.isUsed = true;
                 this.lstUseBtn.push(btn);
-            } else if (btn.tableOpertype === Constants.TableOperatorType.add ||
+            } else if (btn.tableOpertype === Constants.DsOperatorType.add ||
                 btn.forOne) {
                 btn.isUsed = true;
                 this.lstToolBtn.push(btn);
+            } else if (ManagedTable.mapEventHandler.has(btn.tableOpertype)) {
+
             }
         }
         if (this.lstUseBtn.length > 0) {
@@ -265,7 +308,7 @@ export class ManagedTable extends Table implements AutoManagedUI {
                 dsId: this.dsIds[0],
                 initValue: this.extFilter,
                 title: "增加",
-                operType: Constants.TableOperatorType.add,
+                operType: Constants.DsOperatorType.add,
                 callback: () => {
                     this.manageCenter.dataChanged(this, this.dsIds[0],
                         null, Constants.TableDataChangedType.added);
@@ -300,7 +343,7 @@ export class ManagedTable extends Table implements AutoManagedUI {
                 dsId: this.dsIds[0],
                 initValue: key,
                 title: canEdit ? "修改" : "查看",
-                operType: canEdit ? Constants.TableOperatorType.edit : Constants.TableOperatorType.view,
+                operType: canEdit ? Constants.DsOperatorType.edit : Constants.DsOperatorType.view,
                 callback: () => {
                     let obj = {};
                     obj[this.getKeyField()] = this.getKeyValue(data);
@@ -314,16 +357,52 @@ export class ManagedTable extends Table implements AutoManagedUI {
     }
 
     protected componentButtonClicked(event: ClickEvent, menuBtnDto: MenuButtonDto, data) {
+        if (!this.doPreButtonClick(menuBtnDto.tableOpertype, data)) {
+            return;
+        }
+        let operType = menuBtnDto.tableOpertype;
+        //如果存在扩展处理程序的,优先执行
+        if (ManagedTable.mapEventHandler.has(operType)) {
+            ManagedTable.mapEventHandler.get(operType)
+                .doHandle(operType, this.dsIds[0], data, this, menuBtnDto);
+            return;
+        }
         if (!this.enabled) {
             return;
         }
-        if (menuBtnDto.tableOpertype === Constants.TableOperatorType.add) {
+        if (operType === Constants.DsOperatorType.add) {
             this.doAdd();
-        } else if (menuBtnDto.tableOpertype === Constants.TableOperatorType.delete) {
+        } else if (operType === Constants.DsOperatorType.delete) {
             this.doDelete(data);
-        } else if (menuBtnDto.tableOpertype === Constants.TableOperatorType.edit ||
-            menuBtnDto.tableOpertype === Constants.TableOperatorType.view) {
-            this.doView(menuBtnDto.tableOpertype === Constants.TableOperatorType.edit, data);
+        } else if (operType === Constants.DsOperatorType.edit ||
+            operType === Constants.DsOperatorType.view) {
+            this.doView(operType === Constants.DsOperatorType.edit, data);
+        }
+
+        //后监听
+        this.doAfterButtonClick(operType, data);
+
+
+    }
+
+    private doPreButtonClick(operType, data): boolean {
+        let lstInter = this.mapInterceptor.get(operType + "");
+        if (lstInter) {
+            for (let inter of lstInter) {
+                if (inter.beforeHandle && !inter.beforeHandle(operType + "", this.dsIds[0], data, this)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private doAfterButtonClick(operType, data): void {
+        let lstInter = this.mapInterceptor.get(operType + "");
+        if (lstInter) {
+            for (let inter of lstInter) {
+                inter.afterHandle && inter.afterHandle(operType + "", this.dsIds[0], data, this);
+            }
         }
     }
 
@@ -341,4 +420,50 @@ export class ManagedTable extends Table implements AutoManagedUI {
     getUiDataNum(): number {
         return Constants.UIDataNum.multi;
     }
+
+    /**
+     * 增加事件拦截器
+     * @param operType
+     * @param interceptor
+     */
+    addEventInterceptor(operType: number | string, interceptor: EventInterceptor) {
+        let lstInter = this.mapInterceptor.get(operType + "");
+        if (!lstInter) {
+            lstInter = new Array<EventInterceptor>();
+            this.mapInterceptor.set(operType + "", lstInter);
+        }
+        lstInter.push(interceptor);
+    }
+
+    /**
+     * 增加类级别的扩展处理程序
+     * @param operType
+     * @param eventHandler
+     */
+    static addClassEventHandler(operType: number | string, eventHandler: IEventHandler) {
+        ManagedTable.mapEventHandler.set(operType + "", eventHandler);
+    }
+
+    static addGlobalReadyListener(callback: (table: ManagedTable) => void) {
+        ManagedTable.lstGlobalReadyListener.push(callback);
+    }
+
+    static addExtColProvider(callback: (blockInfo: BlockViewer) => Array<ColumnModel>) {
+        ManagedTable.lstExtColProvider.push(callback);
+    }
+
+    private static findExtCol(blockInfo: BlockViewer): Array<ColumnModel> {
+        if (ManagedTable.lstExtColProvider.length == 0) {
+            return null;
+        }
+        let result = new Array<ColumnModel>();
+        for (let func of ManagedTable.lstExtColProvider) {
+            let cols = func(blockInfo);
+            if (cols) {
+                result.push(...cols);
+            }
+        }
+        return result;
+    }
+
 }

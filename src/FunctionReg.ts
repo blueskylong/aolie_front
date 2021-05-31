@@ -19,9 +19,11 @@ import "./sysfunc/right/RoleToResource"
 import "./sysfunc/right/RightRelation"
 
 import "./sysfunc/right/RightRelationFunc";
+import "./workflow/deploy/DeployUI";
 
 
 export class FunctionReg {
+
 }
 
 new FunctionReg();

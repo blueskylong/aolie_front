@@ -15,6 +15,9 @@ import {ReferenceTree} from "../../blockui/JsTree/ReferenceTree";
 import PageUI from "../../blockui/PageUI";
 import {ManagedCustomPanelContainer} from "../../blockui/managedView/ManagedCustomPanelContainer";
 
+/**
+ * 设计器中放在BORDERLAYOUT 容器中的面板
+ */
 export class DesignBox extends BaseUI<DesignBoxInfo> {
     private pageDetailDto: PageDetailDto;
 

@@ -2,6 +2,9 @@ import {BlockViewDto} from "../../uidesign/dto/BlockViewDto";
 import {Component} from "./Component";
 import {PopulateBean} from "../../decorator/decorator";
 import {CommonUtils} from "../../common/CommonUtils";
+import {SchemaFactory} from "../../datamodel/SchemaFactory";
+import {StringMap} from "../../common/StringMap";
+import {TableInfo} from "../../datamodel/DmRuntime/TableInfo";
 
 export class BlockViewer {
 
@@ -46,5 +49,26 @@ export class BlockViewer {
             }
         }
         return null;
+    }
+
+    /**
+     * 查询视图所包含的表信息
+     */
+    findTables(): Array<TableInfo> {
+        if (!this.lstComponent) {
+            return null;
+        }
+        let mapAlready = new StringMap();
+        let tableId;
+        let tables = new Array<TableInfo>();
+        for (let com of this.lstComponent) {
+            tableId = com.column.getColumnDto().tableId;
+            if (mapAlready.has(tableId + "")) {
+                continue;
+            }
+            mapAlready.set(tableId + "", null);
+            tables.push(SchemaFactory.getTableByTableId(tableId, com.column.getColumnDto().versionCode));
+        }
+        return tables;
     }
 }

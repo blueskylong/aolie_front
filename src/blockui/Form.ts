@@ -30,6 +30,7 @@ export class Form extends BaseComponent<BlockViewDto> {
      */
     protected subComponents: StringMap<BaseComponent<Component>> = new StringMap<BaseComponent<Component>>();
     protected lstComponent: Array<Component>;
+    private lstComUI: Array<BaseComponent<Component>>;
     protected values: StringMap<object>;
 
     protected _blockViewId: number;
@@ -55,6 +56,7 @@ export class Form extends BaseComponent<BlockViewDto> {
      */
     private toolbarHasPosition = false;
     protected formulaCalculator: FormulaCalculator;
+
 
     constructor(dto: BlockViewDto) {
         super(dto);
@@ -164,6 +166,7 @@ export class Form extends BaseComponent<BlockViewDto> {
         }
         this.formulaCalculator = FormulaCalculator.getInstance(this.viewer);
         this.lstComponent = this.viewer.getLstComponent();
+        this.lstComUI = new Array<BaseComponent<any>>();
         if (!this.lstComponent || this.lstComponent.length == 0) {
             this.lstComponent = [];
             return;
@@ -196,6 +199,36 @@ export class Form extends BaseComponent<BlockViewDto> {
         return this.$formBody.valid();
     }
 
+    /**
+     * 取得指定的子控件
+     * @param colId
+     */
+    public getComponentById(colId) {
+        if (this.lstComUI) {
+            for (let baseUi of this.lstComUI) {
+                if (baseUi.getColumnId() == colId) {
+                    return baseUi;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 取得指定的子控件
+     * @param colId
+     */
+    public getComponentByName(colId) {
+        if (this.lstComUI) {
+            for (let baseUi of this.lstComUI) {
+                if (baseUi.getFieldName() == colId) {
+                    return baseUi;
+                }
+            }
+        }
+        return null;
+    }
+
     private updateSize() {
         if (this.properties.colSpan) {
             if (this.properties.colSpan <= 12) {
@@ -209,10 +242,14 @@ export class Form extends BaseComponent<BlockViewDto> {
         if (this.properties.rowSpan) {
             this.$element.css("height", this.properties.rowSpan);
         }
+        //计算一下body的大小
+        if (this.properties.layoutType == Constants.PositionLayoutType.absoluteLayout) {
+            this.getFormBody().css("height", "100%")
+                .css("overflow", "auto");
+        }
     }
 
     protected onUiDataReady() {
-
         this.fireReadyEvent();
     }
 
@@ -291,6 +328,7 @@ export class Form extends BaseComponent<BlockViewDto> {
      */
     private createSubComponents(parent: HTMLElement, node: TreeNode<Component>) {
         let component = this.generator.generateComponent(node.data.componentDto.dispType, node.data, parent, this);
+        this.lstComUI.push(component);
         $(parent).append(component.getViewUI());
         this.subComponents.set(node.data.column.getColumnDto().fieldName, component);
         if (node.children && node.children.length > 0) {
@@ -512,8 +550,6 @@ export class Form extends BaseComponent<BlockViewDto> {
         let comp = new Component();
         comp.setColumn(column);
         comp.setComponentDto(dto);
-
-
         return comp;
     }
 

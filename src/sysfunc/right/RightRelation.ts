@@ -218,7 +218,7 @@ export class RightRelation<T extends PageDetailDto> extends AbstractManagedCusto
         if (source === this) {
             return;
         }
-        if (state === Constants.TableOperatorType.edit) {
+        if (state === Constants.DsOperatorType.edit) {
             this.doRefresh();
             this.setEditable(false);
             this.treeFrom.setEditable(false);
@@ -228,20 +228,20 @@ export class RightRelation<T extends PageDetailDto> extends AbstractManagedCusto
     }
 
     protected componentButtonClicked(event: JQuery.ClickEvent<any, any, any, any>, menuBtnDto: MenuButtonDto, data) {
-        if (menuBtnDto.tableOpertype === Constants.TableOperatorType.cancel) {
+        if (menuBtnDto.tableOpertype === Constants.DsOperatorType.cancel) {
             if (this.editable) {
                 this.doRefresh();
             }
             this.setEditable(false);
             this.manageCenter.stateChange(this, this.getTableIds()[0], Constants.TableState.view);
-        } else if (menuBtnDto.tableOpertype === Constants.TableOperatorType.edit) {
+        } else if (menuBtnDto.tableOpertype === Constants.DsOperatorType.edit) {
             if (this.editable) {
                 return;
             }
             this.setEditable(true);
             this.manageCenter.stateChange(this, this.getTableIds()[0], Constants.TableState.edit);
-        } else if (menuBtnDto.tableOpertype === Constants.TableOperatorType.saveSingle
-            || menuBtnDto.tableOpertype === Constants.TableOperatorType.saveMulti) {
+        } else if (menuBtnDto.tableOpertype === Constants.DsOperatorType.saveSingle
+            || menuBtnDto.tableOpertype === Constants.DsOperatorType.saveMulti) {
             if (!this.editable) {
                 Alert.showMessage("没有需要保存的变化");
                 return;

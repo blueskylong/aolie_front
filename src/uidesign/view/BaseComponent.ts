@@ -7,7 +7,6 @@ import {StringMap} from "../../common/StringMap";
 import ClickEvent = JQuery.ClickEvent;
 
 
-
 export abstract class BaseComponent<T> extends BaseUI<T> {
     /**
      * 绝对位置布局
@@ -60,6 +59,13 @@ export abstract class BaseComponent<T> extends BaseUI<T> {
         }
         return null;
 
+    }
+
+    public getColumnId() {
+        if (this.properties["column"]) {
+            return (this.properties as any).column.columnDto.columnId;
+        }
+        return null;
     }
 
     protected fireValueChanged(field?: string, value?: any) {
@@ -146,6 +152,12 @@ export abstract class BaseComponent<T> extends BaseUI<T> {
         return true;
     }
 
+    /**
+     * 本地按钮事件处理
+     * @param event
+     * @param menuBtnDto
+     * @param data
+     */
     protected componentButtonClicked?(event: ClickEvent, menuBtnDto: MenuButtonDto, data);
 
 

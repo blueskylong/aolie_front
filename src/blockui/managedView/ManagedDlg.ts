@@ -46,17 +46,17 @@ export class ManagedDlg<T extends ManagedDialogInfo> extends Dialog<T> {
     }
 
     protected doOperation() {
-        if (this.properties.operType === Constants.TableOperatorType.add) {
+        if (this.properties.operType === Constants.DsOperatorType.add) {
             if (this.ui["doAdd"]) {
                 this.ui["doAdd"](this.properties.initValue);
             }
             this.setOkButtonText("保存");
-        } else if (this.properties.operType === Constants.TableOperatorType.view) {
+        } else if (this.properties.operType === Constants.DsOperatorType.view) {
             if (this.ui["doView"]) {
                 this.ui["doView"](null, this.properties.initValue);
             }
             this.setOkButtonVisible(false);
-        } else if (this.properties.operType === Constants.TableOperatorType.edit) {
+        } else if (this.properties.operType === Constants.DsOperatorType.edit) {
             if (this.ui["doEdit"]) {
                 this.ui["doEdit"](null, this.properties.initValue);
             }

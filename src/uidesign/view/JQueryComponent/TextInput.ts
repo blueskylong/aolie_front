@@ -113,7 +113,11 @@ export class TextInput<T extends Component> extends JQBaseComponent<T> {
         }
         //
         this.editor.on("change", (e) => {
-            this.fireValueChanged(this.getFieldName(), this.getValue());
+            //这里去掉文件选择器的变化事件,因为此控件,在提交时才算变化
+            if (!$(e.target).is("[type='file']")) {
+                this.fireValueChanged(this.getFieldName(), this.getValue());
+            }
+
         });
         if (this.properties.componentDto.titleSpan > 12) {//如果标题宽度大于12,则表示实际宽度,则剩下的空间给编辑器
             AutoFit.addAutoFitComponent(this.editor.get(0));

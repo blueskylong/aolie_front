@@ -8,6 +8,7 @@ import {Constants} from "../../common/Constants";
 import {ButtonInfo} from "../../uidesign/view/JQueryComponent/Toolbar";
 import {BaseComponent} from "../../uidesign/view/BaseComponent";
 import FormatterOptions = FreeJqGrid.FormatterOptions;
+import ColumnModel = FreeJqGrid.ColumnModel;
 
 
 export class Table extends BaseComponent<TableRenderProvider> {
@@ -90,6 +91,10 @@ export class Table extends BaseComponent<TableRenderProvider> {
         return this.isEditable;
     }
 
+    protected getExtColModel(): Array<ColumnModel> {
+        return null;
+    }
+
     public setEditable(editable) {
         this.isEditable = editable;
         this.properties.setEditable(editable);
@@ -97,8 +102,10 @@ export class Table extends BaseComponent<TableRenderProvider> {
         this.$element.trigger("reloadGrid");
     }
 
-    addColumn() {
-
+    addColumn(colModel: ColumnModel) {
+        let newColModel = this.$element.jqGrid("getGridParam", "colModel")
+            .concat(colModel);
+        this.$element.jqGrid("setGridParam", {colModel: newColModel}).trigger("reloadGrid");
     }
 
     public stopEdit() {
@@ -554,7 +561,10 @@ export class Table extends BaseComponent<TableRenderProvider> {
             },
             option
         );
-
+        let extCol = this.getExtColModel();
+        if (extCol && extCol.length > 0) {
+            param.colModel.push(...extCol);
+        }
         param = $.extend(true, param, this.properties);
         if (param.pager) {
             param.pager = "#" + this.getPagerId();
@@ -610,7 +620,7 @@ export class Table extends BaseComponent<TableRenderProvider> {
     }
 
     showOperatorCol() {
-        this.$element.showCol(Table.OPERATE_COL_ID);
+        this.$element.showCol(Table.OPERATE_COL_ID, {newGridWidth: 200});
     }
 
     /**

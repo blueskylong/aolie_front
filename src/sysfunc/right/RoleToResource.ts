@@ -155,13 +155,13 @@ export class RoleToResource<T extends PageDetailDto> extends AbstractManagedCust
 
     protected componentButtonClicked(event: JQuery.ClickEvent<any, any, any, any>, menuBtnDto: MenuButtonDto, data) {
         //编辑
-        if (menuBtnDto.tableOpertype === Constants.TableOperatorType.edit) {
+        if (menuBtnDto.tableOpertype === Constants.DsOperatorType.edit) {
             if (this.editable) {
                 return;
             }
             this.setEditable(true);
 
-        } else if (menuBtnDto.tableOpertype === Constants.TableOperatorType.cancel) {
+        } else if (menuBtnDto.tableOpertype === Constants.DsOperatorType.cancel) {
             if (!this.editable) {
                 return;
             }
@@ -169,8 +169,8 @@ export class RoleToResource<T extends PageDetailDto> extends AbstractManagedCust
             this.initSelection(this.lastRoleId);
             this.setEditable(false);
 
-        } else if (menuBtnDto.tableOpertype === Constants.TableOperatorType.saveMulti ||
-            menuBtnDto.tableOpertype === Constants.TableOperatorType.saveSingle) {
+        } else if (menuBtnDto.tableOpertype === Constants.DsOperatorType.saveMulti ||
+            menuBtnDto.tableOpertype === Constants.DsOperatorType.saveSingle) {
             if (!this.editable) {
                 return;
             }

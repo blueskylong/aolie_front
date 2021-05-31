@@ -223,7 +223,7 @@ export class ManagedTreeUI<T extends BlockViewDto> extends TreeUI<T> implements 
                 for (let i = 0; i < validBtns.length; i++) {
                     let btn = validBtns[i];
                     btn.isUsed = true;
-                    if (btn.tableOpertype === Constants.TableOperatorType.saveLevel) {
+                    if (btn.tableOpertype === Constants.DsOperatorType.saveLevel) {
                         this.getTree().setDraggable(true);
                         buttonInfos[i].isShow = (node) => {
                             return !node.data;
@@ -237,22 +237,22 @@ export class ManagedTreeUI<T extends BlockViewDto> extends TreeUI<T> implements 
     }
 
     protected getCanAcceptButtons() {
-        return [Constants.TableOperatorType.saveLevel,
-            Constants.TableOperatorType.delete,
-            Constants.TableOperatorType.add,
-            Constants.TableOperatorType.edit];
+        return [Constants.DsOperatorType.saveLevel,
+            Constants.DsOperatorType.delete,
+            Constants.DsOperatorType.add,
+            Constants.DsOperatorType.edit];
     }
 
     protected componentButtonClicked(event: ClickEvent, menuBtnDto: MenuButtonDto, data) {
         //这里只处理默认的几个操作
-        if (menuBtnDto.tableOpertype === Constants.TableOperatorType.delete) {
+        if (menuBtnDto.tableOpertype === Constants.DsOperatorType.delete) {
             this.doDelete(data);
             return;
-        } else if (menuBtnDto.tableOpertype === Constants.TableOperatorType.add) {
+        } else if (menuBtnDto.tableOpertype === Constants.DsOperatorType.add) {
             //保存,只会保存级次
             this.doAdd(menuBtnDto, data);
             return;
-        } else if (menuBtnDto.tableOpertype === Constants.TableOperatorType.saveLevel) {
+        } else if (menuBtnDto.tableOpertype === Constants.DsOperatorType.saveLevel) {
             this.doSaveLevel();
             return;
         }

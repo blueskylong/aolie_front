@@ -52,6 +52,11 @@ OrangeRed	橙红色	#FF4500	255,69,0
 .dm-form .form-body {
     padding-top: 15px;
     position: relative;
+    /*overflow: auto;*/
+}
+
+.file-drop-zone {
+    overflow: auto;
 }
 
 .dm-form.form-has-toolbar {
@@ -201,3 +206,11 @@ form label.error {
 }
 
 
+form .file-input .hide {
+    display: none;
+}
+
+form .file-container {
+    padding: 0;
+    border: 0;
+}

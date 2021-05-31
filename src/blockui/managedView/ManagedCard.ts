@@ -229,14 +229,14 @@ export class ManagedCard<T extends BlockViewDto> extends CardList<T> implements 
             let isUse = btn.isUsed;
             btn.isUsed = true;
             this.setSortable(true);
-            if (btn.tableOpertype === Constants.TableOperatorType.edit) {
+            if (btn.tableOpertype === Constants.DsOperatorType.edit) {
                 this.setEditable(true);
 
-            } else if (btn.tableOpertype === Constants.TableOperatorType.add) {
+            } else if (btn.tableOpertype === Constants.DsOperatorType.add) {
                 this.setShowAdd(true);
-            } else if (btn.tableOpertype === Constants.TableOperatorType.saveMulti) {
+            } else if (btn.tableOpertype === Constants.DsOperatorType.saveMulti) {
                 this.setShowSave(true);
-            } else if (btn.tableOpertype === Constants.TableOperatorType.delete) {
+            } else if (btn.tableOpertype === Constants.DsOperatorType.delete) {
                 this.setShowHead(true);
             } else {
                 btn.isUsed = isUse;
@@ -252,10 +252,10 @@ export class ManagedCard<T extends BlockViewDto> extends CardList<T> implements 
      * 取得可以处理的类型
      */
     protected getCanHandleButtonType() {
-        return [Constants.TableOperatorType.edit,
-            Constants.TableOperatorType.saveMulti,
-            Constants.TableOperatorType.add,
-            Constants.TableOperatorType.cancel];
+        return [Constants.DsOperatorType.edit,
+            Constants.DsOperatorType.saveMulti,
+            Constants.DsOperatorType.add,
+            Constants.DsOperatorType.cancel];
     }
 
     setValue(values: Array<any>) {

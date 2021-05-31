@@ -14,6 +14,7 @@ import BaseUI from "../../uidesign/view/BaseUI";
 import {ManagedRefTree} from "./ManagedRefTree";
 import {ManagedCard} from "./ManagedCard";
 import {ManagedCustomPanelContainer} from "./ManagedCustomPanelContainer";
+import {CommonUtils} from "../../common/CommonUtils";
 
 /**
  * 此表单只响应列表或树选中情况下的显示
@@ -32,6 +33,29 @@ export class ManagedPage<T extends PageUIInfo> extends PageUI<T> {
             }
         }
         return result;
+    }
+
+    /**
+     * 根据编码查询页面元素
+     * @param controlCode
+     */
+    findSubUI(controlCode: string): AutoManagedUI {
+        if (CommonUtils.isEmpty(controlCode)) {
+            return null;
+        }
+        for (let subComp of this.lstBaseUI) {
+            if (ManagedPage.isAutoManagedUI(subComp)) {
+                if (controlCode == (subComp as any).getPageDetail().uiCode) {
+                    return subComp as any;
+                }
+            } else if (subComp instanceof ManagedPage) {
+                let result = subComp.findSubUI(controlCode);
+                if (result) {
+                    return result;
+                }
+            }
+        }
+        return null;
     }
 
     static getManagedInstance(pageId, pageDetail: PageDetailDto, version?) {

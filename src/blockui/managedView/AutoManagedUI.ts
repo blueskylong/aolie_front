@@ -3,9 +3,6 @@
  */
 import {PageDetailDto} from "../../funcdesign/dto/PageDetailDto";
 import {MenuButtonDto} from "../../sysfunc/menu/dto/MenuButtonDto";
-import {ButtonInfo} from "../../uidesign/view/JQueryComponent/Toolbar";
-import exp = require("constants");
-import {Constants} from "../../common/Constants";
 
 export interface AutoManagedUI extends ManagedEventListener {
     /**
@@ -49,6 +46,38 @@ export interface AutoManagedUI extends ManagedEventListener {
      * 当视图被装配后的处理
      */
     afterComponentAssemble?(): void;
+
+    /**
+     * 增加事件拦截器
+     * @param operType
+     * @param interceptor
+     */
+    addEventInterceptor?(operType: number | string, interceptor: EventInterceptor);
+
+
+}
+
+/**
+ * 事件拦截器
+ */
+export interface EventInterceptor {
+    /**
+     * 执行默认处理程序前调用的方法,如果返回false ,则不继续执行
+     * @param operType  操作码 或者调用函数名
+     * @param dsId  数据表ID
+     * @param data  可能是行数据,也可能是多行数据
+     * @param ui  默认执行的主体控件
+     */
+    beforeHandle?(operType: number | string, dsId: number, data: object | Array<object>, ui: AutoManagedUI): boolean;
+
+    /**
+     *默认处理程序完成后调用
+     * @param operType
+     * @param dsId
+     * @param data
+     * @param ui
+     */
+    afterHandle?(operType: number | string, dsId: number, data: object | Array<object>, ui: AutoManagedUI): void;
 }
 
 /**
@@ -106,6 +135,24 @@ export interface ManagedEventListener {
      */
     btnClicked?(source: any, buttonInfo: MenuButtonDto, data): boolean;
 
+
+}
+
+/**
+ *扩展事件(按钮CLICK)处理器
+ */
+export interface IEventHandler {
+
+    /**
+     * 事件处理
+     *
+     * @param operType
+     * @param dsId
+     * @param data
+     * @param ui
+     */
+    doHandle(operType: number | string, dsId: number,
+             data: object | Array<object>, ui: AutoManagedUI, menuButtonDto: MenuButtonDto): void;
 
 }
 

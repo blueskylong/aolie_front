@@ -30,16 +30,16 @@ export class StringMap<V> {
         }
     }
 
-    get(key: string): V | undefined {
-        return this.obj[key as any] as any;
+    get(key: string | number): V | undefined {
+        return this.obj[key + ""] as any;
     }
 
     getObject() {
         return this.obj;
     }
 
-    has(key: string): boolean {
-        return this.obj.hasOwnProperty(key);
+    has(key: string | number): boolean {
+        return this.obj.hasOwnProperty(key + "");
     }
 
     getValues(): Array<V> {
@@ -54,8 +54,8 @@ export class StringMap<V> {
         return $.extend({}, this.obj);
     }
 
-    set(key: string, value: V): StringMap<V> {
-        this.obj[key] = value;
+    set(key: string | number, value: V): StringMap<V> {
+        this.obj[key + ""] = value;
         return this;
     }
 

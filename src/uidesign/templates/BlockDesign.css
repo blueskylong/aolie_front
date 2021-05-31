@@ -21,6 +21,9 @@
     width: 5px;
 }
 
+.design-panel.dm-form .form-body {
+    overflow: hidden;
+}
 
 .block-design .east-container {
     width: 20%;
@@ -115,5 +118,10 @@ th.selected {
 
 .design-panel .form-body {
     border: dashed darkgray 1px;
+}
+
+.block-design .js-tree{
+
+    height: calc(100% - 48px);
 }
 

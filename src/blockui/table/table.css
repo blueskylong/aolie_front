@@ -15,6 +15,9 @@
     height: 32px;
 }
 
+.ui-jqgrid .frozen-bdiv {
+    background-color: white;
+}
 
 .ui-jqgrid .selected {
     background-color: rgba(0, 198, 250, 0.4);

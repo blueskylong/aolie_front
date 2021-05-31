@@ -14,7 +14,8 @@ export class BootstrapValidator extends ValidatorCenter {
             };
             $.validator.addMethod("customRule", (value, element, params) => {
                 params["errInfo"] = null;
-                let err = this.validateField(params["fieldName"], value, form.getCurrentValue(), this.viewer);
+                let values = form.getCurrentValue();
+                let err = this.validateField(params["fieldName"], values[params["fieldName"]], form.getCurrentValue(), this.viewer);
                 if (err) {
                     params["errInfo"] = err;
                     return false;

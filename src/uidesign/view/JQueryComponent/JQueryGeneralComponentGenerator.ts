@@ -34,12 +34,27 @@ export class JQueryGeneralComponentGenerator implements IComponentGenerator {
      * @param parent
      * @param eventHandler
      */
-    public generateComponent(compType: string, dto: Component, parent: HTMLElement, eventHandler?: GeneralEventListener):
+    public generateComponent(compType: string, dto: Component, parent?: HTMLElement, eventHandler?: GeneralEventListener):
         BaseComponent<Component> {
         let param = new Array();
         param.push(dto);
         param.push(eventHandler);
         return BeanFactory.createBean(JQueryGeneralComponentGenerator.COMPONENT_TYPE[compType], param);
+    }
+
+    /**
+     * 创建控件
+     * @param compType
+     * @param dto
+     * @param parent
+     * @param eventHandler
+     */
+    public generateComponent2(dto: Component, parent?: HTMLElement, eventHandler?: GeneralEventListener):
+        BaseComponent<Component> {
+        let param = new Array();
+        param.push(dto);
+        param.push(eventHandler);
+        return BeanFactory.createBean(JQueryGeneralComponentGenerator.COMPONENT_TYPE[dto.getComponentDto().dispType], param);
     }
 
     /**

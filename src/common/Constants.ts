@@ -110,7 +110,7 @@ export class Constants {
     /**
      * 表或按钮操作类型
      */
-    static TableOperatorType = {
+    static DsOperatorType = {
         add: 1,//增加
         delete: 2,//删除
         edit: 3,//修改

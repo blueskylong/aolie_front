@@ -6,8 +6,6 @@ import {GeneralEventListener} from "../../../blockui/event/GeneralEventListener"
 export abstract class JQBaseComponent<T extends Component> extends BaseComponent<T> {
 
 
-
-
     public constructor(dto: T, eventHandler?: GeneralEventListener) {
         super(dto);
         this.addValueChangeListener(eventHandler);
@@ -33,10 +31,6 @@ export abstract class JQBaseComponent<T extends Component> extends BaseComponent
         return this.editor;
     }
 
-
-    public getColumnId(): number {
-        return this.properties['columnId'];
-    }
 
     setEditable(editable: boolean) {
         this.editable = editable;

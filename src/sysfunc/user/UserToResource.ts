@@ -115,12 +115,12 @@ export class UserToResource<T extends PageDetailDto> extends BaseComponent<T> im
     }
 
     protected componentButtonClicked(event: JQuery.ClickEvent<any, any, any, any>, menuBtnDto: MenuButtonDto, data) {
-        if (menuBtnDto.tableOpertype == Constants.TableOperatorType.saveSingle
-            || menuBtnDto.tableOpertype == Constants.TableOperatorType.saveMulti) {
+        if (menuBtnDto.tableOpertype == Constants.DsOperatorType.saveSingle
+            || menuBtnDto.tableOpertype == Constants.DsOperatorType.saveMulti) {
             this.doSave();
-        } else if (menuBtnDto.tableOpertype == Constants.TableOperatorType.edit) {
+        } else if (menuBtnDto.tableOpertype == Constants.DsOperatorType.edit) {
             this.doEdit()
-        } else if (menuBtnDto.tableOpertype == Constants.TableOperatorType.cancel) {
+        } else if (menuBtnDto.tableOpertype == Constants.DsOperatorType.cancel) {
             this.doCancel();
         }
     }

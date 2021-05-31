@@ -178,5 +178,4 @@ export class UiService {
         CommonUtils.handleResponse(NetRequest.axios.post("/dmdata/findTableRows/" + dsId, filter
         ), callback);
     }
-
 }

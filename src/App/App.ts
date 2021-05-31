@@ -7,6 +7,7 @@ import BaseUI from "../uidesign/view/BaseUI";
 import {Login} from "./login/Login";
 import {GlobalParams} from "../common/GlobalParams";
 import {LoginService} from "./login/service/LoginService";
+import {ApplicationEventCenter} from "./ApplicationEventCenter";
 
 export class App {
     //设置超时时间： 20分钟
@@ -124,6 +125,7 @@ export class App {
     protected createLoginForm(menuId?: number) {
         return new Login({
             menuId: menuId, afterLogin: (menuId?) => {
+                ApplicationEventCenter.fireEvent(ApplicationEventCenter.LOGIN_SUCCESS);
                 this.showMainFrame(menuId);
             }
         });
@@ -158,6 +160,7 @@ export class App {
         if (GlobalParams.isLogin()) {
             GlobalParams.logout();
             LoginService.logout();
+            ApplicationEventCenter.fireEvent(ApplicationEventCenter.LOGOUT);
             this.showLogin();
         }
     }
