@@ -164,7 +164,9 @@ export class Form extends BaseComponent<BlockViewDto> {
         if (!this.viewer) {
             this.viewer = await UiService.getSchemaViewer(this.blockViewId) as any;
         }
-        this.formulaCalculator = FormulaCalculator.getInstance(this.viewer);
+        if (!this.isLocal) {
+            this.formulaCalculator = FormulaCalculator.getInstance(this.viewer);
+        }
         this.lstComponent = this.viewer.getLstComponent();
         this.lstComUI = new Array<BaseComponent<any>>();
         if (!this.lstComponent || this.lstComponent.length == 0) {
@@ -190,8 +192,10 @@ export class Form extends BaseComponent<BlockViewDto> {
     }
 
     private initValidator() {
-        let validator = new BootstrapValidator(this.viewer);
-        validator.bindForm(this);
+        if (!this.isLocal) {
+            let validator = new BootstrapValidator(this.viewer);
+            validator.bindForm(this);
+        }
     }
 
 
@@ -486,6 +490,9 @@ export class Form extends BaseComponent<BlockViewDto> {
     }
 
     private calcFormula(fieldWhoChanged: string) {
+        if (!this.formulaCalculator) {
+            return;
+        }
         let data = this.getValue();
         let changedValue = this.formulaCalculator.fieldValueChanged(this.viewer.findFieldIdByName(fieldWhoChanged),
             data);

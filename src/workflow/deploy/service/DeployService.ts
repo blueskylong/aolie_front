@@ -24,10 +24,18 @@ export class DeployService {
             });
     };
 
-    static findTable2FlowByVersion(callback:(data:Array<WfTable2flowDto>)=>void){
+    static findTable2FlowByVersion(callback: (data: Array<WfTable2flowDto>) => void) {
         CommonUtils.handleResponse(
             NetRequest.axios.get(this.URL_ROOT + "/findTable2FlowByVersion"), (result) => {
                 callback(BeanFactory.populateBeans(WfTable2flowDto, result.data));
+            });
+    }
+
+    static commit(dsId, bussId, row, callback: (data) => void) {
+        CommonUtils.handleResponse(
+            NetRequest.axios.post(this.URL_ROOT + "/commit/" + dsId + "/" + bussId, row),
+            (result) => {
+                callback(result.data);
             });
     }
 }

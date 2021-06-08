@@ -3,26 +3,32 @@ import {AutoManagedUI, IEventHandler} from "../blockui/managedView/AutoManagedUI
 import {Alert} from "../uidesign/view/JQueryComponent/Alert";
 import {MenuButtonDto} from "../sysfunc/menu/dto/MenuButtonDto";
 import {BlockViewer} from "../blockui/uiruntime/BlockViewer";
-import {CacheUtils} from "../common/CacheUtils";
 import {StringMap} from "../common/StringMap";
 import {WfTable2flowDto} from "./deploy/dto/WfTable2flowDto";
-import {WfWorkflowDto} from "./deploy/dto/WfWorkflowDto";
 import {WfNode} from "./deploy/dto/WfNode";
 import {DeployService} from "./deploy/service/DeployService";
 import {FlowInfo} from "./deploy/dto/FlowInfo";
 import {ApplicationEventCenter} from "../App/ApplicationEventCenter";
+import {SchemaMainInfo} from "../dmdesign/view/SchemaMainInfo";
+import {SchemaFactory} from "../datamodel/SchemaFactory";
+import {CommonUtils} from "../common/CommonUtils";
 
 export class WfPlugs {
+    static added = false;
     /**
      * 流程虚拟列
      */
-    static PLUG_FIELD_NAME = "PLUG_COLUMN_WF_STATE";
+    static PLUG_FIELD_NAME = "PLUG_COLUMN_WF_STATE__VCOL";
     /**
      * 操作事件
      */
     static EVENT_COMMIT = 1101;
 
     static EVENT_BACK = 1102;
+    /**
+     * 查看流程图片
+     */
+    static EVENT_SHOW_IMAGE = 1103;
     /**
      * tableId 对就表流程信息
      */
@@ -33,18 +39,28 @@ export class WfPlugs {
     private static mapFlowInfo = new StringMap<FlowInfo>();
 
     static addPlugs() {
+        if (WfPlugs.added) {
+            return;
+        }
+        WfPlugs.added = true;
         WfPlugs.initFlowInfo(() => {
             ManagedTable.addClassEventHandler(WfPlugs.EVENT_COMMIT, new WfCommitHandler());
             ManagedTable.addClassEventHandler(WfPlugs.EVENT_BACK, new WfBackHandler());
+            ManagedTable.addClassEventHandler(WfPlugs.EVENT_SHOW_IMAGE, new WfShowImageHandler());
             ManagedTable.addExtColProvider((blockInfo: BlockViewer) => {
                 let wfNodes = WfPlugs.findFlowNodes(blockInfo);
                 if (wfNodes) {
+                    let options = WfPlugs.makeSelections(wfNodes);
                     return [{
                         label: "流程状态",
                         width: 200,
+                        editable: true,
+                        formatter: "select",
                         name: WfPlugs.PLUG_FIELD_NAME,
-                        edittype: "select",
-                        editoptions: {"value": WfPlugs.makeSelections(wfNodes)}
+                        editoptions: {"value": options},
+                        search: true,
+                        stype: 'select',
+                        searchoptions: {"value": options}
                     }];
                 } else {
                     return null;
@@ -63,7 +79,7 @@ export class WfPlugs {
         lstNodes.forEach(el => {
             str += el.getActId() + ":" + el.getName() + ";";
         })
-        return str;
+        return str.slice(0, str.length - 1);
     }
 
     /**
@@ -118,7 +134,12 @@ export class WfPlugs {
 class WfCommitHandler implements IEventHandler {
     doHandle(operType: number | string, dsId: number, data: object | Array<object>,
              ui: AutoManagedUI, menuButtonDto: MenuButtonDto): void {
-        Alert.showMessage("提交");
+        let tableInfo = SchemaFactory.getTableByTableId(dsId);
+        let id = data[tableInfo.getKeyField()];
+        DeployService.commit(dsId, id, data, (result) => {
+            Alert.showMessage("提交成功");
+        });
+
     }
 }
 
@@ -129,9 +150,20 @@ class WfBackHandler implements IEventHandler {
     }
 }
 
+class WfShowImageHandler implements IEventHandler {
+    doHandle(operType: number | string, dsId: number, data: object | Array<object>,
+             ui: AutoManagedUI, menuButtonDto: MenuButtonDto): void {
+        Alert.showMessage("查看流程");
+    }
+}
+
 ApplicationEventCenter.addListener(ApplicationEventCenter.LOGIN_SUCCESS, {
     handleEvent(eventType: string, data: any, source: any, extObject?: any) {
-        WfPlugs.addPlugs();
+        CommonUtils.readyDo(() => {
+            return SchemaFactory.isLoadReady();
+        }, () => {
+            WfPlugs.addPlugs();
+        }, 100);
     }
 });
 

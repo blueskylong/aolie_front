@@ -14,6 +14,8 @@ import {Alert} from "../uidesign/view/JQueryComponent/Alert";
 export class SchemaFactory {
     static schemaId = 2;
 
+    private static isReady = false;
+
 
     /**
      * 方案缓存
@@ -38,7 +40,15 @@ export class SchemaFactory {
         return SchemaFactory.CACHE_SCHEMA.get(CommonUtils.genKey(schemaId, version));
     }
 
+    /**
+     * 是否加载完成
+     */
+    public static isLoadReady() {
+        return SchemaFactory.isReady;
+    }
+
     init(callback: Function) {
+        SchemaFactory.isReady = false;
         DmService.findSchemaIds((data) => {
             if (!Array.isArray(data)) {
                 Alert.showMessage("查询数据失败");
@@ -49,6 +59,7 @@ export class SchemaFactory {
                     SchemaFactory.initOneSchema(id, GlobalParams.getLoginVersion());
                 }
             }
+            SchemaFactory.isReady = true;
             if (callback) {
                 callback();
             }

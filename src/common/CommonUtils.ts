@@ -16,14 +16,25 @@ export class CommonUtils {
 
     static READY_TRY_TIMES = 10;
 
+    static configs = {};
+
     static genKey(id: number, version: string) {
         return id + "_" + version;
+    }
+
+    public static getConfigParam(paramName: string) {
+        return CommonUtils.configs[paramName];
+    }
+
+    public static setConfigs(configs) {
+        CommonUtils.configs = configs;
     }
 
     static isEmpty(obj: any) {
         let str = typeof obj;
         return str === "undefined" || obj == null || "" === obj;
     }
+
 
     /**
      * 取得临时序号
@@ -74,8 +85,8 @@ export class CommonUtils {
         return "http://localhost:8080/" + (subUrl.indexOf("/") == 0 ? subUrl.substr(1) : subUrl);
     }
 
-    static readyDo(isReady: () => boolean, callback: () => void) {
-        let times = CommonUtils.READY_TRY_TIMES;
+    static readyDo(isReady: () => boolean, callback: () => void, tryTimes?) {
+        let times = tryTimes ? tryTimes : CommonUtils.READY_TRY_TIMES;
         let i = setInterval(() => {
             if (times < 0) {
                 clearInterval(i);
@@ -212,6 +223,10 @@ export class CommonUtils {
             return true;
         else
             return false;
+    }
+
+    static getDialogFullSize() {
+        return [document.body.clientWidth, document.body.clientHeight - 210];
     }
 
     /**

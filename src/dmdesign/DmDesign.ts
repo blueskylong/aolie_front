@@ -26,7 +26,7 @@ import {FormulaInfo} from "../blockui/uiruntime/FormulaInfo";
 import {FilterCardList} from "./view/FilterCardList";
 import {ColumnDto} from "../datamodel/dto/ColumnDto";
 
-@MenuFunc()
+@MenuFunc("DmDesign")
 export default class DmDesign<T extends MenuInfo> extends MenuFunction<T> {
     private ID_SCHEMA = "schema-component";
     private ID_TAP = "tap-component";

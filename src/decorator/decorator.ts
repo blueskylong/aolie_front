@@ -38,6 +38,7 @@ export class ApplicationContext {
     }
 
     public static getMenuFunc(name: string) {
+        console.log("menuFuncs:" + JSON.stringify(ApplicationContext.menuFuncs));
         return ApplicationContext.menuFuncs[name];
     }
 
@@ -191,6 +192,7 @@ export function Service(name: string) {
 }
 
 export function MenuFunc(name?: string) {
+
     return (_constructor: Function) => {
         let funcName = name ? name : _constructor.name;
         //注册

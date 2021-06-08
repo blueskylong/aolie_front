@@ -30,7 +30,7 @@ export class Login<T extends LoginInfo> extends BaseUI<T> {
                     if (result1.success) {
                         GlobalParams.setLoginUser(BeanFactory.populateBean(LoginUser, result1.data.principal));
                         if (this.properties.afterLogin) {
-                            this.properties.afterLogin(this.properties.menuId);
+                            this.properties.afterLogin(result1.data, this.properties.menuId);
                         }
                     }
 
@@ -55,5 +55,5 @@ export class Login<T extends LoginInfo> extends BaseUI<T> {
 interface LoginInfo {
     //登录后的功能号
     menuId: number
-    afterLogin: (menuId?) => void;
+    afterLogin: (data, menuId?) => void;
 }

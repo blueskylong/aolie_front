@@ -13,7 +13,7 @@ import {AutoManagedUI} from "./managedView/AutoManagedUI";
 /**
  * 设计出来的自动管理的功能
  */
-@MenuFunc()
+@MenuFunc("ManagedFunc")
 export class ManagedFunc<T extends MenuInfo> extends MenuFunction<T> {
 
     private managedUiCenter: ManagedUiCenter;

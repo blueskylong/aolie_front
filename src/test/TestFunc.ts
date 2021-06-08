@@ -7,7 +7,7 @@ import {Constants} from "../common/Constants";
 import "./testFunc.css";
 import {MenuInfo} from "../sysfunc/menu/dto/MenuInfo";
 
-@MenuFunc()
+@MenuFunc("TestFunc")
 export default class TestFunc<T extends MenuInfo> extends MenuFunction<T> {
     private borderLayout: BorderLayout<BorderLayoutProperty>;
 

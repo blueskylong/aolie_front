@@ -8,7 +8,7 @@ import {MenuFunc} from "../../decorator/decorator";
  * 关系维护功能,
  * 这里只为增加一个自定义的按钮事件
  */
-@MenuFunc()
+@MenuFunc("RightRelationFunc")
 export class RightRelationFunc extends ManagedFunc<any> {
     private graphDlg: Dialog<DialogInfo>;
     private graph: RightGraphPanel;

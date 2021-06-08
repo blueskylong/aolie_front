@@ -11,11 +11,13 @@ import './common.css';
 import {App} from "./App/App";
 
 import "./FunctionReg"
+import {CommonUtils} from "./common/CommonUtils";
 
 export * from "./uidesign/view/JQueryComponent"
 export * from "./datamodel/DmRuntime/formula/transelement"
 
 $.getJSON('./config.json', function (r) {
+    CommonUtils.setConfigs(r);
     NetRequest.axios = Axios.create({
         baseURL: r.baseURL,
         withCredentials: true

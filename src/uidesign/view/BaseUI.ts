@@ -25,12 +25,6 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
     private initTime = null;
 
 
-    constructor(properties: T) {
-        this.properties = properties;
-        this.hashCode = $.hashCode();
-        this.initTime = new Date().getTime();
-    }
-
     public addListener(type, listener: GeneralEventListener) {
         if (!type) {
             return;
@@ -43,6 +37,12 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
         if (generalEventListeners.indexOf(listener) == -1) {
             generalEventListeners.push(listener);
         }
+    }
+
+    constructor(properties: T) {
+        this.properties = properties;
+        this.hashCode = $.hashCode();
+        this.initTime = new Date().getTime();
     }
 
     public fireEvent(type: string, data?, source?, extObj?) {
@@ -283,7 +283,6 @@ class DomAssembleNotifier {
     }
 
     private static clearOutOfDateWaiter() {
-        console.log("----->remain:" + this.mapElement.getSize());
         if (this.mapElement.getSize() < 1) {
             clearInterval(this.task);
             this.task = null;

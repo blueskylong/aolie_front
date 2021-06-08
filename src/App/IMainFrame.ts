@@ -8,5 +8,11 @@ export interface IMainFrame {
 
     afterComponentAssemble(): void;
 
+    /**
+     * 刷新显示,重建菜单,重新打开功能
+     * @param menuId
+     */
+    refresh(menuId?): void;
+
     destroy(): void;
 }

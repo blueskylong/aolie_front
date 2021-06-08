@@ -5,7 +5,7 @@ import {SchemaFactory} from "../datamodel/SchemaFactory";
 import {FormulaParse} from "../datamodel/DmRuntime/formula/FormulaParse";
 
 
-@MenuFunc()
+@MenuFunc("TestFunc2")
 export default class TestFunc2 extends ManagedFunc<any> {
 
 }

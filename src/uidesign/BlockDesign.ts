@@ -22,7 +22,7 @@ import {MenuFunction} from "../blockui/MenuFunction";
 import {MenuButtonDto} from "../sysfunc/menu/dto/MenuButtonDto";
 import {DmConstants} from "../datamodel/DmConstants";
 
-@MenuFunc()
+@MenuFunc("BlockDesign")
 export default class BlockDesign<T extends MenuInfo> extends MenuFunction<T> {
     private schemaId = 2;
     private generator: IComponentGenerator = new JQueryGeneralComponentGenerator();

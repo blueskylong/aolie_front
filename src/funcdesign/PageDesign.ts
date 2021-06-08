@@ -22,7 +22,7 @@ import {MenuInfo} from "../sysfunc/menu/dto/MenuInfo";
 import {MenuButtonDto} from "../sysfunc/menu/dto/MenuButtonDto";
 import {DmConstants} from "../datamodel/DmConstants";
 
-@MenuFunc()
+@MenuFunc("PageDesign")
 export default class PageDesign<T extends MenuInfo> extends MenuFunction<T> {
 
     private pageTree: JsTree<JsTreeInfo>;

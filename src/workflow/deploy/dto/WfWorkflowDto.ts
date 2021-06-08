@@ -12,7 +12,7 @@ export class WfWorkflowDto extends BaseDto {
     private wfKey: string;
     private isStrict: number;
     private modelId: number;
-    private deployTime: Date;
+    private deployTime: String;
     private deployUser: string;
 
     public setWfId(wfId) {

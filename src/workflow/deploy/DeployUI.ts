@@ -8,8 +8,10 @@ import {MenuFunc} from "../../decorator/decorator";
 import {Dialog} from "../../blockui/Dialog";
 import {DeployService} from "./service/DeployService";
 import "../WfPlugs"
+import {EditorDlg} from "./dialogs/EditorDlg";
+import {CommonUtils} from "../../common/CommonUtils";
 
-@MenuFunc()
+@MenuFunc("DeployUI")
 export class DeployUI extends ManagedFunc<MenuInfo> {
     private static TABLE_UI_CODE = "UI_DEPLOY_TABLE";
     /**
@@ -32,12 +34,11 @@ export class DeployUI extends ManagedFunc<MenuInfo> {
         return {
             beforeHandle: (operType: number | string, dsId: number, data: object | Array<object>, ui: AutoManagedUI) => {
                 if (operType == Constants.DsOperatorType.custom1) {
-                    Alert.showMessage("这是编辑开始");
+
+                    new EditorDlg({title: "编辑流程"}).show(data['model_id'], CommonUtils.getDialogFullSize());
                 } else {
                     this.doDeploy(data);
-
                 }
-
                 return true;
             }
         }
@@ -47,6 +48,7 @@ export class DeployUI extends ManagedFunc<MenuInfo> {
         Dialog.showConfirm("确定要重新部署工作流吗?", () => {
             DeployService.deployWf(data['wf_id'], (data) => {
                 Alert.showMessage("部署完成 ")
+                this.table.reload();
             })
         })
     }

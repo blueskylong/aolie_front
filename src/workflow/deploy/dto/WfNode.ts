@@ -117,7 +117,7 @@ export class WfNode {
     }
 
     public getName() {
-        return name;
+        return this.name;
     }
 
     public setName(name) {

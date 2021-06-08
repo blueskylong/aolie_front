@@ -16,4 +16,5 @@ import "bootstrap-select/dist/js/bootstrap-select.min.js";
 import "bootstrap-select/dist/css/bootstrap-select.css";
 
 import "free-jqgrid";
+import "free-jqgrid/js/i18n/grid.locale-cn.js";
 import "free-jqgrid/dist/css/ui.jqgrid.min.css";

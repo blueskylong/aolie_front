@@ -1,17 +1,13 @@
-import {BlockViewDto} from "../../uidesign/dto/BlockViewDto";
 import {BlockViewer} from "../uiruntime/BlockViewer";
 import {Table} from "./Table";
-import ColumnModel = FreeJqGrid.ColumnModel;
-import {GlobalParams} from "../../common/GlobalParams";
 import {UiService} from "../service/UiService";
 import {TreeNode, TreeNodeFactory} from "../../common/TreeNode";
 import {CommonUtils} from "../../common/CommonUtils";
 import {Component} from "../uiruntime/Component";
-import FormatterOptions = FreeJqGrid.FormatterOptions;
-import {Alert} from "../../uidesign/view/JQueryComponent/Alert";
 import {Constants} from "../../common/Constants";
-import {StringMap} from "../../common/StringMap";
 import {ReferenceData} from "../../datamodel/dto/ReferenceData";
+import ColumnModel = FreeJqGrid.ColumnModel;
+import FormatterOptions = FreeJqGrid.FormatterOptions;
 
 /**
  * 表体渲染接口,这个针对jqTable.
@@ -281,7 +277,7 @@ export class ServerRenderProvider implements TableRenderProvider {
             index: com.column.getColumnDto().fieldName,
             width: com.componentDto.width ? com.componentDto.width : 200,
             search: true,
-            searchoptions: com.isNumberField() ? {sopt: ['eq', 'ne', 'le', 'lt', 'gt', 'ge']} : null,
+            searchoptions: this.getSearchEditorInfo(com),
             align: com.getTextAlign(),
             label: com.componentDto.title,
             id: com.componentDto.componentId,
@@ -296,10 +292,20 @@ export class ServerRenderProvider implements TableRenderProvider {
             options.formatter = "select";
             options.edittype = "select";
             new SelectionColumnFormatter(com.getColumn().getColumnDto().refId, options);
+        } else if (Constants.ComponentType.time == com.getComponentDto().dispType) {
+            options.formatter = "date";
+            options.edittype = "text";
+            options.formatoptions = {srcformat:'Y-m-d H:i:s',newformat:'Y-m-d H:i:s'}
         }
         return options;
+    }
 
-
+    private getSearchEditorInfo(com: Component) {
+        if (com.isNumberField()) {
+            return {sopt: ['eq', 'ne', 'le', 'lt', 'gt', 'ge']};
+        } else {
+            return null;
+        }
     }
 
 

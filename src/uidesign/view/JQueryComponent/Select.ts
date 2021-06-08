@@ -10,6 +10,7 @@ import {Column} from "../../../datamodel/DmRuntime/Column";
 import {FilterExpression} from "../../../datamodel/DmRuntime/formula/FilterExpression";
 import {RegComponent} from "../../../decorator/decorator";
 import {Constants} from "../../../common/Constants";
+
 @RegComponent(Constants.ComponentType.select)
 export class Select<T extends Component> extends TextInput<T> {
     private valueTitle: StringMap<string> = new StringMap<string>();
@@ -79,6 +80,10 @@ export class Select<T extends Component> extends TextInput<T> {
             editor.append("<option value='" + ref.id + "'>" + ref.name + "</option>");
         }
         editor.selectpicker("refresh");
+    }
+
+    public updateSelection() {
+        this.editor.selectpicker("refresh");
     }
 
     setValue(value: any, extendValue?) {
@@ -177,6 +182,7 @@ export class Select<T extends Component> extends TextInput<T> {
     addOption(id, title) {
         this.valueTitle.set(id, title);
         this.editor.append("<option value='" + id + "'>" + title + "</option>");
+        this.updateSelection();
     }
 
     protected createEditor(id: string) {

@@ -318,7 +318,8 @@ button.btn:hover {
     /*left: 0px;*/
     /*right: 0px;*/
     /*margin: auto;*/
-    border-top: 30px solid #1cffe1;
+    border-top: 30px solid #4b9cdb;
+    color: white;
     border-left: 15px solid transparent;
     border-right: 15px solid transparent;
     width: 500px;

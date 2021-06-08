@@ -33,7 +33,7 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
     private dropDownMenu: DropMenu<DropMenuInfo>;
 
 
-    private lastFunc: MenuFunction<any>;
+    private lastFunc: MenuFunction<MenuInfo>;
 
     protected createUI(): HTMLElement {
         let $ele = $(require("./templates/MainFrame.html"));
@@ -54,7 +54,11 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
     protected initSubControls() {
         this.initUserOperator();
         this.initMessages();
-        this.showMenu();
+        // this.initMenu();
+    }
+
+    public refresh(menuId?): void {
+        this.initMenu(menuId);
     }
 
     private initMessages() {
@@ -99,6 +103,12 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
             }
         });
         lstItem.push({
+            title: "切换角色", icons: "fa fa-sign-out", clickHandler: (event) => {
+                GlobalParams.getApp().showSelectRole(this.lastFunc ?
+                    this.lastFunc.getDtoInfo().getMenuDto().menuId : null);
+            }
+        });
+        lstItem.push({
             title: "退出登录", icons: "fa fa-sign-out", clickHandler: (event) => {
                 GlobalParams.logout();
                 GlobalParams.getApp().showLogin();
@@ -137,7 +147,11 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
     };
 
 
-    private showMenu() {
+    public initMenu(menuId?) {
+        if (this.menuBar) {
+            this.menuBar.destroy();
+            this.$element.find("#sidebar-menu").children().remove();
+        }
         MenuService.findUserMenu((data) => {
 
             let lstMenuDto: Array<MenuDto> = [];
@@ -146,6 +160,9 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
             }
             this.menuBar = new SidebarMenu(lstMenuDto);
             this.$element.find("#sidebar-menu").append(this.menuBar.getViewUI());
+
+            this.showFunc(menuId);
+
         });
 
     }
@@ -216,11 +233,11 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
             } else {
                 //查询后创建
                 MenuService.findMenuInfo(menuId, (data) => {
-                    if (!data) {
+                    if (!data.success) {
                         Alert.showMessage("查询菜单信息失败");
                         return;
                     }
-                    let menuInfo1 = BeanFactory.populateBean(MenuInfo, data);
+                    let menuInfo1 = BeanFactory.populateBean(MenuInfo, data.data);
                     CacheUtils.put(MainFrame.cacheType, menuId, menuInfo1);
                     this.createAndShowFunc(menuInfo1);
 
@@ -247,7 +264,6 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
             CommonUtils.hideMask();
             return;
         }
-
         let funcClazz = ApplicationContext.getMenuFunc(funcName);
         let baseUi = <MenuFunction<any>>BeanFactory.createBean(funcClazz, [menuInfo]);
         this.lastFunc = baseUi;

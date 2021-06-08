@@ -28,7 +28,6 @@ export default class ColumnView extends DmDesignBaseView<Column> implements Attr
             ColumnView.JSPLUMB.makeSource(this.element, ColumnView.SOURCE_PARAM);
             ColumnView.JSPLUMB.makeTarget(this.element, ColumnView.TARGET_PARAM);
             if (!ColumnView.isAddedContextMenu) {
-                console.log("----------------------> add column context");
                 $.contextMenu({
                     selector: '.column-body',
                     //因为这个菜单,只可以写一个类别,所以加载一次后,就不能再加载
