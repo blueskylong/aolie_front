@@ -19,12 +19,18 @@ export class RightRelationFunc extends ManagedFunc<any> {
         }
         this.graphDlg = new Dialog<DialogInfo>({
             title: "权限关系图",
-            height: 600, draggable: false
+            height: 800, draggable: false,
+            beforeClose: function () {
+                return true;
+            }
         });
         this.graphDlg.setSize(Dialog.SIZE.x_large);
+
         this.graph = new RightGraphPanel(GlobalParams.getLoginVersion());
         this.graphDlg.setBodyContent(this.graph.getViewUI());
         this.graphDlg.show(null, Dialog.SIZE.x_large);
+        this.graphDlg.setOkButtonVisible(false);
+
     }
 
     destroy(): boolean {

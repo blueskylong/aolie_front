@@ -41,6 +41,8 @@ export class DmDesignService {
     }
 
     static saveSchema(schema: Schema, callback?: (data: string) => void) {
+        console.log(schema);
+
         NetRequest.axios.post(DmDesignService.URL_ROOT + "/saveSchema", schema)
             .then((result) => {
                 if (callback) {

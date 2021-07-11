@@ -169,12 +169,16 @@ export class BorderLayoutProperty {
 
     static genDefaultFullProperty() {
         let layout = new BorderLayoutProperty();
-        layout.centerWidth = 0.4;
+
         layout.centerHeight = 0.6;
         layout.northHeight = 0.3;
+        layout.southHeight = 0.2;
+
+        layout.centerWidth = 0.4;
         layout.westWidth = 0.3;
         layout.eastWidth = 0.3;
-        layout.southHeight = 0.2;
+
         return layout;
     }
+
 }

@@ -18,8 +18,10 @@ import {Constants} from "../../common/Constants";
 import {MenuAndButton} from "../right/MenuAndButton";
 import {SchemaFactory} from "../../datamodel/SchemaFactory";
 import {DmConstants} from "../../datamodel/DmConstants";
+import {Dialog} from "../../blockui/Dialog";
+import {UiUtils} from "../../common/UiUtils";
 
-@CustomUi()
+@CustomUi("UserToResource")
 export class UserToResource<T extends PageDetailDto> extends BaseComponent<T> implements AutoManagedUI {
 
     /**
@@ -72,7 +74,7 @@ export class UserToResource<T extends PageDetailDto> extends BaseComponent<T> im
         if (!userId) {
             return;
         }
-        CommonUtils.showMask();
+        UiUtils.showMask();
 
     }
 
@@ -123,6 +125,21 @@ export class UserToResource<T extends PageDetailDto> extends BaseComponent<T> im
         } else if (menuBtnDto.tableOpertype == Constants.DsOperatorType.cancel) {
             this.doCancel();
         }
+    }
+
+    private doDisableUser(userId, userName, state) {
+        if (CommonUtils.isEmpty(state) || state == Constants.UserState.normal) {
+            Dialog.showConfirm("确定要禁用用户[" + userName + "]吗?", () => {
+                UserService.disableUser(userId, (result) => {
+                    if (result.success) {
+                        Alert.showMessage("禁用完成");
+                    }
+                })
+            });
+        } else {
+            Alert.showMessage("用户已禁用,不需要操作");
+        }
+
     }
 
     private doCancel() {
@@ -285,6 +302,12 @@ export class UserToResource<T extends PageDetailDto> extends BaseComponent<T> im
     }
 
     setValue(value: any, extendData?) {
+    }
+
+    reload(): void {
+        this.lstTree.forEach((tree, index) => {
+            tree.reload();
+        })
     }
 
     destroy(): boolean {

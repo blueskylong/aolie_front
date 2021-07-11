@@ -54,6 +54,8 @@ export interface AutoManagedUI extends ManagedEventListener {
      */
     addEventInterceptor?(operType: number | string, interceptor: EventInterceptor);
 
+    reload(): void;
+
 
 }
 

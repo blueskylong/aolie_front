@@ -106,6 +106,10 @@ export class Constants {
          * 保存时用于存放变化过的主键数据
          */
         CHANGE_KEYS_FEILD: "keys",
+        /**
+         * 插件列前缀
+         */
+        PLUG_FILTER_PREFIX: "PLUG_COLUMN_"
     };
     /**
      * 表或按钮操作类型
@@ -120,12 +124,22 @@ export class Constants {
         saveLevel: 7,//保存级次
         editMulti: 8,//修改多行
         cancel: 19,//取消
+        query: 30,//查询
+        refresh: 31,//刷新
+        export: 32,//导出
         custom1: 101,//自定义
         custom2: 111,//自定义
         custom3: 121,//自定义
         custom4: 131,//自定义
     };
 
+    static UserState = {
+        normal: 0,
+        disabled: -1,
+        locked: -2,
+        expired: -3,
+        credentialsExpired: -4
+    };
     /**
      * 表数据集状态变化
      */
@@ -160,6 +174,21 @@ export class Constants {
          */
         bootstrapLayout: 1,
         absoluteLayout: 2
+    }
+
+    static PlugStatus = {
+        /**
+         * 新的，还没有安装
+         */
+        NEW: 1,
+        /**
+         * 已过期
+         */
+        OLD: 2,
+        /**
+         * 已安装（正常使用状态）
+         */
+        INSTALLED: 3
     }
 
 }

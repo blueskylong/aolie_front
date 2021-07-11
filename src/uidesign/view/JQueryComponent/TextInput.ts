@@ -1,9 +1,9 @@
 import {JQBaseComponent} from "./JQBaseComponent";
-import {AutoFit} from "./AutoFit";
 import {Constants} from "../../../common/Constants";
 import {Component} from "../../../blockui/uiruntime/Component";
 import {CommonUtils} from "../../../common/CommonUtils";
 import {RegComponent} from "../../../decorator/decorator";
+import {UiUtils} from "../../../common/UiUtils";
 
 @RegComponent(Constants.ComponentType.text)
 export class TextInput<T extends Component> extends JQBaseComponent<T> {
@@ -57,7 +57,8 @@ export class TextInput<T extends Component> extends JQBaseComponent<T> {
         } else if (this.properties.componentDto.horSpan > 12) {//大于12 ,则直接使用像素
             $dom.css("width", this.properties.componentDto.horSpan + "px");
         } else if (this.properties.componentDto.horSpan < 0) {//小于0表示填充所有空间
-            AutoFit.addAutoFitComponent($dom.get(0), true, false);
+            // AutoFit.addAutoFitComponent($dom.get(0), true, false);
+            UiUtils.addAutoHeightFit($dom.get(0));
         }
         if (this.properties.componentDto.verSpan <= 12 && this.properties.componentDto.verSpan > 0) {//小于12.表示占用几行
             // $dom.attr("height", this.properties.componentDto.verSpan * TextInput.rowHeight);
@@ -120,7 +121,7 @@ export class TextInput<T extends Component> extends JQBaseComponent<T> {
 
         });
         if (this.properties.componentDto.titleSpan > 12) {//如果标题宽度大于12,则表示实际宽度,则剩下的空间给编辑器
-            AutoFit.addAutoFitComponent(this.editor.get(0));
+            UiUtils.addAutoHeightFit(this.editor.get(0));
         } else {
             this.editor.addClass("col-md-" + (12 - this.properties.componentDto.titleSpan));
         }

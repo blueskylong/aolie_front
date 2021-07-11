@@ -69,6 +69,9 @@ export abstract class AbstractManagedCustomPanel<T extends PageDetailDto> extend
         return null;
     }
 
+    reload(): void {
+    }
+
     public setValue(obj) {
 
     }

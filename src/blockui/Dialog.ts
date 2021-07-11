@@ -21,6 +21,12 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
     private btns: Array<HTMLElement | string> = new Array<HTMLElement | string>();
     private btnListeners: Array<(event: ClickEvent) => void> = new Array<(ClickEvent) => void>();
 
+    private x = 0;
+    private y = 0;
+    private isDragging = false;
+    private dragHandler: (event) => void;
+    private upHandler: (event) => void;
+
     public show(value?: any, size?) {
         $("body").append(this.getViewUI());
         if (size || this.properties.size) {
@@ -32,12 +38,42 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
         this.$element.modal({backdrop: "static"});
         this.$element.modal('show');
         if (!this.hasInited && (this.properties.draggable == null || this.properties.draggable)) {
-            this.$element.find(".modal-dialog").draggable();
+
+            //TODO 需要转成移动标题，来移动窗口
+            // this.$element.find(".modal-dialog").draggable();
         }
 
         this.afterShow();
         this.hasInited = true;
 
+    }
+
+    protected initEvent() {
+        this.dragHandler = (event) => {
+            //是否为可移动状态
+            if (this.isDragging) {
+                let moveX = event.clientX - this.x;//得到距离左边移动距离
+                let moveY = event.clientY - this.y;//得到距离上边移动距离
+
+                this.$element.css("left", moveX + "px");
+                this.$element.css("top", moveY + "px");
+            } else {
+                return;
+            }
+        };
+        this.upHandler = (event) => {
+            this.isDragging = false;
+        };
+        this.$element.find(".modal-header").on("mousedown",
+            (event) => {
+
+                this.x = event.clientX - this.$element.get(0).offsetLeft;
+                this.y = event.clientY - this.$element.get(0).offsetTop;
+                this.isDragging = true;
+            });
+
+        $(document).on("mousemove", this.dragHandler);
+        $(document).on("mouseup", this.upHandler);
     }
 
     protected afterShow() {
@@ -79,6 +115,8 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
         this.btnListeners = new Array<(ClickEvent) => void>();
         this.btns = new Array<HTMLElement | string>();
         this.hasInited = false;
+        $(document).off("mousedown", this.dragHandler);
+        $(document).off("mouseup", this.upHandler);
         return super.destroy();
     }
 
@@ -133,7 +171,14 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
         });
         $element.find(Dialog.CLOSE_BUTTON_SELECTOR).on("click", () => {
             this.close();
-        })
+        });
+
+        // $element.on('shown.bs.modal', function () {
+        //     var $this = $(this);
+        //     var $modal_dialog = $this.find('.modal-dialog');
+        //     var m_top = ($(window).height() - $modal_dialog.height()) / 2 - 100;
+        //     $modal_dialog.animate({'top': m_top + 'px'},"fast");
+        // });
 
 
     }
@@ -226,7 +271,7 @@ export class Dialog<T extends DialogInfo> extends BaseUI<T> {
                 return true
             },
             content: message
-        }
+        };
         new Dialog(dlgInfo).show();
     }
 

@@ -84,3 +84,45 @@ div.ui-jqgrid .selected-row td {
     font-style: normal;
     background-color: rgba(30, 144, 255, 0.2);
 }
+
+/**以下是换行显示样式 */
+.auto-wrap th.ui-th-column div {
+    white-space: normal !important;
+    height: auto !important;
+    padding: 0px;
+    max-height: 500px;
+}
+
+.auto-wrap .ui-jqgrid tr.jqgrow td {
+    white-space: normal !important;
+    height: auto;
+    vertical-align: text-top;
+    padding-top: 2px;
+    word-break: break-all;
+    max-height: 500px;
+}
+
+.ui-jqgrid th {
+    background-color: #0d73d7;
+    color: white;
+
+    height: 25px;
+}
+
+.ui-jqgrid .table th, .table td {
+    padding: 0.3rem;
+    vertical-align: top;
+    border-top: 1px solid #dee2e6;
+    border-bottom-width: 1px;
+}
+
+.table td.ui-search-oper .btn, .table td.ui-search-clear .btn {
+    color: white;
+}
+
+.table td.ui-search-oper, .table td.ui-search-input, .table td.ui-search-clear {
+    border: none;
+}
+.table .ui-jqgrid-bootstrap-corner-bottom{
+    background-color: #e5e5e5;
+}

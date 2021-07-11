@@ -90,6 +90,7 @@ export class ServerRenderProvider implements TableRenderProvider {
     protected viewer: BlockViewer;
     protected tableOption: FreeJqGrid.JqGridOptions;
     protected isReady = false;
+
     //手动插入的列
     protected lstExtCol: Array<ColumnModel>;
     private operatorProvider: (colAndRowInfo: FormatterOptions, row, state) => string;
@@ -116,11 +117,11 @@ export class ServerRenderProvider implements TableRenderProvider {
     protected lstColumn: Array<ColumnModel> = new Array<ColumnModel>();
     protected groupHeader = {
         useColSpanStyle: true,
-        applyLabelClasses: true,
+        applyLabelClasses: false,
         groupHeaders: []
     };
 
-    constructor(protected blockId: string | number) {
+    constructor(protected blockId: string | number, protected customOptions?: FreeJqGrid.JqGridOptions) {
     }
 
     /**
@@ -171,9 +172,7 @@ export class ServerRenderProvider implements TableRenderProvider {
         if (!this.isEditable) {
             return false;
         }
-        if (rowid.substr(3) % 2)
-            return true;
-        return false;
+        return true;
     }
 
     /**
@@ -230,10 +229,10 @@ export class ServerRenderProvider implements TableRenderProvider {
                 if (node.children) {//目前只做二层
                     this.groupHeader.groupHeaders.push(this.createGroupHeader(node));
                     for (let subNode of node.children) {
-                        this.lstColumn.push(this.createColModel(subNode.data));
+                        await this.createColModel(subNode.data, this.lstColumn);
                     }
                 } else {
-                    this.lstColumn.push(this.createColModel(node.data));
+                    await this.createColModel(node.data, this.lstColumn);
                 }
             }
             if (this.lstExtCol) {
@@ -270,18 +269,19 @@ export class ServerRenderProvider implements TableRenderProvider {
         }
     }
 
-    private createColModel(com: Component): ColumnModel {
+    private async createColModel(com: Component, lstColumn) {
 
         let options: ColumnModel = {
             name: com.column.getColumnDto().fieldName,
             index: com.column.getColumnDto().fieldName,
             width: com.componentDto.width ? com.componentDto.width : 200,
-            search: true,
+            search: typeof com.componentDto.showSearch === "undefined" || com.componentDto.showSearch == null || !!com.componentDto.showSearch,
             searchoptions: this.getSearchEditorInfo(com),
             align: com.getTextAlign(),
             label: com.componentDto.title,
             id: com.componentDto.componentId,
             editable: true,
+            labelClasses: Table.COLUMN_LABEL_CLASS_PREFIX + com.getComponentDto().componentId,
             edittype: com.componentDto.dispType as any
         };
         if (Constants.ComponentType.checkbox == com.getComponentDto().dispType) {
@@ -290,14 +290,14 @@ export class ServerRenderProvider implements TableRenderProvider {
             options.align = "center";
         } else if (Constants.ComponentType.select == com.getComponentDto().dispType) {
             options.formatter = "select";
-            options.edittype = "select";
-            new SelectionColumnFormatter(com.getColumn().getColumnDto().refId, options);
+
+            await new SelectionColumnFormatter(com.getColumn().getColumnDto().refId, options);
         } else if (Constants.ComponentType.time == com.getComponentDto().dispType) {
             options.formatter = "date";
             options.edittype = "text";
-            options.formatoptions = {srcformat:'Y-m-d H:i:s',newformat:'Y-m-d H:i:s'}
+            options.formatoptions = {srcformat: 'Y-m-d H:i:s', newformat: 'Y-m-d H:i:s'}
         }
-        return options;
+        lstColumn.push(options);
     }
 
     private getSearchEditorInfo(com: Component) {
@@ -319,7 +319,7 @@ export class ServerRenderProvider implements TableRenderProvider {
     async getOptions(table: Table): Promise<FreeJqGrid.JqGridOptions> {
         if (!this.tableOption) {
             await this.init();
-            this.tableOption = $.extend(true, {}, DEFAULT_TABLE_CONFIG);
+            this.tableOption = $.extend(true, {}, DEFAULT_TABLE_CONFIG, this.customOptions || {});
             this.tableOption.colModel = this.getColumnModel();
             this.tableOption.ondblClickRow = (rowid: string, iRow: number, iCol: number, eventObject: JQueryEventObject) => {
                 if (!rowid) {
@@ -370,8 +370,8 @@ export class ServerRenderProvider implements TableRenderProvider {
 }
 
 export class LocalRenderProvider extends ServerRenderProvider {
-    constructor(viewer: BlockViewer) {
-        super(null);
+    constructor(viewer: BlockViewer, protected customOptions?: FreeJqGrid.JqGridOptions) {
+        super(null, customOptions);
         this.viewer = viewer;
     }
 
@@ -389,7 +389,7 @@ export class LocalRenderProvider extends ServerRenderProvider {
     async getOptions(table: Table): Promise<FreeJqGrid.JqGridOptions> {
         if (!this.tableOption) {
             await this.init();
-            this.tableOption = $.extend(true, {}, DEFAULT_TABLE_CONFIG);
+            this.tableOption = $.extend(true, {}, DEFAULT_TABLE_CONFIG, this.customOptions || {});
             this.tableOption.ondblClickRow = (rowid: string, iRow: number, iCol: number, eventObject: JQueryEventObject) => {
                 table.fireEvent(Constants.GeneralEventType.EVENT_DBL_CLICK, table.getRowData(rowid), table);
             };
@@ -468,11 +468,17 @@ export class SelectionColumnFormatter {
 
     async initData() {
         let lstData = <Array<ReferenceData>>await UiService.getReferenceData(this.refId);
-        if (lstData != null) {
+
+        if (lstData != null && lstData.length > 0) {
             lstData.forEach(row => {
                 this.strSelection += row.id + ":" + row.name + ";";
             });
+            this.strSelection = ":全部;" + this.strSelection.substr(0, this.strSelection.length - 1);
+
+            this.colModel.edittype = "select";
             this.colModel.editoptions = {"value": this.strSelection};
+            this.colModel.stype = 'select';
+            this.colModel.searchoptions = {"value": this.strSelection};
         }
     }
 

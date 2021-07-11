@@ -5,6 +5,7 @@ import "./dmdesign/DmDesign";
 import "./uidesign/BlockDesign";
 /**功能设计*/
 import "./funcdesign/PageDesign";
+import "./blockui/managedView/BaseAutoManagedUI";
 /**
  * 通用设计功能
  */
@@ -19,12 +20,6 @@ import "./sysfunc/right/RoleToResource"
 import "./sysfunc/right/RightRelation"
 
 import "./sysfunc/right/RightRelationFunc";
-import "./workflow/deploy/DeployUI";
-
-
-export class FunctionReg {
-
-}
-
-new FunctionReg();
+import "./sysfunc/user/UserManageUI";
+import "./plugmanage/PlugMangeUI";
 

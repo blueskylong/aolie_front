@@ -8,10 +8,12 @@ import "./jsplugs/jquery.dragsort";
 
 
 import './common.css';
+import './fonts/fonts.css'
 import {App} from "./App/App";
 
 import "./FunctionReg"
 import {CommonUtils} from "./common/CommonUtils";
+import {BlockedHomePage} from "./home/homepage/BlockedHomePage";
 
 export * from "./uidesign/view/JQueryComponent"
 export * from "./datamodel/DmRuntime/formula/transelement"
@@ -26,6 +28,7 @@ $.getJSON('./config.json', function (r) {
 
 
 $(() => {
+    App.setHomePage(BlockedHomePage);
     new App().start();
 
 

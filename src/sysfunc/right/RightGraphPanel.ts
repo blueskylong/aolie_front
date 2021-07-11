@@ -11,6 +11,7 @@ import {GlobalParams} from "../../common/GlobalParams";
 import {StringMap} from "../../common/StringMap";
 import {RightRelationDto} from "./service/RightRelationDto";
 import {CycleDetector} from "./graph/CycleDetector";
+import EChartOption = echarts.EChartOption;
 
 export class RightGraphPanel extends BaseUI<any> {
     private mapRelation: StringMap<RightRelationDto> = new StringMap<RightRelationDto>();
@@ -51,7 +52,7 @@ export class RightGraphPanel extends BaseUI<any> {
             })
         }
 
-        let chart = echarts.init(this.$element.get(0));
+        let chart = echarts.init(this.$element.get(0) as any, null, {width: 1200, height: 800});
         //生成数据
         let option = this.getDefaultOptions();
         let node = [];
@@ -70,8 +71,8 @@ export class RightGraphPanel extends BaseUI<any> {
             }
         });
         option.series[0].data = node;
-        option.series[0].links = edges;
-        option.series[0].itemStyle.color = (item, e, w) => {
+        option.series[0]['links'] = edges;
+        option.series[0]['itemStyle'].color = (item, e, w) => {
             if (this.mapInCycleNode.has(item["data"].name)) {
                 return "#db2f0f";
             }
@@ -81,7 +82,7 @@ export class RightGraphPanel extends BaseUI<any> {
     }
 
     private getDefaultOptions() {
-        let option: ECBasicOption = {
+        let option: EChartOption = {
             tooltip: {},
             series: [
                 {
@@ -106,21 +107,27 @@ export class RightGraphPanel extends BaseUI<any> {
                         opacity: 1
                     },
                     label: {
-                        normal: {
-                            show: true,
-                            formatter: function (e) {
-                                return e['data']['value'];
-                            }
+                        show:true,
+                        formatter: function (e) {
+                            return e['data']['value'];
                         }
+                        // normal: {
+                        //     show: true,
+                        //     formatter
+                        // }
                     },
                     edgeLabel: {
-                        normal: {
-                            show: true,
-                            position: 'middle',
-                            formatter: function (e) {
-                                return e['data']['value']
-                            }
+                        show:true,
+                        formatter: function (e) {
+                            return e['data']['value']
                         }
+                        // normal: {
+                        //     show: true,
+                        //     position: 'middle',
+                        //     formatter: function (e) {
+                        //         return e['data']['value']
+                        //     }
+                        // }
                     },
                     force: {
                         repulsion: 1000,

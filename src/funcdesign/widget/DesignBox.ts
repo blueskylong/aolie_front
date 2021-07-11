@@ -12,8 +12,9 @@ import {PageDetailDto} from "../dto/PageDetailDto";
 import {UiService} from "../../blockui/service/UiService";
 import {TreeUI} from "../../blockui/JsTree/TreeUI";
 import {ReferenceTree} from "../../blockui/JsTree/ReferenceTree";
-import PageUI from "../../blockui/PageUI";
+import PageUI, {PageUIInfo} from "../../blockui/PageUI";
 import {ManagedCustomPanelContainer} from "../../blockui/managedView/ManagedCustomPanelContainer";
+import {PageInfoDto} from "../dto/PageInfoDto";
 
 /**
  * 设计器中放在BORDERLAYOUT 容器中的面板
@@ -177,8 +178,15 @@ export class DesignBox extends BaseUI<DesignBoxInfo> {
             });
 
         } else {//嵌套其它页面
+
             this.baseUi = PageUI.getInstance(blockViewId, null);
             this.$element.append(this.baseUi.getViewUI());
+            CommonUtils.readyDo(() => {
+                return this.baseUi.isReady();
+            }, () => {
+                this.$element.find(".ui-title").text("页面:"
+                    + (<PageUI<PageUIInfo>>this.baseUi).getPageInfo().getPageInfoDto().pageName);
+            });
 
         }
 

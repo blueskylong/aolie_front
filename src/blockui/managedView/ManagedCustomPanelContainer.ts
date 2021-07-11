@@ -62,6 +62,10 @@ export class ManagedCustomPanelContainer<T extends PageDetailDto> extends BaseUI
         return $("<div class='full-display'></div>").get(0);
     }
 
+    reload(): void {
+
+    }
+
     protected initSubControls() {
         if (!this.properties.customUi) {
             console.log("没有配置自定义控件的实现类");

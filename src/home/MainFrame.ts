@@ -15,6 +15,8 @@ import {MenuDto} from "../sysfunc/menu/dto/MenuDto";
 import {SidebarMenu} from "./SidebarMenu";
 import {Logger} from "../common/Logger";
 import {DropMenu, DropMenuInfo, DropMenuItemInfo, MessageDropMenu, MessageDropMenuItemInfo} from "./DropMenu";
+import {UiUtils} from "../common/UiUtils";
+import {App} from "../App/App";
 
 export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFrame {
     static cacheType = "menu";
@@ -103,7 +105,7 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
             }
         });
         lstItem.push({
-            title: "切换角色", icons: "fa fa-sign-out", clickHandler: (event) => {
+            title: "切换角色", icons: "fa fa-users", clickHandler: (event) => {
                 GlobalParams.getApp().showSelectRole(this.lastFunc ?
                     this.lastFunc.getDtoInfo().getMenuDto().menuId : null);
             }
@@ -111,7 +113,8 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
         lstItem.push({
             title: "退出登录", icons: "fa fa-sign-out", clickHandler: (event) => {
                 GlobalParams.logout();
-                GlobalParams.getApp().showLogin();
+                GlobalParams.getApp().showLogin(this.lastFunc && this.lastFunc.getDtoInfo()
+                    ? this.lastFunc.getDtoInfo().getMenuDto().menuId : null);
             }
         });
         this.dropDownMenu = new DropMenu<DropMenuInfo>({
@@ -205,7 +208,7 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
         if (this.menuBar) {
             this.menuBar.locateMenu();
         }
-        CommonUtils.showMask();
+        UiUtils.showMask();
         if (this.lastFunc) {
             try {
                 if (!this.lastFunc.beforeClose()) {
@@ -223,6 +226,7 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
         //如果没有指定菜单,则到主页
         if (!menuId) {
             this.showHomePage();
+            UiUtils.hideMask();
             return;
         }
         MenuService.findMenuInfo(menuId, (data) => {
@@ -254,27 +258,35 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
     protected showHomePage() {
         this.updateMenuText("首页");
         this.$toolbar.children().remove();
+        let baseUi = <MenuFunction<any>>BeanFactory.createBean(this.properties.homePageClass, []);
+        this.lastFunc = baseUi;
+        this.$body.append(this.lastFunc.getViewUI());
     }
 
     protected createAndShowFunc(menuInfo: MenuInfo) {
+        try {
+            let funcName = menuInfo.getMenuDto().funcName;
+            if (!funcName) {
+                Alert.showMessage("指定的功能不存在");
+                UiUtils.hideMask();
+                return;
+            }
+            let funcClazz = ApplicationContext.getMenuFunc(funcName);
+            let baseUi = <MenuFunction<any>>BeanFactory.createBean(funcClazz, [menuInfo]);
+            this.lastFunc = baseUi;
+            this.updateMenuText(menuInfo.getMenuDto().menuName);
+            this.lastFunc.addReadyListener(() => {
+                this.initButtons();
+                UiUtils.hideMask();
+            });
+            this.$body.append(this.lastFunc.getViewUI());
 
-        let funcName = menuInfo.getMenuDto().funcName;
-        if (!funcName) {
-            Alert.showMessage("指定的功能不存在");
-            CommonUtils.hideMask();
-            return;
+            return <MenuFunction<any>>this.lastFunc;
+        } catch (e) {
+            console.log(e.message);
+            Alert.showMessage({type: Alert.type.danger, message: "显示功能失败！" + e.message});
+            UiUtils.hideMask();
         }
-        let funcClazz = ApplicationContext.getMenuFunc(funcName);
-        let baseUi = <MenuFunction<any>>BeanFactory.createBean(funcClazz, [menuInfo]);
-        this.lastFunc = baseUi;
-        this.updateMenuText(menuInfo.getMenuDto().menuName);
-        this.lastFunc.addReadyListener(() => {
-            this.initButtons();
-            CommonUtils.hideMask();
-        });
-        this.$body.append(this.lastFunc.getViewUI());
-
-        return <MenuFunction<any>>this.lastFunc;
     }
 
     private updateMenuText(title) {
@@ -335,5 +347,5 @@ export class MainFrame<T extends HomeInfo> extends BaseUI<T> implements IMainFra
 }
 
 export interface HomeInfo {
-
+    homePageClass: { new(...args: Array<any>): any };
 }

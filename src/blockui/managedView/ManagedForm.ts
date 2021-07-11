@@ -15,6 +15,7 @@ import {ManagedUITools} from "./ManagedUITools";
 import {HandleResult} from "../../common/HandleResult";
 import ClickEvent = JQuery.ClickEvent;
 import {UiService} from "../service/UiService";
+import {CommonUtils} from "../../common/CommonUtils";
 
 
 export class ManagedForm extends Form implements AutoManagedUI {
@@ -54,14 +55,22 @@ export class ManagedForm extends Form implements AutoManagedUI {
      * @param tableId
      * @param mapKeyAndValue
      */
-    protected isSameRow(tableId, mapKeyAndValue: StringMap<any>) {
+    protected isSameRow(tableId, mapKeyAndValue: object) {
         if (!mapKeyAndValue) {
             return false;
         }
         if (this.dsIds.indexOf(tableId) == -1) {
             return false;
         }
-        return mapKeyAndValue.equals(ManagedUITools.getDsKeyValue(tableId, this.getValue()));
+        let thisKeyValue = null;
+        if (this.properties.fieldToCamel) {
+            thisKeyValue = ManagedUITools.getDsKeyValueByDtoRow(tableId, this.getValue());
+        } else {
+            thisKeyValue = ManagedUITools.getDsKeyValue(tableId, this.getValue());
+        }
+        return CommonUtils.isEquals(mapKeyAndValue, thisKeyValue);
+
+
     }
 
 
@@ -174,6 +183,10 @@ export class ManagedForm extends Form implements AutoManagedUI {
     setButtons(buttons: Array<MenuButtonDto>) {
         //只处理当数据源的情况
         if (!this.dsIds && this.dsIds.length != 1) {
+            return;
+        }
+        //没有指定内置按钮的，不初始化按钮
+        if (!this.pageDetail.innerButton) {
             return;
         }
         let btns = ManagedUITools.findRelationButtons(buttons, this.dsIds[0]);
@@ -362,6 +375,10 @@ export class ManagedForm extends Form implements AutoManagedUI {
             })
 
         }
+    }
+
+    reload(): void {
+        //TODO
     }
 
     doEdit(data?, id?): boolean {

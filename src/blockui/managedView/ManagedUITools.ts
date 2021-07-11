@@ -21,6 +21,16 @@ export class ManagedUITools {
      * @param tableId
      */
     public static getDsKeyValue(tableId, row): object {
+        return this.getKeyFieldAndValue(tableId, row, false);
+    }
+
+    /**
+     * 取得主键的键值，
+     * @param tableId
+     * @param row
+     * @param isCamel 行数据是不是已是驼峰
+     */
+    private static getKeyFieldAndValue(tableId, row, isCamel) {
         let tableInfo = SchemaFactory.getTableByTableId(tableId);
         let columns = tableInfo.getKeyColumns();
         if (!columns || columns.length == 0) {
@@ -33,9 +43,20 @@ export class ManagedUITools {
         let value = row;
         let result = new StringMap();
         for (let column of columns) {
-            result.set(column.getColumnDto().fieldName, value[column.getColumnDto().fieldName]);
+            let oraField = column.getColumnDto().fieldName;
+            let valueField = isCamel ? CommonUtils.toCamel(oraField) :
+                oraField;
+            result.set(oraField, value[valueField]);
         }
         return result.getValueAsObject();
+    }
+
+    /**
+     * 取得主健值
+     * @param tableId
+     */
+    public static getDsKeyValueByDtoRow(tableId, row): object {
+        return this.getKeyFieldAndValue(tableId, row, true);
     }
 
     public static getPageSchemaInfo(pageId: string, version: string) {

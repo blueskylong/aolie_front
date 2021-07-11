@@ -17,13 +17,22 @@ import {Column} from "../datamodel/DmRuntime/Column";
 import {BeanFactory} from "../decorator/decorator";
 import {ButtonInfo, Toolbar, ToolbarInfo} from "../uidesign/view/JQueryComponent/Toolbar";
 import "./uiruntime/validator";
-import {Alert} from "../uidesign/view/JQueryComponent/Alert";
 import {BootstrapValidator} from "./uiruntime/validator/BootstrapValidator";
 import "jquery-validation"
 import {FormulaCalculator} from "../datamodel/DmRuntime/formula/FormulaCalculator";
+import {ControlFilterResult} from "./uiruntime/ControlFilterInfo";
 
 
 export class Form extends BaseComponent<BlockViewDto> {
+
+    /**
+     * 界面编码参数键
+     */
+    static PARAM_UI_CODE = "ui-code";
+    /**
+     * 界面ID参数键
+     */
+    static PARAM_UI_ID = "ui-id";
 
     /**
      * 字段名对应控件
@@ -72,9 +81,26 @@ export class Form extends BaseComponent<BlockViewDto> {
         }
     }
 
+    /**
+     * 取得本地视图
+     * @param viewer
+     */
+    static getLocalInstance(viewer: BlockViewer) {
+        let form = new Form(null);
+        form.setBlockViewer(viewer);
+        return form;
+    }
+
     static getInstance(blockId, version?) {
         let blockDto = new BlockViewDto();
         blockDto.blockViewId = blockId;
+        blockDto.versionCode = version || GlobalParams.getLoginVersion();
+        return new Form(blockDto);
+    }
+
+    static getInstanceByCode(uiCode, version?) {
+        let blockDto = new BlockViewDto();
+        blockDto.blockCode = uiCode;
         blockDto.versionCode = version || GlobalParams.getLoginVersion();
         return new Form(blockDto);
     }
@@ -92,7 +118,7 @@ export class Form extends BaseComponent<BlockViewDto> {
                 }
                 let names = com.getRequireExtendDataName();
                 if (!names) {
-                    return;
+                    continue;
                 }
                 let values = new StringMap<any>();
                 for (let name of names) {
@@ -162,7 +188,13 @@ export class Form extends BaseComponent<BlockViewDto> {
             return;
         }
         if (!this.viewer) {
-            this.viewer = await UiService.getSchemaViewer(this.blockViewId) as any;
+            if (this.blockViewId) {
+                this.viewer = await UiService.getSchemaViewer(this.blockViewId) as any;
+            } else {
+                this.viewer = await UiService.getSchemaViewerByCode(this.properties.blockCode) as any;
+                this.blockViewId = this.viewer.getBlockViewDto().blockViewId;
+            }
+
         }
         if (!this.isLocal) {
             this.formulaCalculator = FormulaCalculator.getInstance(this.viewer);
@@ -222,10 +254,10 @@ export class Form extends BaseComponent<BlockViewDto> {
      * 取得指定的子控件
      * @param colId
      */
-    public getComponentByName(colId) {
+    public getComponentByName(fieldName) {
         if (this.lstComUI) {
             for (let baseUi of this.lstComUI) {
-                if (baseUi.getFieldName() == colId) {
+                if (baseUi.getFieldName() == fieldName) {
                     return baseUi;
                 }
             }
@@ -412,6 +444,18 @@ export class Form extends BaseComponent<BlockViewDto> {
         this.stopEdit();
         this.values = new StringMap<object>(value);
         this.updateSubComponentValues();
+        this.calcAllField();
+    }
+
+    /**
+     * 计算所有公式
+     */
+    public calcAllField() {
+        let value = this.getValue();
+        let mapValue = this.formulaCalculator.calcAllFormula(value);
+        this.updateChangedValue(mapValue);
+        let mapControlResult = this.formulaCalculator.calcAllControlFilter(value);
+        this.updateControlShowFilter(mapControlResult);
     }
 
     public stopEdit() {
@@ -469,7 +513,9 @@ export class Form extends BaseComponent<BlockViewDto> {
             this.values.set(fieldName + "", value);
             this.fireValueChanged(fieldName as any, value);
 
-            this.calcFormula(fieldName as any);
+            let changedValue = this.calcFormula(fieldName as any);
+            //计算界面控制条件
+            this.calcControlFilter(fieldName as any);
             //通知子控件
             this.notifySubControlChanged();
         }
@@ -489,20 +535,64 @@ export class Form extends BaseComponent<BlockViewDto> {
         });
     }
 
-    private calcFormula(fieldWhoChanged: string) {
+    private calcFormula(fieldWhoChanged: string): StringMap<any> {
         if (!this.formulaCalculator) {
             return;
         }
         let data = this.getValue();
-        let changedValue = this.formulaCalculator.fieldValueChanged(this.viewer.findFieldIdByName(fieldWhoChanged),
+        let fieldId = this.viewer.findFieldIdByName(fieldWhoChanged);
+        let changedValue = this.formulaCalculator.calcFormulaOnFiledChange(fieldId,
             data);
-        if (changedValue.getSize() < 1) {
+        this.updateChangedValue(changedValue);
+        return changedValue;
+
+    }
+
+    private updateChangedValue(changedValue: StringMap<any>) {
+        if (!changedValue || changedValue.getSize() < 1) {
             return;
         }
         //下面设置值
         changedValue.forEach((key, value, map) => {
             this.setFieldValue(key, value);
         });
+    }
+
+    /**
+     *计算可见条件
+     * 由于此类计算少，所以就直接遍历计算
+     */
+    private calcControlFilter(fieldWhoChanged: string) {
+        let fieldId = this.viewer.findFieldIdByName(fieldWhoChanged);
+        let newData = this.getValue();
+        let controlInfo = this.formulaCalculator.calcFilterOnFieldChange(fieldId, newData);
+        if (!fieldId || !controlInfo) {
+            return;
+        }
+        this.updateControlShowFilter(controlInfo);
+    }
+
+    private updateControlShowFilter(controlInfo: StringMap<ControlFilterResult>) {
+        //根据计算结果控制控件
+        controlInfo.forEach((fieldName, value, map) => {
+            if (value.isEditableFilter) {
+                this.getComponentByName(fieldName).setEditable(value.result);
+            } else {
+                this.getComponentByName(fieldName).setVisible(value.result);
+            }
+
+        });
+    }
+
+    /**
+     * 计算使能条件
+     * 由于此类计算少，所以就直接遍历计算
+     */
+    private calcEditable(newData) {
+        //如果FORM不可编辑,则不再计算
+        if (!this.isEditable()) {
+            return;
+        }
     }
 
     destroy(): boolean {
@@ -559,8 +649,6 @@ export class Form extends BaseComponent<BlockViewDto> {
         comp.setComponentDto(dto);
         return comp;
     }
-
-
 }
 
 CommonUtils.readyDo(() => {

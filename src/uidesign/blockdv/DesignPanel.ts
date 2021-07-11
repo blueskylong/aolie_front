@@ -21,6 +21,9 @@ import {DesignTable} from "./DesignTable";
 import {JQueryGeneralComponentGenerator} from "../view/JQueryComponent/JQueryGeneralComponentGenerator";
 import {Form} from "../../blockui/Form";
 
+/**
+ * 设计面板，包含了控件树和控件设计面板。
+ */
 export class DesignPanel<T> extends BaseUI<T> {
 
     private lstDesignComponent: Array<DesignComponent<Component>> = [];
@@ -75,7 +78,7 @@ export class DesignPanel<T> extends BaseUI<T> {
                     if (parentNodeId === this.compTree.getDtoInfo().rootId) {
                         return true;
                     }
-                    return this.compTree.getNodeData(parentNodeId).data.dispType === "panel";
+                    return this.compTree.getNodeData(parentNodeId).data.dispType === Constants.ComponentType.panel;
                 }
             },
             buttons: [{
@@ -220,8 +223,11 @@ export class DesignPanel<T> extends BaseUI<T> {
             this.compTree.changeCurrentNodeText(value);
         }
         let isOk = false;
-        if (this.currentComp && this.isShowForm) {//面板自己处理修改属性
-            isOk = this.currentComp.propertyChanged(propertyName, value);
+        if (this.isShowForm) {//面板自己处理修改属性
+            if (this.currentComp) {
+                isOk = this.currentComp.propertyChanged(propertyName, value);
+            }
+
         } else {
             //表格则需要在此处理属性变化
             if (this.currentDto) {
@@ -271,9 +277,7 @@ export class DesignPanel<T> extends BaseUI<T> {
         if (!this.isInitDrag && !this.isFixLayout()) {
             this.$compBody['dragsort']({
                 dragEnd: (item) => {
-                    if (item) {
-                        this.resortComponentByPanel();
-                    }
+                    this.resortComponentByPanel();
                     return true;
                 }
             });
@@ -298,7 +302,7 @@ export class DesignPanel<T> extends BaseUI<T> {
         let codeProvider = new CodeLevelProvider();
         codeProvider.setCurCode("000");
         if (this.lstDesignComponent.length > 0) {
-            this.$compBody.children().each((index, item) => {
+            this.$compBody.children(".design-component").each((index, item) => {
                 let designComp = this.getComponentInfoById($(item).attr(DesignComponent.COMID));
                 this.addCompInfo(designComp, codeProvider, newLstComp);
             });
@@ -449,7 +453,7 @@ export class DesignPanel<T> extends BaseUI<T> {
         DesignUiService.saveBlockViewer(this.blockViewer, (err) => {
             if (CommonUtils.isEmpty(err)) {
                 UiService.clearCache(this.blockViewer.getBlockViewDto().blockViewId);
-                Alert.showMessage({message: "保存成功"});
+                Alert.showMessage("保存成功");
                 onSuccess();
             } else {
                 Alert.showMessage({message: "保存失败,原因:" + err, type: Alert.type.warning});

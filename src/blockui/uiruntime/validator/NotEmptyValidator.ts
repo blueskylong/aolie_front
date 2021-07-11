@@ -11,7 +11,7 @@ import {RegValidator} from "../../../decorator/decorator";
 export class NotEmptyValidator implements IValidator {
 
     validateField(fieldName, value, row, viewer: BlockViewer): string {
-        if (typeof value === "undefined" || value == null || value.trim() === "") {
+        if (typeof value === "undefined" || value == null || value.toString().trim() === "") {
             return "不可以为空";
         }
         return null;

@@ -101,7 +101,11 @@ export abstract class BaseComponent<T> extends BaseUI<T> {
     }
 
     public setVisible(visible: boolean) {
-        this.$element.css("display:" + (visible ? "display" : "none"));
+        if (visible) {
+            this.$element.removeClass(BaseComponent.HIDDEN_CLASS);
+        } else {
+            this.$element.addClass(BaseComponent.HIDDEN_CLASS);
+        }
     }
 
     public setEnable(enable: boolean) {

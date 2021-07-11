@@ -11,6 +11,7 @@ export class Login<T extends LoginInfo> extends BaseUI<T> {
     private $accoutName: JQuery;
     private $password: JQuery;
 
+
     protected createUI(): HTMLElement {
         return $(require("./template/Login.html")).get(0);
     }
@@ -32,6 +33,7 @@ export class Login<T extends LoginInfo> extends BaseUI<T> {
                         if (this.properties.afterLogin) {
                             this.properties.afterLogin(result1.data, this.properties.menuId);
                         }
+                        Stars.stop();
                     }
 
                 });

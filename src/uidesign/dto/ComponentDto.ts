@@ -98,6 +98,7 @@ export class ComponentDto extends BaseDto {
 
     public posTop: number;
     public posLeft: number;
+    public showSearch: number;
 
 
 }

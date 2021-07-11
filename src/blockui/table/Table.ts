@@ -9,6 +9,7 @@ import {ButtonInfo} from "../../uidesign/view/JQueryComponent/Toolbar";
 import {BaseComponent} from "../../uidesign/view/BaseComponent";
 import FormatterOptions = FreeJqGrid.FormatterOptions;
 import ColumnModel = FreeJqGrid.ColumnModel;
+import {UiUtils} from "../../common/UiUtils";
 
 
 export class Table extends BaseComponent<TableRenderProvider> {
@@ -18,6 +19,7 @@ export class Table extends BaseComponent<TableRenderProvider> {
     static CHECK_COL_ID = "cb";
     static OPERATE_COL_ID = "__operator__";
     static TOOLBAR_BUTTON_CLASS = "table-col-button";
+    static COLUMN_LABEL_CLASS_PREFIX = "COL-ID-";
     private isMaskChange = false;
     protected static EVENT_UI_READY = "UI_READY_EVENT";
 
@@ -34,6 +36,7 @@ export class Table extends BaseComponent<TableRenderProvider> {
      * 是不是宽度是父亲的百分百
      */
     private isAutoFitWidth = true;
+    private isAutoHeight = true;
 
     /**
      * 行ID的字段名
@@ -78,7 +81,8 @@ export class Table extends BaseComponent<TableRenderProvider> {
     }
 
     protected onUiReady() {
-        // this.$element.jqGrid("setGrid")
+        this.resize();
+
     }
 
     protected getTableId() {
@@ -242,10 +246,9 @@ export class Table extends BaseComponent<TableRenderProvider> {
     setData(data: Array<any>) {
         this.clearData();
         if (data) {
-            for (let row of data) {
-                this.$element.addRowData(CommonUtils.genUUID(), row);
-            }
+            this.$element.addRowData(CommonUtils.genUUID(), data);
         }
+        this.updateButtonEvent();
     }
 
     addRow(rowData: any, rowId?: string) {
@@ -297,6 +300,10 @@ export class Table extends BaseComponent<TableRenderProvider> {
         for (let row of rows) {
             this.removeRow(row);
         }
+    }
+
+    setFullHeight(isAuto: boolean) {
+        this.isAutoHeight = isAuto;
     }
 
     /**
@@ -467,6 +474,30 @@ export class Table extends BaseComponent<TableRenderProvider> {
         }
     }
 
+    getColIndexById(id) {
+        let columnArray = this.$element.jqGrid("getGridParam", "colModel");
+        let index = 0;
+        for (let col of columnArray) {
+            if (col.id == id) {
+                return index;
+            }
+            index++;
+        }
+    }
+
+
+    resize() {
+        if (this.isAutoFitWidth) {
+            this.$element.setGridWidth(this.$fullElement.parent().width() - 3);
+        }
+        if (this.isAutoHeight) {
+            let height = UiUtils.getAutoFitHeight(this.$fullElement.get(0));
+            if (height > 110) {
+                //如果有兄弟，则还要减去兄弟的
+                this.$element.setGridHeight((height - 110) + 'px');
+            }
+        }
+    }
 
     protected createUI(): HTMLElement {
         let $ele = $(require("../templete/Table.html"));
@@ -483,11 +514,14 @@ export class Table extends BaseComponent<TableRenderProvider> {
         if (!this.$element) {
             return;
         }
-        $(window).on("resize." + this.hashCode, (event) => {
-            if (this.isAutoFitWidth) {
-                this.$element.setGridWidth(this.$fullElement.parent().width() - 3);
+
+        this.resizeListener = () => {
+            if (this.isDestroied()) {
+                return;
             }
-        });
+            this.resize()
+        };
+        UiUtils.regOnWindowResized(this.resizeListener);
         super.initEvent();
     }
 
@@ -529,7 +563,7 @@ export class Table extends BaseComponent<TableRenderProvider> {
             for (let btn of btns) {
                 this.$element.navButtonAdd('#' + this.getPagerId(), {
                     caption: btn.text,
-                    buttonicon: btn.iconClass || "fa fa-plus",
+                    buttonicon: btn.iconClass || "glyphicon-plus",
                     onClickButton: (event) => {
                         btn.clickHandler(event as any);
                     },
@@ -545,6 +579,7 @@ export class Table extends BaseComponent<TableRenderProvider> {
         let option = await this.properties.getOptions(this);
         let multiSelect = option.multiselect;
         this.isAutoFitWidth = !!option.autowidth;
+        this.isAutoHeight = !!option.autowidth;
 
         let param: FreeJqGrid.JqGridOptions = {colModel: []};
         param = $.extend(true, {
@@ -588,11 +623,11 @@ export class Table extends BaseComponent<TableRenderProvider> {
         if (!option.hideSearch) {
             this.showSearch(true);
         }
-        this.$element.setFrozenColumns({
-            mouseWheel: () => {
-                return 1;
-            }
-        });
+        // this.$element.setFrozenColumns({
+        //     mouseWheel: () => {
+        //         return 1;
+        //     }
+        // });
         this.hideOperatorCol();
         this.ready = true;
         this.$element
@@ -603,7 +638,7 @@ export class Table extends BaseComponent<TableRenderProvider> {
                 refresh: false,
                 search: false
             });
-        this.$element.setGridHeight("100%");
+
         this.setEditable(false);
         this.setMultiSelect(false);
         this.onUiReady();
@@ -735,12 +770,12 @@ export class Table extends BaseComponent<TableRenderProvider> {
 (function ($) {
     //修改默认的图标
     let editCell = $.fn.jqGrid['editCell'];
-    $.jgrid.icons.glyph.checkbox.checked = "fa fa-check";
-    $.jgrid.icons.glyph.checkbox.unchecked = "fa fa-times";
-    $.jgrid.icons.glyph.pager.first = "fa fa-angle-double-left";
-    $.jgrid.icons.glyph.pager.last = "fa fa-angle-double-right";
-    $.jgrid.icons.glyph.pager.prev = "fa fa-angle-left";
-    $.jgrid.icons.glyph.pager.next = "fa fa-angle-right";
+    // $.jgrid.icons.glyph.checkbox.checked = "fa fa-check";
+    // $.jgrid.icons.glyph.checkbox.unchecked = "fa fa-times";
+    // $.jgrid.icons.glyph.pager.first = "fa fa-angle-double-left";
+    // $.jgrid.icons.glyph.pager.last = "fa fa-angle-double-right";
+    // $.jgrid.icons.glyph.pager.prev = "fa fa-angle-left";
+    // $.jgrid.icons.glyph.pager.next = "fa fa-angle-right";
     $.fn.jqGrid['editCell'] = function (iRow: number, iCol: number, ed?: boolean) {
         if (!this.get(0).p.renderProvider.isCellEditable(iRow, iCol)) {
             return;

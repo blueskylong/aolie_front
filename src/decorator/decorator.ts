@@ -3,6 +3,7 @@ import {ExceptionHandler} from "../common/ExceptionHandler";
 import {StringMap} from "../common/StringMap";
 import {IValidator} from "../blockui/uiruntime/IValidator";
 import {JQueryGeneralComponentGenerator} from "../uidesign/view/JQueryComponent/JQueryGeneralComponentGenerator";
+import {BlockedHomePage} from "../home/homepage/BlockedHomePage";
 
 
 //TODO 这里的服务暂时没办法保证在调用前注册
@@ -191,7 +192,7 @@ export function Service(name: string) {
     }
 }
 
-export function MenuFunc(name?: string) {
+export function MenuFunc(name: string) {
 
     return (_constructor: Function) => {
         let funcName = name ? name : _constructor.name;
@@ -225,6 +226,16 @@ export function RegComponent(name: string) {
         let funcName = name;
         //注册
         JQueryGeneralComponentGenerator.regCustomComponent(funcName, _constructor);
+        return;
+    }
+}
+
+export function RegHomeBlock(name?: string) {
+
+    return (_constructor: Function) => {
+        let funcName = name ? name : _constructor.name;
+        //注册
+        BlockedHomePage.regHomePageBlock(funcName, _constructor as any);
         return;
     }
 }

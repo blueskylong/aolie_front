@@ -19,6 +19,7 @@ import {SchemaFactory} from "../../datamodel/SchemaFactory";
 import {CodeLevelProvider} from "../../common/CodeLevelProvider";
 import {UiService} from "../service/UiService";
 import ClickEvent = JQuery.ClickEvent;
+import {UiUtils} from "../../common/UiUtils";
 
 
 export class ManagedTreeUI<T extends BlockViewDto> extends TreeUI<T> implements AutoManagedUI {
@@ -369,7 +370,7 @@ export class ManagedTreeUI<T extends BlockViewDto> extends TreeUI<T> implements 
                 this.reload();
                 if (curId) {
                     this.getTree().selectNodeById(curId);
-                    CommonUtils.hideMask();
+                    UiUtils.hideMask();
                     Alert.showMessage("保存成功");
                 }
 

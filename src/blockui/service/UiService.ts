@@ -35,6 +35,21 @@ export class UiService {
      * @param blockViewerId
      * @param version
      */
+    static async getSchemaViewerByCode(blockViewerCode: string) {
+        let key = UiService.PREFIX_KEY_BLOCK + blockViewerCode;
+        if (UiService.CACHE.has(key)) {
+            return UiService.CACHE.get(key);
+        }
+        let result = await UiService.getSchemaViewerByCodeDirect(blockViewerCode);
+        UiService.CACHE.set(key, result);
+        return result;
+    }
+
+    /**
+     * 取得一个UI信息
+     * @param blockViewerId
+     * @param version
+     */
     static async findPageInfo(pageId: number) {
         let viewData = await NetRequest.axios.get("/page/findPageInfo/" + pageId);
         let result = BeanFactory.populateBean(PageInfo, viewData.data) as any;
@@ -49,7 +64,6 @@ export class UiService {
     static async findPageSchemaId(pageId: number) {
         let result = await NetRequest.axios.get("/page/findPageSchemaId/" + pageId);
         return result.data;
-
     }
 
     /**
@@ -58,8 +72,18 @@ export class UiService {
      * @param version
      */
     static async getSchemaViewerDirect(blockViewerId: number) {
-        let key = UiService.PREFIX_KEY_BLOCK + blockViewerId;
         let viewData = await NetRequest.axios.get(this.URL_ROOT + "/getSchemaViewer/" + blockViewerId);
+        let result = BeanFactory.populateBean(BlockViewer, viewData.data) as any;
+        return result;
+    }
+
+    /**
+     * 取得一个UI信息
+     * @param blockViewerId
+     * @param version
+     */
+    static async getSchemaViewerByCodeDirect(blockViewerCode: string) {
+        let viewData = await NetRequest.axios.get(this.URL_ROOT + "/getSchemaViewerByCode/" + blockViewerCode);
         let result = BeanFactory.populateBean(BlockViewer, viewData.data) as any;
         return result;
     }

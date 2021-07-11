@@ -2,12 +2,12 @@ import {Component} from "../../blockui/uiruntime/Component";
 import {IComponentGenerator} from "../view/generator/IComponentGenerator";
 import {JQueryGeneralComponentGenerator} from "../view/JQueryComponent/JQueryGeneralComponentGenerator";
 import {BaseComponent} from "../view/BaseComponent";
-import {AutoFit} from "../view/JQueryComponent/AutoFit";
 import EventBus from "../../dmdesign/view/EventBus";
 import {Panel} from "../view/JQueryComponent/Panel";
 import {Alert} from "../view/JQueryComponent/Alert";
 import {Constants} from "../../common/Constants";
 import {JQBaseComponent} from "../view/JQueryComponent";
+import {UiUtils} from "../../common/UiUtils";
 
 export class DesignComponent<T extends Component> extends BaseComponent<T> {
     public static COMID = "comId";
@@ -119,7 +119,7 @@ export class DesignComponent<T extends Component> extends BaseComponent<T> {
         } else if (this.horSpan > 12) {//大于12 ,则直接使用像素
             this.$element.css("width", this.horSpan + "px");
         } else if (this.horSpan < 0) {//小于0表示填充所有空间
-            AutoFit.addAutoFitComponent(this.$element.get(0), true, false);
+            UiUtils.addAutoHeightFit(this.$element.get(0));
         }
         if (this.verSpan <= 12 && this.verSpan > 1) {//小于12.表示占用几行
             this.$element.attr("rows", this.properties.componentDto.verSpan);

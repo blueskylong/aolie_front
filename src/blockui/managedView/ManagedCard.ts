@@ -144,6 +144,9 @@ export class ManagedCard<T extends BlockViewDto> extends CardList<T> implements 
 
     }
 
+    reload(): void {
+        this.loadData(this.extFilter);
+    }
 
     getTableIds(): Array<number> {
         return this.dsIds;

@@ -1,9 +1,8 @@
 import {Dialog, DialogInfo} from "../../blockui/Dialog";
 import {JsTree, JsTreeInfo} from "../../blockui/JsTree/JsTree";
-import {CommonUtils} from "../../common/CommonUtils";
 import {UiUtils} from "../../common/UiUtils";
 
-export class SelectDsDlg extends Dialog<DialogInfo> {
+export class SelectDsDlg extends Dialog<SelectDsDialogInfo> {
     protected tree: JsTree<JsTreeInfo>;
     private schemaId = 2;
 
@@ -19,7 +18,7 @@ export class SelectDsDlg extends Dialog<DialogInfo> {
             codeField: "tableId",
             parentField: "nofield",//这里只是让其找不到的一个字段即可
             rootName: "数据表",
-            multiSelect: true,
+            multiSelect: this.properties.singleSelect ? false : true,
             showSearch: true,
             url: () => {
                 return "/ui/findAllTableInfo/" + this.schemaId
@@ -51,4 +50,9 @@ export class SelectDsDlg extends Dialog<DialogInfo> {
         return true;
     }
 
+}
+
+export interface SelectDsDialogInfo extends DialogInfo {
+    //单选
+    singleSelect?: boolean;
 }

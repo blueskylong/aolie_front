@@ -60,4 +60,37 @@ export class UserService {
         CommonUtils.handleResponse(NetRequest.axios.post(this.URL_ROOT + "/saveRightRelationDetailsByRrId/"
             + rrId, sourceToDestIds), callback);
     }
+
+    /**
+     * 重置用户密码
+     *
+     * @param userId
+     * @return
+     */
+    static resetUserPassword(userId, callback: (result: HandleResult) => void) {
+        CommonUtils.handleResponse(NetRequest.axios.put(this.URL_ROOT + "/resetUserPassword/"
+            + userId), callback);
+    }
+
+    /**
+     * 启用账号
+     *
+     * @param userId
+     * @return
+     */
+    static enableUser(userId, callback: (result: HandleResult) => void) {
+        CommonUtils.handleResponse(NetRequest.axios.put(this.URL_ROOT + "/enableUser/"
+            + userId), callback);
+    }
+
+    /**
+     * 禁用用户账号
+     *
+     * @param userId
+     * @return
+     */
+    static disableUser(userId, callback: (result: HandleResult) => void) {
+        CommonUtils.handleResponse(NetRequest.axios.put(this.URL_ROOT + "/disableUser/"
+            + userId), callback);
+    }
 }

@@ -1,9 +1,10 @@
-import {JsTree, JsTreeInfo} from "./JsTree";
+import {JsTree, JsTreeInfo, Node} from "./JsTree";
 import {GlobalParams} from "../../common/GlobalParams";
 import {UiService} from "../service/UiService";
 import {CommonUtils} from "../../common/CommonUtils";
 import {BaseComponent} from "../../uidesign/view/BaseComponent";
 import {ReferenceDto} from "../../datamodel/dto/ReferenceDto";
+import {GeneralEventListener} from "../event/GeneralEventListener";
 
 /**
  * 设计生成的树
@@ -12,11 +13,11 @@ export class ReferenceTree<T extends ReferenceTreeInfo> extends BaseComponent<T>
     private jsTree: JsTree<any>;
     private refDto: ReferenceDto;
     private canLoadData = false;
+    private selectedListener: Array<GeneralEventListener> = new Array<GeneralEventListener>();
 
     static getTreeInstance(reference, version?, isMulti?) {
         let refInfo = {refId: reference, version: version || GlobalParams.getLoginVersion(), isMulti: isMulti};
-        let tree = new ReferenceTree(refInfo);
-        return tree;
+        return  new ReferenceTree(refInfo);
     }
 
     getReferenceName() {
@@ -41,8 +42,16 @@ export class ReferenceTree<T extends ReferenceTreeInfo> extends BaseComponent<T>
         if (onReady) {
             this.addReadyListener(onReady);
         }
+
+        if (this.selectedListener) {
+            this.selectedListener.forEach(listener => {
+                this.getTree().addSelectListener(listener);
+            })
+        }
         this.reload();
     }
+
+    J
 
     private clearShow() {
         this.jsTree.destroy();
@@ -77,7 +86,20 @@ export class ReferenceTree<T extends ReferenceTreeInfo> extends BaseComponent<T>
     }
 
     private genTreeInfo(): JsTreeInfo {
-        return {idField: "id", codeField: "code", textField: "name", multiSelect: this.properties.isMulti};
+        let info: JsTreeInfo = {
+            idField: Node.ID_FIELD, textField: Node.TEXT_FIELD,
+            multiSelect: this.properties.isMulti
+        };
+        if (this.refDto) {
+            if (this.refDto.parentField) {
+                info.parentField = Node.PARENT_FIELD;
+            } else if (this.refDto.codeField) {
+                info.codeField = Node.CODE_FIELD;
+            }
+        } else {
+            info.codeField = Node.CODE_FIELD;
+        }
+        return info;
     }
 
     reload() {
@@ -119,6 +141,10 @@ export class ReferenceTree<T extends ReferenceTreeInfo> extends BaseComponent<T>
         this.jsTree.destroy();
         this.refDto = null;
         return super.destroy();
+    }
+
+    addSelectListener(listener: GeneralEventListener) {
+        this.selectedListener.push(listener);
     }
 }
 

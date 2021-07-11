@@ -14,7 +14,6 @@ import {ServerRenderProvider} from "./table/TableRenderProvider";
 import {TreeUI} from "./JsTree/TreeUI";
 import {Form} from "./Form";
 import {ReferenceTree} from "./JsTree/ReferenceTree";
-import {CommonUtils} from "../common/CommonUtils";
 import BaseUI from "../uidesign/view/BaseUI";
 import {ManagedCustomPanelContainer} from "./managedView/ManagedCustomPanelContainer";
 
@@ -26,7 +25,7 @@ export default class PageUI<T extends PageUIInfo> extends BaseComponent<any> {
     protected readyCount = 0;
 
     protected createUI(): HTMLElement {
-        this.layout = new BorderLayout<any>(BorderLayoutProperty.genDefaultFullProperty());
+
         return $("<div class='full-display'></div>").get(0);
     }
 
@@ -50,17 +49,145 @@ export default class PageUI<T extends PageUIInfo> extends BaseComponent<any> {
         this.$element.append(this.layout.getViewUI());
     }
 
+    public getPageInfo(): PageInfo {
+        return this.pageInfo;
+    }
+
     private async addComponents() {
         let lstPageDetail = this.pageInfo.getPageDetail();
         if (!lstPageDetail || lstPageDetail.length == 0) {
             return;
         }
+        this.layout = new BorderLayout<any>(this.initWidthAndHeight(lstPageDetail));
         for (let detail of lstPageDetail) {
             let baseUI = await this.createSubUI(detail);
             this.lstBaseUI.push(baseUI);
             this.layout.addComponent(detail.pagePosition, baseUI);
+            //计算宽度和高度
         }
         this.layout.show();
+    }
+
+    private initWidthAndHeight(lstPageDetail: Array<PageDetailDto>) {
+
+        let layout = new BorderLayoutProperty();
+        let totalWidth = this.$element.width();
+        //如果还没有父级的宽度，则不计算
+        if (totalWidth < 20) {
+            return layout;
+        }
+
+        for (let pageDetail of lstPageDetail) {
+            if (pageDetail.initWidth) {
+                layout[pageDetail.pagePosition + "Width"] = pageDetail.initWidth;
+            } else {
+                layout[pageDetail.pagePosition + "Width"] = 1;
+            }
+            if (pageDetail.initHeight) {
+                layout[pageDetail.pagePosition + "Height"] = pageDetail.initHeight;
+            } else {
+                layout[pageDetail.pagePosition + "Height"] = 1;
+            }
+        }
+        return this.roundLayout(layout);
+
+    }
+
+    private roundLayout(proper: BorderLayoutProperty) {
+        let totalWidth = this.$element.width();
+        let width = 1;
+        let defaultLayout = BorderLayoutProperty.genDefaultFullProperty();
+        //先检查宽度
+        //第一优先，数据不等于1
+        if (proper.westWidth != 0 && proper.westWidth != 1) {
+            if (proper.westWidth > 1) {
+                proper.westWidth = proper.westWidth / totalWidth;
+            }
+            width = width - proper.westWidth;
+        }
+
+        if (proper.centerWidth != 0 && proper.centerWidth != 1) {
+            if (proper.centerWidth > 1) {
+                proper.centerWidth = proper.centerWidth / totalWidth;
+            }
+            width = width - proper.centerWidth;
+        }
+        if (proper.eastWidth != 0 && proper.eastWidth != 1) {
+            if (proper.eastWidth > 1) {
+                proper.eastWidth = proper.eastWidth / totalWidth;
+            }
+            width = width - proper.eastWidth;
+        }
+        if (width < 0) {
+            throw new Error("宽度设置错误,超出范围");
+        }
+        //第二轮分配未设置的
+        if (proper.westWidth == 1) {
+            proper.westWidth = Math.min(width, defaultLayout.westWidth);
+            width = width - proper.westWidth;
+        }
+        if (proper.eastWidth == 1) {
+            proper.eastWidth = Math.min(width, defaultLayout.eastWidth);
+            width = width - proper.eastWidth;
+        }
+
+        if (proper.centerWidth == 1) {
+            proper.centerWidth = width;
+        }
+        //计算高度--------------------------------------
+        let totalHeight = this.$element.height();
+        let height = 1;
+        if (proper.northHeight != 0 && proper.northHeight != 1) {
+            if (proper.northHeight > 1) {
+                proper.northHeight = proper.northHeight / totalHeight;
+            }
+            height = height - proper.northHeight;
+        }
+
+        if (proper.centerHeight != 0 && proper.centerHeight != 1) {
+            if (proper.centerHeight > 1) {
+                proper.centerHeight = proper.centerHeight / totalHeight;
+            }
+            height = height - proper.centerHeight;
+        }
+        if (proper.southHeight != 0 && proper.southHeight != 1) {
+            if (proper.southHeight > 1) {
+                proper.southHeight = proper.southHeight / totalHeight;
+            }
+            height = height - proper.southHeight;
+        }
+        if (height < 0) {
+            throw new Error("宽度设置错误,超出范围");
+        }
+        //第二轮分配未设置的
+        let lastProper = "";
+        if (proper.northHeight == 1) {
+            proper.northHeight = Math.min(height, defaultLayout.northHeight);
+            height = height - proper.northHeight;
+            lastProper = "northHeight";
+        }
+        if (proper.southHeight == 1) {
+            proper.southHeight = Math.min(height, defaultLayout.southHeight);
+            height = height - proper.southHeight;
+            lastProper = "southHeight";
+        }
+
+        if (proper.centerHeight == 1) {
+            if (height == 1) {
+                proper.centerHeight = 0.9;
+                proper.southHeight = 0.1;
+            } else {
+                proper.centerHeight = height;
+                height = 0;
+            }
+            lastProper = "centerHeight";
+        }
+        if (height > 0) {
+            proper[lastProper] += height;
+        }
+        return proper;
+
+
     }
 
     protected async createSubUI(pageDetail: PageDetailDto) {
@@ -95,7 +222,6 @@ export default class PageUI<T extends PageUIInfo> extends BaseComponent<any> {
             console.log("-----------------------ready")
             this.readyCount++;
             if (this.readyCount == this.pageInfo.getPageDetail().length) {
-
                 this.fireReadyEvent();
             }
         });

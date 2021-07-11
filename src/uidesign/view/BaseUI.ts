@@ -1,5 +1,7 @@
 import {GeneralEventListener} from "../../blockui/event/GeneralEventListener";
 import {StringMap} from "../../common/StringMap";
+import {hasMagic} from "glob";
+import {UiUtils} from "../../common/UiUtils";
 
 export default abstract class BaseUI<T> implements GeneralEventListener {
 
@@ -23,6 +25,8 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
 
     protected hashCode: number = -1;
     private initTime = null;
+
+    protected resizeListener: () => void;
 
 
     public addListener(type, listener: GeneralEventListener) {
@@ -55,14 +59,14 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
     }
 
     addReadyListener(handler: (source: any) => void) {
-        if (this.isReady()) {//如果已经结束 了,则直接调用
-            handler(this);
-            return;
-        }
         if (!this.lstReadyListener) {
             this.lstReadyListener = new Array<() => void>();
         }
         this.lstReadyListener.push(handler);
+        if (this.isReady()) {//如果已经结束 了,则直接调用
+            handler(this);
+            return;
+        }
     }
 
     fireReadyEvent() {
@@ -166,6 +170,10 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
         this.mapListener.clear();
         this.destroyed = true;
         this.properties = null;
+        if (this.resizeListener) {
+            UiUtils.unRegOnWindowResized(this.resizeListener);
+            this.resizeListener = null;
+        }
         return true;
     }
 
@@ -208,6 +216,19 @@ export default abstract class BaseUI<T> implements GeneralEventListener {
 
     public getInitTime() {
         return this.initTime;
+    }
+
+    /**
+     * 生成错误面板
+     * @param err
+     */
+    getErrPanel(err): HTMLElement {
+        let html = "<div class='error-panel'>";
+        if (err) {
+            html += err;
+        }
+        err + '</div>';
+        return $(html).get(0);
     }
 }
 
@@ -303,8 +324,9 @@ class DomAssembleNotifier {
         }
 
     }
-}
 
+
+}
 
 
 // var greeter = Object.create(window["Greeter"].prototype);

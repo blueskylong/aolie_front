@@ -14,11 +14,12 @@ import {UserRightService} from "./service/UserRightService";
 import {CommonUtils} from "../../common/CommonUtils";
 import {StringMap} from "../../common/StringMap";
 import {UserService} from "../user/service/UserService";
+import {UiUtils} from "../../common/UiUtils";
 
 /**
  * 权限关系维护,这里也包含了菜单和按钮,不过在这里维护不太合适
  */
-@CustomUi()
+@CustomUi("RightRelation")
 export class RightRelation<T extends PageDetailDto> extends AbstractManagedCustomPanel<T> {
 
     private rightRelationDetail: TableInfo;
@@ -61,11 +62,11 @@ export class RightRelation<T extends PageDetailDto> extends AbstractManagedCusto
         }
 
         //这里就直接认为,传入的是关系表的内容
-        CommonUtils.showMask();
+        UiUtils.showMask();
         this.setEditable(false);
         if (!mapKeyAndValue || $.isEmptyObject(mapKeyAndValue)) {
             this.clearTree();
-            CommonUtils.hideMask();
+            UiUtils.hideMask();
             this.lastRrid = null;
             return;
         }
@@ -98,7 +99,7 @@ export class RightRelation<T extends PageDetailDto> extends AbstractManagedCusto
                     if (handleResult.success) {
                         this.initMapData(handleResult.data as any);
                     }
-                    CommonUtils.hideMask();
+                    UiUtils.hideMask();
                 });
             }
         }));

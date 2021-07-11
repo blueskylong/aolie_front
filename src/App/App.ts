@@ -1,6 +1,5 @@
 import {MainFrame} from "../home/MainFrame";
 import {IMainFrame} from "./IMainFrame";
-import {MenuFunction} from "../blockui/MenuFunction";
 import {CommonUtils} from "../common/CommonUtils";
 import {SchemaFactory} from "../datamodel/SchemaFactory";
 import BaseUI from "../uidesign/view/BaseUI";
@@ -14,6 +13,12 @@ import {BeanFactory} from "../decorator/decorator";
 import {RoleDto} from "../sysfunc/right/RoleDto";
 
 export class App {
+    static homePageClass: { new(...args: Array<any>): any };
+
+    static setHomePage(homePageClass: { new(...args: Array<any>): any }) {
+        App.homePageClass = homePageClass;
+    }
+
     //设置超时时间： 20分钟
     private static timeToLogout = 20 * 60 * 1000;
     //开始计时时间
@@ -24,10 +29,11 @@ export class App {
     private mainFrame: IMainFrame;
     //登录
     private login: BaseUI<any>;
-    //最后显示的功能
-    private lastFunc: MenuFunction<any>;
+
     //是否放弃处理变动事件
     private maskChange = false;
+
+    private lastMenuId = null;
 
     start() {
         let i = 0;
@@ -55,13 +61,7 @@ export class App {
                 this.maskChange = false;
                 return;
             }
-            if (this.lastFunc) {
-                if (!this.lastFunc.beforeClose()) {
-                    this.maskChange = true;
-                    window.location = e.oldURL;
-                    return;
-                }
-            }
+
             if (GlobalParams.isLogin()) {
                 this.showFunc(e.newURL.substr(e.newURL.lastIndexOf("#") + 1) as number);
             } else {
@@ -76,6 +76,7 @@ export class App {
      * @param menuId
      */
     private showFunc(menuId) {
+        this.lastMenuId = menuId;
         if (this.mainFrame == null) {
             this.createFrame();
         }
@@ -96,7 +97,7 @@ export class App {
         if (this.mainFrame) {
             this.mainFrame.destroy();
         }
-        this.mainFrame = new MainFrame({});
+        this.mainFrame = new MainFrame({homePageClass: App.homePageClass});
         let $body = $("body");
         $body.children().remove();
         $body.append(this.mainFrame.getViewUI());
@@ -118,8 +119,6 @@ export class App {
             this.createFrame();
         }
         this.showFunc(menuId);
-
-
     }
 
     protected getLocationMenu() {
@@ -131,6 +130,9 @@ export class App {
     }
 
     public showLogin(menuId?: number) {
+        if (!menuId && this.lastMenuId) {
+            menuId = this.lastMenuId;
+        }
         if (this.mainFrame != null) {
             this.mainFrame.destroy();
             this.mainFrame = null;
@@ -138,6 +140,7 @@ export class App {
         if (this.login) {
             this.login.destroy();
         }
+
         this.login = this.createLoginForm(menuId);
         let $body = $("body");
         $body.children().remove();
@@ -203,8 +206,10 @@ export class App {
                     this.showSelectRole(menuId);
                     return;
                 }
+
                 ApplicationEventCenter.fireEvent(ApplicationEventCenter.LOGIN_SUCCESS);
-                this.showMainFrame(menuId);
+                this.refreshFrame(menuId);
+                // this.showMainFrame(menuId);
             }
         });
     }

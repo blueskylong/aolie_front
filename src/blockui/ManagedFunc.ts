@@ -46,6 +46,7 @@ export class ManagedFunc<T extends MenuInfo> extends MenuFunction<T> {
         this.page.addReadyListener((source) => {
             this.managedUiCenter.registerManagedUI(this.page.getSubManagedUI());
             this.fireReadyEvent();
+            this.uiReady();
         });
         this.isValid = true;
     }
@@ -62,7 +63,20 @@ export class ManagedFunc<T extends MenuInfo> extends MenuFunction<T> {
         if (this.page) {
             return this.page.findSubUI(controlCode);
         }
+        return null;
     }
+
+    /**
+     * 根据类型查询页面元素
+     * @param _Constructor
+     */
+    findSubUIByType(_Constructor: Function): AutoManagedUI {
+        if (this.page) {
+            return this.page.findSubUIByType(_Constructor);
+        }
+        return null;
+    }
+
 
     getButton(): Array<MenuButtonDto> {
         if (!this.properties.getLstBtns()) {

@@ -5,6 +5,7 @@ import {CommonUtils} from "../../common/CommonUtils";
 import {SchemaFactory} from "../../datamodel/SchemaFactory";
 import {StringMap} from "../../common/StringMap";
 import {TableInfo} from "../../datamodel/DmRuntime/TableInfo";
+import {ComponentDto} from "../../uidesign/dto/ComponentDto";
 
 export class BlockViewer {
 
@@ -28,6 +29,53 @@ export class BlockViewer {
             this.lstComponent = new Array<Component>();
         }
         return this.lstComponent;
+    }
+
+    findComponent(compId) {
+        if (!this.lstComponent) {
+            return null;
+        }
+        for (let component of this.lstComponent) {
+            if (component.getComponentDto().componentId == compId) {
+                return component;
+            }
+        }
+        return null;
+    }
+
+    deleteComp(compId) {
+        if (!this.lstComponent) {
+            return;
+        }
+        let comp: Component;
+        for (let i = 0; i < this.lstComponent.length; i++) {
+            comp = this.lstComponent[i];
+            if (comp.getComponentDto().componentId == compId) {
+                this.lstComponent.splice(i, 1);
+                return;
+            }
+        }
+    }
+
+    getAllComponentDto(): Array<ComponentDto> {
+        if (!this.lstComponent) {
+            return null;
+        }
+        let lstResult = new Array<ComponentDto>();
+        for (let component of this.lstComponent) {
+            lstResult.push(component.getComponentDto());
+        }
+        return lstResult;
+    }
+
+    setShowSearch(isShow) {
+        if (!this.lstComponent) {
+            return null;
+        }
+        let showSearch = isShow ? 1 : 0;
+        for (let component of this.lstComponent) {
+            component.getComponentDto().showSearch = showSearch;
+        }
     }
 
     @PopulateBean(Component)

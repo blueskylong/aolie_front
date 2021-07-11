@@ -58,6 +58,47 @@ export class ManagedPage<T extends PageUIInfo> extends PageUI<T> {
         return null;
     }
 
+    /**
+     * 根据类型查询页面元素
+     * @param _Constructor
+     */
+    findSubUIByType(_Constructor: Function): AutoManagedUI {
+        if (CommonUtils.isEmpty(_Constructor)) {
+            return null;
+        }
+        for (let subComp of this.lstBaseUI) {
+            if (ManagedPage.isAutoManagedUI(subComp)) {
+                if (subComp instanceof _Constructor) {
+                    return subComp as any;
+                }
+            } else if (subComp instanceof ManagedPage) {
+                let result = subComp.findSubUIByType(_Constructor);
+                if (result) {
+                    return result;
+                }
+            }
+        }
+        return null;
+    }
+
+    addReadyListener(handler: (source: any) => void) {
+        super.addReadyListener(handler);
+        //这里增加检查,进一步提示,界面的完成数量
+        setTimeout(() => {
+            if (this.isReady()) {
+                return;
+            }
+            if (this.lstBaseUI) {
+                for (let baseUi of this.lstBaseUI) {
+                    if (!baseUi.isReady()) {
+                        console.log(baseUi);
+                        console.log("错误！！以上界面没有完成！，请检查是不是没有发出完成事件（this.fireReadyEvent(any)）。")
+                    }
+                }
+            }
+        }, 4000);
+    }
+
     static getManagedInstance(pageId, pageDetail: PageDetailDto, version?) {
         let blockDto = new PageInfoDto();
         blockDto.pageId = pageId;

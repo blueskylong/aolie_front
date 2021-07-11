@@ -1,0 +1,17 @@
+.block-home-page .refresh-button {
+    position: absolute;
+    right: 40px;
+    font-size: large;
+    margin: 20px 40px 20px 20px;
+    color: #1E90FF;
+    z-index: 2;
+    cursor: pointer;
+}
+
+.block-home-page .refresh-button:hover {
+    color: OrangeRed;
+}
+
+.block-home-page .widget-box {
+    border: #e5e5e5 10px solid;
+}

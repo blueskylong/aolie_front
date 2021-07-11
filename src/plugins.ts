@@ -3,6 +3,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 import 'split-pane';
 import "babel-polyfill";
 import "font-awesome/css/font-awesome.min.css";
+
 import "jquery-contextmenu/dist/jquery.contextMenu";
 import "jquery-contextmenu/dist/jquery.contextMenu.css";
 import "jquery-contextmenu/dist/jquery.ui.position.min";

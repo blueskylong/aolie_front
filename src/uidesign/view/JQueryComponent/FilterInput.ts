@@ -84,7 +84,8 @@ export class FilterInput<T extends Component> extends TextInput<T> {
         //         this.doTrans();
         //     }
         // });
-        this.setEditable(false);
+        // this.setEditable(false);
+        this.editor.attr("readonly", "readonly")
     }
 
     getRequireExtendDataName(): Array<string> {
@@ -100,12 +101,11 @@ export class FilterInput<T extends Component> extends TextInput<T> {
 
     setEditable(editable: boolean) {
         this.editable = editable;
-        this.editor.attr("readonly", "readonly")
+
     }
 
     setEnable(enable: boolean) {
         this.enabled = enable;
-        this.editor.attr("readonly", "readonly")
     }
 
     isNeedTrans(): boolean {

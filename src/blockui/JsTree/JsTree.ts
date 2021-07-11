@@ -205,6 +205,9 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         if (!this.properties.url) {
             this.setValue(null);
         }
+        if (this.properties.showSearch) {
+            this.$jsTree.css("height", "calc(100%-60px)")
+        }
         this.createToolbar();
     }
 
@@ -289,10 +292,19 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         });
 
         this.$jsTree.on("select_node.jstree", (event, data) => {
-            if (this.currentNode === data.node) {
+            //有些地方可能出问题
+            if (this.currentNode === data.node && !this.properties.multiSelect) {
                 return;
             }
             this.currentNode = data.node;
+            this.fireSelectChangeListener(data.node.data);
+        });
+        this.$jsTree.on("deselect_node.jstree", (event, data) => {
+            //有些地方可能出问题
+            if (this.currentNode === data.node && !this.properties.multiSelect) {
+                return;
+            }
+            this.currentNode = null;
             this.fireSelectChangeListener(data.node.data);
         });
 
@@ -469,11 +481,18 @@ export class JsTree<T extends JsTreeInfo> extends BaseComponent<T> {
         }
         let map = new StringMap<any>();
         //先收集所有的编辑数据
+        let emptyLevelPro = new CodeLevelProvider();
+        emptyLevelPro.setCurCode("900");
         if (data) {
             let codeField = this.properties.codeField;
             let idField = this.properties.idField;
             for (let row of data) {
-                map.set(row[codeField], row[idField]);
+                let lvlCode = row[codeField];
+                if (!lvlCode) {
+                    lvlCode = emptyLevelPro.getNext();
+                    row[codeField] = lvlCode;
+                }
+                map.set(lvlCode, row[idField]);
             }
             //按编码排序
             data.sort((row1, row2) => {

@@ -26,6 +26,7 @@ import {Toolbar, ToolbarInfo} from "../../uidesign/view/JQueryComponent/Toolbar"
 import {GeneralEventListener} from "../../blockui/event/GeneralEventListener";
 import {DmConstants} from "../../datamodel/DmConstants";
 import {Logger} from "../../common/Logger";
+import {UiUtils} from "../../common/UiUtils";
 
 
 export default class SchemaView extends DmDesignBaseView<SchemaDto> implements AttrChangeListener {
@@ -184,7 +185,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
     }
 
     saveSchema() {
-        CommonUtils.showMask();
+        UiUtils.showMask();
         try {
             this.schema.prepareData();
             if (this.tables) {
@@ -193,7 +194,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
                 }
             }
             if (!this.check()) {
-                CommonUtils.hideMask();
+                UiUtils.hideMask();
                 return;
             }
 
@@ -213,10 +214,10 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
                     }
                     // this.refresh();
                 }
-                CommonUtils.hideMask();
+                UiUtils.hideMask();
             })
         } catch (e) {
-            CommonUtils.hideMask();
+            UiUtils.hideMask();
             Logger.error(e.message);
         }
     }
@@ -395,7 +396,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
             this.ready = true;
             return;
         }
-        CommonUtils.showMask();
+        UiUtils.showMask();
         DmService.findSchemaInfo(this.properties.schemaId, this.properties.versionCode)
             .then((result) => {
                 try {
@@ -417,7 +418,7 @@ export default class SchemaView extends DmDesignBaseView<SchemaDto> implements A
                     }
                     this.setTitle(schema.getSchemaDto().schemaName);
                 } finally {
-                    CommonUtils.hideMask();
+                    UiUtils.hideMask();
                 }
 
             });

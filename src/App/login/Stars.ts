@@ -3,6 +3,7 @@ export class Stars {
     private static maxHeight = 0;
     private static stars: Array<Star>;
     private static ctx;
+    private static amimateionId: number;
 
     static randomInt(min) {
         return Math.floor(Math.random() * 255 + min);
@@ -25,10 +26,16 @@ export class Stars {
         Stars.ctx.lineWidth = 0.3;
         Stars.ctx.strokeStyle = RandomColor.genRandomColor(150);
         Stars.stars = Stars.createStars(Stars.maxWidth, Stars.maxHeight);
-        requestAnimationFrame(Stars.animateDots);
+        Stars.amimateionId = requestAnimationFrame(Stars.animateDots);
 
         //生成流星
-        SuperStar.start(canvas);
+        SuperStar.start(canvas, true);
+    }
+
+    static stop() {
+        window.cancelAnimationFrame(Stars.amimateionId);
+        Stars.stars = [];
+        SuperStar.stop();
     }
 
     static positionChanged(x, y) {
@@ -58,12 +65,18 @@ export class Stars {
     }
 
     static moveDots(stars: Array<Star>) {
+        if (!stars) {
+            return;
+        }
         for (let star of stars) {
             star.move();
         }
     }
 
     static connectDots(stars: Array<Star>) {
+        if (!stars) {
+            return;
+        }
         for (let i = 0; i < stars.length; i++) {
             for (let j = 0; j < stars.length; j++) {
                 let iStar = stars[i];
@@ -204,20 +217,26 @@ class SuperStar {
     private stepY: number;
     //帧样式的名称
     private frameName: string;
+    private static sleep: number = 2000;
 
-
-    public static start($container: JQuery) {
+    public static start($container: JQuery, isBegin = false) {
+        if (!isBegin && SuperStar.sleep < 0) {
+            return;
+        }
         SuperStar.initColor();
-        let sleep = SuperStar.random(200, 20000);
+        SuperStar.sleep = SuperStar.random(200, 20000);
         if (SuperStar.count <= SuperStar.maxCount) {
             new SuperStar().start($container);
         }
-
         setTimeout(() => {
             SuperStar.start($container);
-        }, sleep);
+        }, SuperStar.sleep);
         return;
 
+    }
+
+    public static stop() {
+        SuperStar.sleep = -1;
     }
 
     private static initColor() {
@@ -249,14 +268,13 @@ class SuperStar {
         let col = SuperStar.COLORS[SuperStar.random(0, SuperStar.COLORS.length - 1)]
         this.rgbaColor = "rgba(" + col + "," + (SuperStar.random(3, 8) / 10) + ")";
         this.rgbColor = "rgb(" + col + ")";
-        this.speed = SuperStar.random(5, 10);
+        this.speed = SuperStar.random(1, 10);
         this.maxDistance = Math.abs($(document.body).height() / Math.sin(-this.angle * (Math.PI / 180))) / 1.5 + 200;
         //每一步走的路
         let step = Math.round(this.maxDistance / 5);
-        this.stepX = Math.round(step * Math.cos(-this.angle * (Math.PI / 180)));
+        this.stepX = Math.round(step * Math.cos(-this.angle * (Math.PI / 180)))-1;
         this.stepY = Math.abs(Math.round(step * Math.sin(-this.angle * (Math.PI / 180))));
-        // console.log(JSON.stringify(this));
-        // console.log(this.createFrame());
+
     }
 
     private show(canvas: JQuery) {
@@ -344,6 +362,7 @@ class RandomColor {
         color.b = Stars.randomInt(min);
         return color;
     }
+
     public getR() {
         return this.r;
     }

@@ -21,6 +21,7 @@ import {JQueryGeneralComponentGenerator} from "../uidesign/view/JQueryComponent/
 import {MenuInfo} from "../sysfunc/menu/dto/MenuInfo";
 import {MenuButtonDto} from "../sysfunc/menu/dto/MenuButtonDto";
 import {DmConstants} from "../datamodel/DmConstants";
+import {UiUtils} from "../common/UiUtils";
 
 @MenuFunc("PageDesign")
 export default class PageDesign<T extends MenuInfo> extends MenuFunction<T> {
@@ -90,7 +91,7 @@ export default class PageDesign<T extends MenuInfo> extends MenuFunction<T> {
         this.designPanel = new BorderDesignPanel(BorderLayoutProperty.genDefaultFullProperty());
 
         this.addDialog = new InputDlg({
-            title: "增加页面", inputTitle: "页面名称", isCanEmpty: false, onOk: (value) => {
+            title: "增加页面", inputTitle: "页面名称", isCanEmpty: false, destroyOnClose: false, onOk: (value) => {
                 let parentId = null;
                 if (this.pageTree.getCurrentData()) {
                     parentId = this.pageTree.getCurrentData().pageId;
@@ -176,7 +177,7 @@ export default class PageDesign<T extends MenuInfo> extends MenuFunction<T> {
         if (this.pageTree.isSelectRoot() || !this.pageTree.getCurrentNode()) {
             return;
         }
-        CommonUtils.showMask();
+        UiUtils.showMask();
         try {
 
             let pageInfoDto = BeanFactory.populateBean(PageInfoDto, this.fPage.getValue());
@@ -187,20 +188,20 @@ export default class PageDesign<T extends MenuInfo> extends MenuFunction<T> {
             let err = this.checkPage(pageInfo);
             if (err) {
                 Alert.showMessage("数据不正确!" + err);
-                CommonUtils.hideMask();
+                UiUtils.hideMask();
                 return;
             }
             PageService.savePageFullInfo(pageInfo, (data) => {
                 this.pageTree.reload();
 
                 this.pageTree.selectNodeById(pageInfoDto.pageId);
-                CommonUtils.hideMask();
+                UiUtils.hideMask();
                 Alert.showMessage("保存成功");
 
             });
 
         } catch (e) {
-            CommonUtils.hideMask();
+            UiUtils.hideMask();
         }
     }
 
@@ -224,7 +225,7 @@ export default class PageDesign<T extends MenuInfo> extends MenuFunction<T> {
                         if (curId) {
 
                             this.pageTree.selectNodeById(curId);
-                            CommonUtils.hideMask();
+                            UiUtils.hideMask();
                             Alert.showMessage("保存成功");
 
                         }

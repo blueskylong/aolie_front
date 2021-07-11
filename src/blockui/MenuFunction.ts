@@ -35,6 +35,13 @@ export abstract class MenuFunction<T extends MenuInfo> extends BaseUI<T> {
 
     }
 
+    /**
+     * 这个是给子类一个处理额外操作的接口，在界面完成后调用
+     */
+    protected uiReady() {
+
+    }
+
 }
 
 

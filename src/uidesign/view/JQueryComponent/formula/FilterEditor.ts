@@ -100,18 +100,20 @@ export class FilterEditor<T extends FilterEditorProperty> extends BaseComponent<
             this.textArea.getEditor().trigger("focus");
             this.textArea.getEditor().trigger("click");
         });
-        this.fieldTree.addReadyListener(() => {
-            this.fieldTree.setValue(this.extractTreeInData());
-        });
-        this.fieldTree.addDblClick({
-            handleEvent: (eventType: string, node: any, source: any, extObject?: any) => {
-                if (!node || node.type === FilterEditor.TYPE_TABLE) {
-                    return;
+        if (this.fieldTree) {
+            this.fieldTree.addReadyListener(() => {
+                this.fieldTree.setValue(this.extractTreeInData());
+            });
+            this.fieldTree.addDblClick({
+                handleEvent: (eventType: string, node: any, source: any, extObject?: any) => {
+                    if (!node || node.type === FilterEditor.TYPE_TABLE) {
+                        return;
+                    }
+                    let str = this.createStrBydTreeData(node.data);
+                    this.insertText(str);
                 }
-                let str = this.createStrBydTreeData(node.data);
-                this.insertText(str);
-            }
-        })
+            })
+        }
     }
 
     private createStrBydTreeData(data) {

@@ -8,6 +8,7 @@ import {BeanFactory} from "../decorator/decorator";
 import {HandleResult} from "./HandleResult";
 import {StringMap} from "./StringMap";
 import {GlobalParams} from "./GlobalParams";
+import {UiUtils} from "./UiUtils";
 
 export class CommonUtils {
     static ID_SER = -1;
@@ -33,6 +34,29 @@ export class CommonUtils {
     static isEmpty(obj: any) {
         let str = typeof obj;
         return str === "undefined" || obj == null || "" === obj;
+    }
+
+    static isEquals(obj1: Object, obj2: Object) {
+        if (!obj1 && !obj2) {
+            return true;
+        }
+        if (!obj1 || !obj2) {
+            return false;
+        }
+        // 当前Object对象
+        let propsCurr = Object.getOwnPropertyNames(obj1);
+        // 要比较的另外一个Object对象
+        let propsCompare = Object.getOwnPropertyNames(obj2);
+        if (propsCurr.length != propsCompare.length) {
+            return false;
+        }
+        for (var i = 0, max = propsCurr.length; i < max; i++) {
+            var propName = propsCurr[i];
+            if (obj1[propName] !== obj2[propName]) {
+                return false;
+            }
+        }
+        return true;
     }
 
 
@@ -101,13 +125,6 @@ export class CommonUtils {
         }, 100);
     }
 
-    static showMask() {
-        $(".mask-panel").modal("show");
-    }
-
-    static hideMask() {
-        $(".mask-panel").modal("hide");
-    }
 
     static isNumber(value) {
         if (typeof value === "undefined" || value == null || value == "") {
@@ -142,17 +159,22 @@ export class CommonUtils {
         return offsetLeft;
     }
 
-    static handleResponse(promise: Promise<any>, callBack?: (data: HandleResult | any) => void) {
+    static handleResponse(promise: Promise<any>, callBack?: (data: HandleResult | any) => void,
+                          errCallback?: (message) => void) {
         promise.then((result) => {
             CommonUtils.handleResult(result, callBack);
         }).catch((e) => {
-            CommonUtils.hideMask();
+            UiUtils.hideMask();
             if (e.message == "Request failed with status code 401") {
                 Alert.showMessage("登录信息过期,请重新登录");
                 GlobalParams.getApp().showLogin();
                 return;
             }
-            Alert.showMessage("访问服务器出现异常,操作失败!");
+            if (errCallback) {
+                errCallback(e.message);
+            } else {
+                Alert.showMessage("访问服务器出现异常,操作失败!");
+            }
             CommonUtils.log(e.status, e.statusText, e.data);
         });
     }
@@ -174,6 +196,7 @@ export class CommonUtils {
                                 return;
                             }
                             Alert.showMessage("操作失败:" + handleResult.err);
+                            UiUtils.hideMask();
                             Logger.error(handleResult.err);
                             return;
                         }

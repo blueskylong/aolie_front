@@ -21,6 +21,9 @@ import {MenuInfo} from "../sysfunc/menu/dto/MenuInfo";
 import {MenuFunction} from "../blockui/MenuFunction";
 import {MenuButtonDto} from "../sysfunc/menu/dto/MenuButtonDto";
 import {DmConstants} from "../datamodel/DmConstants";
+import {UiUtils} from "../common/UiUtils";
+import {StringMap} from "../common/StringMap";
+import {SchemaFactory} from "../datamodel/SchemaFactory";
 
 @MenuFunc("BlockDesign")
 export default class BlockDesign<T extends MenuInfo> extends MenuFunction<T> {
@@ -108,9 +111,7 @@ export default class BlockDesign<T extends MenuInfo> extends MenuFunction<T> {
         this.schemaSelect = <Select<any>>this.generator.generateComponent(compInfo.getComponentDto().dispType,
             compInfo, $ele.find(".block-tree").get(0), {
                 handleEvent: (eventType: string, field: any, value: any, extObject?: any) => {
-                    this.schemaId = value;
-                    this.blockTree.reload();
-                    this.clearAttrShow();
+                    this.schemaSelectChanged(value);
                 }
             });
         $ele.find(".block-tree").append(this.schemaSelect.getViewUI());
@@ -165,6 +166,12 @@ export default class BlockDesign<T extends MenuInfo> extends MenuFunction<T> {
     afterComponentAssemble(): void {
         this.bindEvent();
         this.fireReadyEvent();
+        setTimeout(() => {
+            this.schemaSelect.setValue(DmConstants.DefaultSchemaIDs.DEFAULT_BS_SCHEMA);
+            this.schemaSelectChanged(DmConstants.DefaultSchemaIDs.DEFAULT_BS_SCHEMA);
+
+        }, 300);
+
     }
 
     private bindEvent() {
@@ -258,11 +265,20 @@ export default class BlockDesign<T extends MenuInfo> extends MenuFunction<T> {
                 this.blockTree.reload();
                 if (curId) {
                     this.blockTree.selectNodeById(curId);
-                    CommonUtils.hideMask();
+                    UiUtils.hideMask();
                 }
             });
         }
         return true;
+    }
+
+    private schemaSelectChanged(schemaId: number) {
+        this.schemaId = schemaId;
+        this.blockTree.reload();
+        this.clearAttrShow();
+        let mapParam = new StringMap();
+        mapParam.set("schema", SchemaFactory.getSchema(this.schemaId, GlobalParams.getLoginVersion()));
+        this.fColAttr.setExtendData(mapParam)
     }
 
     private makeLevel(codePro: CodeLevelProvider, node, obj) {

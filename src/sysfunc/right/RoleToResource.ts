@@ -18,11 +18,12 @@ import {UserService} from "../user/service/UserService";
 import {UserRightService} from "./service/UserRightService";
 import {CommonUtils} from "../../common/CommonUtils";
 import {AbstractManagedCustomPanel} from "../../blockui/managedView/AbstractManagedCustomPanel";
+import {UiUtils} from "../../common/UiUtils";
 
 /**
  * 角色授权下方的相关的权限资源,必须是对对应关系的
  */
-@CustomUi()
+@CustomUi("RoleToResource")
 export class RoleToResource<T extends PageDetailDto> extends AbstractManagedCustomPanel<T> {
     public static RIGHT_RELATION_TABLE = "aolie_s_right_relation_detail";
 
@@ -107,7 +108,7 @@ export class RoleToResource<T extends PageDetailDto> extends AbstractManagedCust
 
     private initSelection(roleId) {
         try {
-            CommonUtils.showMask();
+            UiUtils.showMask();
             this.menuBtn.setRole(roleId);
             if (this.lstTree && this.lstTree.length > 0) {
                 this.mapTree.forEach((key, tree, map) => {
@@ -118,7 +119,7 @@ export class RoleToResource<T extends PageDetailDto> extends AbstractManagedCust
                 });
             }
         } finally {
-            CommonUtils.hideMask();
+            UiUtils.hideMask();
         }
     }
 

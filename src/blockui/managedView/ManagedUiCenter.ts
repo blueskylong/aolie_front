@@ -88,13 +88,13 @@ export class ManagedUiCenter implements IManageCenter {
     attrChanged(source: any, tableId, mapKeyAndValue, field, value) {
         //暂时不做分发处理,影响取消操作
         //首先取得此数据相关的视图,然后通知
-        // let relationUIs = this.getRelationUIs(tableId);
-        // for (let ui of relationUIs) {
-        //     if (ui == source) {
-        //         continue;
-        //     }
-        //     ui.attrChanged(source, tableId, mapKeyAndValue, field, value);
-        // }
+        let relationUIs = this.getRelationUIs(tableId);
+        for (let ui of relationUIs) {
+            if (ui == source) {
+                continue;
+            }
+            ui.attrChanged(source, tableId, mapKeyAndValue, field, value);
+        }
     }
 
     dataChanged(source: any, tableId, mapKeyAndValue, changeType) {
